@@ -2,8 +2,8 @@
 
 ## Completed stages
 
-- Stage 1 — Foundation.
-- Stage 2 — Core entities: database schema and migration for areas, goals, milestones, projects, work items, work-item types, custom-field definitions/values, tags, entity tags, and notes. Areas/goals/projects/work items have validated IPC, local services, and a minimal connected UI.
+- Stage 1 — Foundation: remediation in progress. The stage now has `profiles`, settings, secure Electron, local database and migration runner, but reusable UI primitives, a single renderer IPC wrapper/error shape, and fully translated UI text remain incomplete.
+- Stage 2 — Core entities: remediation in progress. The schema now covers the entity model and built-in work-item type seeds; UI/service coverage is still incomplete for milestones, types and custom fields, tags, notes, edits, restore, and entity detail views.
 
 ## How to run
 
@@ -44,8 +44,9 @@ Migrations `0000_foundation` and `0001_core_entities` create settings and the St
 
 ## Known limitations
 
-- Milestones, work item types, custom fields, tags, and notes have schema support but their editing UI arrives in a later refinement of Stage 2.
+- Stages 1 and 2 are not yet definition-of-done complete; do not begin Stage 3.
+- See the current source audit in the conversation before treating either stage as complete.
 
 ## Next stage
 
-Stage 3 — resources, resource items, bulk entry, ordering modes, dependencies, and cycle detection.
+Complete the remaining Stage 1/2 definition-of-done items, then proceed to Stage 3 only on explicit instruction.
