@@ -154,6 +154,21 @@ const api = {
     exportJson: () => ipcRenderer.invoke('backup:export-json', undefined),
     restore: (jsonData: string) => ipcRenderer.invoke('backup:restore', { jsonData }),
     createDb: (destPath?: string) => ipcRenderer.invoke('backup:create-db', destPath ? { destPath } : undefined)
+  },
+  reviews: {
+    listPolicies: () => ipcRenderer.invoke('review-policies:list', undefined),
+    createPolicy: (input: unknown) => ipcRenderer.invoke('review-policies:create', input),
+    updatePolicy: (input: unknown) => ipcRenderer.invoke('review-policies:update', input),
+    deletePolicy: (id: string) => ipcRenderer.invoke('review-policies:delete', { id }),
+    attachPolicy: (itemKind: 'workItem' | 'resourceItem', itemId: string, policyId: string) =>
+      ipcRenderer.invoke('review:attach', { itemKind, itemId, policyId }),
+    detachPolicy: (itemKind: 'workItem' | 'resourceItem', itemId: string) =>
+      ipcRenderer.invoke('review:detach', { itemKind, itemId }),
+    recordEvent: (input: unknown) => ipcRenderer.invoke('review-events:record', input),
+    listEvents: (filter?: { workItemId?: string; resourceItemId?: string }) =>
+      ipcRenderer.invoke('review-events:list', filter),
+    getDue: (nowMs?: number) => ipcRenderer.invoke('review:get-due', nowMs ? { nowMs } : undefined),
+    syncToPlanner: (nowMs?: number) => ipcRenderer.invoke('review:sync-to-planner', nowMs ? { nowMs } : undefined)
   }
 }
 

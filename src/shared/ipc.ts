@@ -73,6 +73,8 @@ import type {
 import type { TimerInfoResponse } from '../main/services/timer-service'
 import type { EstimationAccuracyResult, AggregatedAccuracyResult } from './time-math'
 import type { BackupJsonExport } from '../main/services/backup-service'
+import type { ReviewPolicyData, DueReviewsFilterResult } from './review-engine'
+import type { ReviewPolicyInput, ReviewPolicyUpdateInput, ReviewEventInput } from '../main/services/review-service'
 
 export const ipcChannels = {
   settingsGet: 'settings:get',
@@ -191,6 +193,18 @@ export const ipcChannels = {
   backupExportJson: 'backup:export-json',
   backupRestore: 'backup:restore',
   backupCreateDb: 'backup:create-db',
+
+  // Stage 08 Channels: Review System
+  reviewPoliciesList: 'review-policies:list',
+  reviewPoliciesCreate: 'review-policies:create',
+  reviewPoliciesUpdate: 'review-policies:update',
+  reviewPoliciesDelete: 'review-policies:delete',
+  reviewAttach: 'review:attach',
+  reviewDetach: 'review:detach',
+  reviewEventsRecord: 'review-events:record',
+  reviewEventsList: 'review-events:list',
+  reviewGetDue: 'review:get-due',
+  reviewSyncToPlanner: 'review:sync-to-planner',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -363,6 +377,48 @@ export const ipcSchemas = {
   [ipcChannels.backupExportJson]: z.undefined(),
   [ipcChannels.backupRestore]: z.object({ jsonData: z.string() }),
   [ipcChannels.backupCreateDb]: z.object({ destPath: z.string().optional() }).optional(),
+
+  // Stage 08: Review System
+  [ipcChannels.reviewPoliciesList]: z.undefined(),
+  [ipcChannels.reviewPoliciesCreate]: z.object({
+    name: z.string().trim().min(1),
+    intervalStrategy: z.string().optional(),
+    intervalDays: z.union([z.array(z.number()), z.string()]).optional(),
+    shortenOnWeak: z.boolean().optional(),
+    enabled: z.boolean().optional()
+  }),
+  [ipcChannels.reviewPoliciesUpdate]: z.object({
+    id: z.string().uuid(),
+    name: z.string().trim().min(1).optional(),
+    intervalStrategy: z.string().optional(),
+    intervalDays: z.union([z.array(z.number()), z.string()]).optional(),
+    shortenOnWeak: z.boolean().optional(),
+    enabled: z.boolean().optional()
+  }),
+  [ipcChannels.reviewPoliciesDelete]: z.object({ id: z.string().uuid() }),
+  [ipcChannels.reviewAttach]: z.object({
+    itemKind: z.enum(['workItem', 'resourceItem']),
+    itemId: z.string().uuid(),
+    policyId: z.string().uuid()
+  }),
+  [ipcChannels.reviewDetach]: z.object({
+    itemKind: z.enum(['workItem', 'resourceItem']),
+    itemId: z.string().uuid()
+  }),
+  [ipcChannels.reviewEventsRecord]: z.object({
+    workItemId: z.string().uuid().optional().nullable(),
+    resourceItemId: z.string().uuid().optional().nullable(),
+    reviewedAt: z.number().optional(),
+    durationMinutes: z.number().optional(),
+    result: z.enum(['strong', 'good', 'weak']).optional().nullable(),
+    notes: z.string().optional().nullable()
+  }),
+  [ipcChannels.reviewEventsList]: z.object({
+    workItemId: z.string().uuid().optional(),
+    resourceItemId: z.string().uuid().optional()
+  }).optional(),
+  [ipcChannels.reviewGetDue]: z.object({ nowMs: z.number().optional() }).optional(),
+  [ipcChannels.reviewSyncToPlanner]: z.object({ nowMs: z.number().optional() }).optional(),
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -542,5 +598,17 @@ export type PlannerApi = {
     exportJson: () => Promise<BackupJsonExport>
     restore: (jsonData: string) => Promise<void>
     createDb: (destPath?: string) => Promise<string>
+  }
+  reviews: {
+    listPolicies: () => Promise<ReviewPolicyData[]>
+    createPolicy: (input: ReviewPolicyInput) => Promise<ReviewPolicyData>
+    updatePolicy: (input: ReviewPolicyUpdateInput) => Promise<ReviewPolicyData>
+    deletePolicy: (id: string) => Promise<void>
+    attachPolicy: (itemKind: 'workItem' | 'resourceItem', itemId: string, policyId: string) => Promise<void>
+    detachPolicy: (itemKind: 'workItem' | 'resourceItem', itemId: string) => Promise<void>
+    recordEvent: (input: ReviewEventInput) => Promise<any>
+    listEvents: (filter?: { workItemId?: string; resourceItemId?: string }) => Promise<any[]>
+    getDue: (nowMs?: number) => Promise<DueReviewsFilterResult>
+    syncToPlanner: (nowMs?: number) => Promise<string[]>
   }
 }

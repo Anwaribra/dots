@@ -107,6 +107,18 @@ import {
   restoreJsonData,
   createDatabaseBackupFile
 } from './services/backup-service'
+import {
+  attachReviewPolicy,
+  createReviewPolicy,
+  deleteReviewPolicy,
+  detachReviewPolicy,
+  ensureDueReviewsAsWorkItems,
+  getDueReviewsList,
+  listReviewEvents,
+  listReviewPolicies,
+  recordReviewEvent,
+  updateReviewPolicy
+} from './services/review-service'
 
 let mainWindow: BrowserWindow | undefined
 
@@ -438,6 +450,45 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.backupCreateDb, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.backupCreateDb].parse(input)
     return createDatabaseBackupFile(parsed?.destPath)
+  })
+
+  // Stage 08: Review System
+  ipcMain.handle(ipcChannels.reviewPoliciesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.reviewPoliciesList].parse(input)
+    return listReviewPolicies()
+  })
+  ipcMain.handle(ipcChannels.reviewPoliciesCreate, (_event, input: unknown) => {
+    return createReviewPolicy(ipcSchemas[ipcChannels.reviewPoliciesCreate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.reviewPoliciesUpdate, (_event, input: unknown) => {
+    return updateReviewPolicy(ipcSchemas[ipcChannels.reviewPoliciesUpdate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.reviewPoliciesDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewPoliciesDelete].parse(input)
+    deleteReviewPolicy(parsed.id)
+  })
+  ipcMain.handle(ipcChannels.reviewAttach, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewAttach].parse(input)
+    attachReviewPolicy(parsed.itemKind, parsed.itemId, parsed.policyId)
+  })
+  ipcMain.handle(ipcChannels.reviewDetach, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewDetach].parse(input)
+    detachReviewPolicy(parsed.itemKind, parsed.itemId)
+  })
+  ipcMain.handle(ipcChannels.reviewEventsRecord, (_event, input: unknown) => {
+    return recordReviewEvent(ipcSchemas[ipcChannels.reviewEventsRecord].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.reviewEventsList, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewEventsList].parse(input)
+    return listReviewEvents(parsed || {})
+  })
+  ipcMain.handle(ipcChannels.reviewGetDue, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewGetDue].parse(input)
+    return getDueReviewsList(parsed?.nowMs)
+  })
+  ipcMain.handle(ipcChannels.reviewSyncToPlanner, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.reviewSyncToPlanner].parse(input)
+    return ensureDueReviewsAsWorkItems(parsed?.nowMs)
   })
 }
 

@@ -19,6 +19,8 @@ import {
   projects,
   resourceItems,
   resources,
+  reviewEvents,
+  reviewPolicies,
   routines,
   scheduledItems,
   settings,
@@ -59,6 +61,8 @@ export type BackupJsonExport = {
     habitLogs: any[]
     scheduledItems: any[]
     timeSessions: any[]
+    reviewPolicies: any[]
+    reviewEvents: any[]
   }
 }
 
@@ -92,7 +96,9 @@ export function exportJsonData(): BackupJsonExport {
       habits: db.select().from(habits).all(),
       habitLogs: db.select().from(habitLogs).all(),
       scheduledItems: db.select().from(scheduledItems).all(),
-      timeSessions: db.select().from(timeSessions).all()
+      timeSessions: db.select().from(timeSessions).all(),
+      reviewPolicies: db.select().from(reviewPolicies).all(),
+      reviewEvents: db.select().from(reviewEvents).all()
     }
   }
 }
@@ -122,6 +128,7 @@ export function restoreJsonData(jsonInput: string | object): void {
 
   db.transaction((tx) => {
     // 1. Wipe existing data in reverse dependency order
+    tx.delete(reviewEvents).run()
     tx.delete(timeSessions).run()
     tx.delete(scheduledItems).run()
     tx.delete(habitLogs).run()
@@ -141,6 +148,7 @@ export function restoreJsonData(jsonInput: string | object): void {
     tx.delete(workItems).run()
     tx.delete(customFieldDefinitions).run()
     tx.delete(workItemTypes).run()
+    tx.delete(reviewPolicies).run()
     tx.delete(projects).run()
     tx.delete(milestones).run()
     tx.delete(goals).run()
@@ -155,6 +163,7 @@ export function restoreJsonData(jsonInput: string | object): void {
     for (const row of d.goals || []) tx.insert(goals).values(row).run()
     for (const row of d.milestones || []) tx.insert(milestones).values(row).run()
     for (const row of d.projects || []) tx.insert(projects).values(row).run()
+    for (const row of d.reviewPolicies || []) tx.insert(reviewPolicies).values(row).run()
     for (const row of d.workItemTypes || []) tx.insert(workItemTypes).values(row).run()
     for (const row of d.customFieldDefinitions || []) tx.insert(customFieldDefinitions).values(row).run()
     for (const row of d.workItems || []) tx.insert(workItems).values(row).run()
@@ -174,6 +183,7 @@ export function restoreJsonData(jsonInput: string | object): void {
     for (const row of d.habitLogs || []) tx.insert(habitLogs).values(row).run()
     for (const row of d.scheduledItems || []) tx.insert(scheduledItems).values(row).run()
     for (const row of d.timeSessions || []) tx.insert(timeSessions).values(row).run()
+    for (const row of d.reviewEvents || []) tx.insert(reviewEvents).values(row).run()
   })
 }
 

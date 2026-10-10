@@ -36,6 +36,13 @@
     - `tests/time-math.test.ts` — 22 pure unit tests covering all math functions, midnight-crossing, pause/resume accuracy, and aggregation.
     - `tests/session-service.test.ts` — 8 integration tests proving the `actualMinutes` cache invariant holds after create, update, delete, and multi-session scenarios.
     - `tests/backup-service.test.ts` — 12 integration tests: export round-trip, validation rejections, JSON string input, atomicity on corrupt data.
+- **Stage 8 — Basic review**: Fully completed.
+  - **Pure Review Engine** (`src/shared/review-engine.ts`): Pure deterministic calculation of next review dates (`calculateNextReviewAt`), interval days parsing (`parseIntervalDays`), status evaluation (`evaluateReviewStatus`), and due/overdue review filtering (`getDueReviews`). Shortens interval on weak recall when policy dictates (`shortenOnWeak`).
+  - **Review Service** (`src/main/services/review-service.ts`): CRUD for review policies (`review_policies`), policy attachment/detachment for work items & resource items, recording review events (`review_events` history logging with transactional item status/count sync), due/overdue item listing (`getDueReviewsList`), and conversion of due reviews into schedulable work items (`ensureDueReviewsAsWorkItems`).
+  - **Database Migration `0007_review_system.sql`**: Creates `review_policies` and `review_events` tables and adds review columns (`review_policy_id`, `last_reviewed_at`, `next_review_at`, `review_count`, `review_status`) to `work_items` and `resource_items`. Enforces Decision A14 SQL `CHECK` constraint `exactly_one_ref` on `review_events` (`workItemId` XOR `resourceItemId`).
+  - **IPC Channels**: `review-policies:list/create/update/delete`, `review:attach/detach`, `review-events:record/list`, `review:get-due`, `review:sync-to-planner`.
+  - **Review UI** (`src/renderer/src/pages/ReviewPage.tsx`): Full interactive view replacing placeholder under the `Review` sidebar item. Displays Due Reviews list with quick "Mark Reviewed" modal (result quality, duration, notes), Review Policies management (custom interval lists, shorten-on-weak toggle), Review History event log, and "Feed Due Reviews to Planner" action.
+  - **Tests**: 105 tests passing across 16 test suites, 0 TypeScript errors. `tests/review-system.test.ts` covers pure engine calculations, custom interval lists, review history preservation, weak recall interval shortening, and Decision A14 SQL `CHECK` constraint enforcement.
 
 ## How to run
 
@@ -98,9 +105,9 @@ Migrations `0000_foundation` through `0006_execution_engine` create `settings` (
 - Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`, `planning:update-schedule-item`, `planning:create-schedule-item`, `planning:delete-schedule-item`
 - Sessions: `sessions:list`, `sessions:create`, `sessions:update`, `sessions:delete`
 - Timer: `timer:get-state`, `timer:start`, `timer:pause`, `timer:resume`, `timer:stop`, `timer:complete`, `timer:add-time`
-- Accuracy: `accuracy:get-for-work-item`, `accuracy:get-overall`
 - Backup: `backup:export-json`, `backup:restore`, `backup:create-db`
+- Reviews: `review-policies:list/create/update/delete`, `review:attach/detach`, `review-events:record/list`, `review:get-due`, `review:sync-to-planner`
 
 ## Next stage
 
-- Stage 8 — Review & Reflection: Weekly review, retrospective, habit streak tracking, completion history, and reporting dashboard.
+- Stage 9 — Goal tracking: Progress calculation strategies, milestone progress rollup, metrics, and visual progress charts.

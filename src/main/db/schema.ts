@@ -31,7 +31,7 @@ export const milestones = sqliteTable('milestones', { id: text('id').primaryKey(
 export const projects = sqliteTable('projects', { id: text('id').primaryKey(), areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }), goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }), milestoneId: text('milestone_id').references(() => milestones.id, { onDelete: 'set null' }), parentProjectId: text('parent_project_id'), title: text('title').notNull(), description: text('description'), priority: text('priority').notNull().default('medium'), status: text('status').notNull().default('active'), startDate: text('start_date'), deadline: text('deadline'), estimatedMinutes: integer('estimated_minutes').notNull().default(0), completedMinutes: integer('completed_minutes').notNull().default(0), progress: integer('progress').notNull().default(0), ...audit })
 export const workItemTypes = sqliteTable('work_item_types', { id: text('id').primaryKey(), name: text('name').notNull(), builtIn: integer('built_in', { mode: 'boolean' }).notNull().default(false), color: text('color'), icon: text('icon'), sortOrder: integer('sort_order').notNull().default(0), ...audit })
 export const customFieldDefinitions = sqliteTable('custom_field_definitions', { id: text('id').primaryKey(), workItemTypeId: text('work_item_type_id').notNull().references(() => workItemTypes.id, { onDelete: 'cascade' }), name: text('name').notNull(), fieldType: text('field_type').notNull(), options: text('options'), required: integer('required', { mode: 'boolean' }).notNull().default(false), sortOrder: integer('sort_order').notNull().default(0), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
-export const workItems = sqliteTable('work_items', { id: text('id').primaryKey(), projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }), goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }), areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }), parentId: text('parent_id'), title: text('title').notNull(), description: text('description'), workItemTypeId: text('work_item_type_id').references(() => workItemTypes.id, { onDelete: 'set null' }), status: text('status').notNull().default('todo'), priority: text('priority').notNull().default('medium'), estimatedMinutes: integer('estimated_minutes').notNull().default(0), actualMinutes: integer('actual_minutes').notNull().default(0), deadline: text('deadline'), preferredDate: text('preferred_date'), preferredStartTime: text('preferred_start_time'), preferredEndTime: text('preferred_end_time'), energyLevel: text('energy_level'), flexibility: text('flexibility').notNull().default('flexible'), progress: integer('progress').notNull().default(0), orderIndex: integer('order_index').notNull().default(0), recurrenceRule: text('recurrence_rule'), ...audit })
+export const workItems = sqliteTable('work_items', { id: text('id').primaryKey(), projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }), goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }), areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }), parentId: text('parent_id'), title: text('title').notNull(), description: text('description'), workItemTypeId: text('work_item_type_id').references(() => workItemTypes.id, { onDelete: 'set null' }), status: text('status').notNull().default('todo'), priority: text('priority').notNull().default('medium'), estimatedMinutes: integer('estimated_minutes').notNull().default(0), actualMinutes: integer('actual_minutes').notNull().default(0), deadline: text('deadline'), preferredDate: text('preferred_date'), preferredStartTime: text('preferred_start_time'), preferredEndTime: text('preferred_end_time'), energyLevel: text('energy_level'), flexibility: text('flexibility').notNull().default('flexible'), progress: integer('progress').notNull().default(0), orderIndex: integer('order_index').notNull().default(0), recurrenceRule: text('recurrence_rule'), reviewPolicyId: text('review_policy_id'), lastReviewedAt: integer('last_reviewed_at'), nextReviewAt: integer('next_review_at'), reviewCount: integer('review_count').notNull().default(0), reviewStatus: text('review_status').notNull().default('none'), ...audit })
 export const customFieldValues = sqliteTable('custom_field_values', { id: text('id').primaryKey(), workItemId: text('work_item_id').notNull().references(() => workItems.id, { onDelete: 'cascade' }), definitionId: text('definition_id').notNull().references(() => customFieldDefinitions.id, { onDelete: 'cascade' }), textValue: text('text_value'), numberValue: integer('number_value'), booleanValue: integer('boolean_value', { mode: 'boolean' }), dateValue: text('date_value'), selectValue: text('select_value'), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
 export const tags = sqliteTable('tags', { id: text('id').primaryKey(), name: text('name').notNull().unique(), color: text('color'), ...audit })
 export const entityTags = sqliteTable('entity_tags', { id: text('id').primaryKey(), entityType: text('entity_type').notNull(), entityId: text('entity_id').notNull(), tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
@@ -63,6 +63,11 @@ export const resourceItems = sqliteTable('resource_items', {
   progress: integer('progress').notNull().default(0),
   notes: text('notes'),
   workItemId: text('work_item_id').references(() => workItems.id, { onDelete: 'set null' }),
+  reviewPolicyId: text('review_policy_id'),
+  lastReviewedAt: integer('last_reviewed_at'),
+  nextReviewAt: integer('next_review_at'),
+  reviewCount: integer('review_count').notNull().default(0),
+  reviewStatus: text('review_status').notNull().default('none'),
   ...audit
 })
 
@@ -203,3 +208,34 @@ export const timeSessions = sqliteTable('time_sessions', {
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
+
+// Stage 08 Tables: Review System
+
+export const reviewPolicies = sqliteTable('review_policies', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  /** 'fixed' = use intervalDays list; 'custom' treated same but stored differently */
+  intervalStrategy: text('interval_strategy').notNull().default('fixed'),
+  /** JSON array of integers representing days between reviews, e.g. [1,3,7,14,30] */
+  intervalDays: text('interval_days').notNull().default('[1,3,7,14,30]'),
+  /** If true, a 'weak' result on a review shortens the next interval to the previous step */
+  shortenOnWeak: integer('shorten_on_weak', { mode: 'boolean' }).notNull().default(false),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const reviewEvents = sqliteTable('review_events', {
+  id: text('id').primaryKey(),
+  workItemId: text('work_item_id').references(() => workItems.id, { onDelete: 'cascade' }),
+  resourceItemId: text('resource_item_id').references(() => resourceItems.id, { onDelete: 'cascade' }),
+  reviewedAt: integer('reviewed_at').notNull(),
+  durationMinutes: integer('duration_minutes').notNull().default(0),
+  /** 'strong' | 'good' | 'weak' | null */
+  result: text('result'),
+  notes: text('notes'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+}, (table) => [
+  check('exactly_one_ref', sql`((CASE WHEN ${table.workItemId} IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN ${table.resourceItemId} IS NOT NULL THEN 1 ELSE 0 END)) = 1`)
+])

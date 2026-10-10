@@ -32,6 +32,7 @@ import { RoutinesAndHabitsPage } from './pages/RoutinesAndHabitsPage'
 import { TodayPage } from './pages/TodayPage'
 import { InboxPage } from './pages/InboxPage'
 import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage'
+import { ReviewPage } from './pages/ReviewPage'
 import { QuickAddModal } from './components/QuickAddModal'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
@@ -215,7 +216,7 @@ export function App(): JSX.Element {
         ) : active === 'planner' ? (
           <WeeklyPlannerPage />
         ) : active === 'review' ? (
-          <PlaceholderPage titleKey="review" stageNumber={8} />
+          <ReviewPage />
         ) : (
           <PlaceholderPage titleKey={active} stageNumber={0} />
         )}
