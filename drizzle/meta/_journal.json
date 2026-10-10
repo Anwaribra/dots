@@ -1,5 +1,10 @@
 {
-  "version": "5",
+  "version": "7",
   "dialect": "sqlite",
-  "entries": [{ "idx": 0, "version": "5", "when": 1791504000000, "tag": "0000_foundation", "breakpoints": true }, { "idx": 1, "version": "5", "when": 1791504060000, "tag": "0001_core_entities", "breakpoints": true }, { "idx": 2, "version": "5", "when": 1791504120000, "tag": "0002_stage_foundation_and_entity_repairs", "breakpoints": true }]
+  "entries": [
+    { "idx": 0, "version": "5", "when": 1791504000000, "tag": "0000_foundation", "breakpoints": true },
+    { "idx": 1, "version": "5", "when": 1791504060000, "tag": "0001_core_entities", "breakpoints": true },
+    { "idx": 2, "version": "5", "when": 1791504120000, "tag": "0002_stage_foundation_and_entity_repairs", "breakpoints": true },
+    { "idx": 3, "version": "5", "when": 1791504180000, "tag": "0003_resources_and_dependencies", "breakpoints": true }
+  ]
 }

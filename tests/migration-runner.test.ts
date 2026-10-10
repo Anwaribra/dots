@@ -20,6 +20,6 @@ describe('migration runner', () => {
     runMigrations(database, migrationsFolder)
 
     expect(client.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toEqual({ name: 'settings' })
-    expect(client.prepare('SELECT COUNT(*) AS count FROM __drizzle_migrations').get()).toEqual({ count: 3 })
+    expect(client.prepare('SELECT COUNT(*) AS count FROM __drizzle_migrations').get()).toEqual({ count: 4 })
   })
 })

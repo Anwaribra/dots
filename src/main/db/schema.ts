@@ -32,3 +32,43 @@ export const customFieldValues = sqliteTable('custom_field_values', { id: text('
 export const tags = sqliteTable('tags', { id: text('id').primaryKey(), name: text('name').notNull().unique(), color: text('color'), ...audit })
 export const entityTags = sqliteTable('entity_tags', { id: text('id').primaryKey(), entityType: text('entity_type').notNull(), entityId: text('entity_id').notNull(), tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
 export const notes = sqliteTable('notes', { id: text('id').primaryKey(), entityType: text('entity_type').notNull(), entityId: text('entity_id').notNull(), content: text('content').notNull(), ...audit })
+
+// Stage 03 Tables: Resources, Resource Items, Work Item Dependencies
+export const resources = sqliteTable('resources', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description'),
+  resourceType: text('resource_type').notNull().default('course'),
+  orderingMode: text('ordering_mode').notNull().default('sequential'),
+  areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }),
+  goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }),
+  projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }),
+  ...audit
+})
+
+export const resourceItems = sqliteTable('resource_items', {
+  id: text('id').primaryKey(),
+  resourceId: text('resource_id').notNull().references(() => resources.id, { onDelete: 'cascade' }),
+  parentId: text('parent_id'),
+  title: text('title').notNull(),
+  itemType: text('item_type').notNull().default('item'),
+  sourceUrl: text('source_url'),
+  estimatedMinutes: integer('estimated_minutes').notNull().default(0),
+  orderIndex: integer('order_index').notNull().default(0),
+  status: text('status').notNull().default('todo'),
+  progress: integer('progress').notNull().default(0),
+  notes: text('notes'),
+  workItemId: text('work_item_id').references(() => workItems.id, { onDelete: 'set null' }),
+  ...audit
+})
+
+export const workItemDependencies = sqliteTable('work_item_dependencies', {
+  id: text('id').primaryKey(),
+  predecessorId: text('predecessor_id').notNull(),
+  successorId: text('successor_id').notNull(),
+  predecessorType: text('predecessor_type').notNull().default('work_item'),
+  successorType: text('successor_type').notNull().default('work_item'),
+  dependencyType: text('dependency_type').notNull().default('finish_to_start'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})

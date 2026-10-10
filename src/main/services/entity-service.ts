@@ -10,23 +10,33 @@ import {
   milestones,
   notes,
   projects,
+  resourceItems,
+  resources,
   tags,
+  workItemDependencies,
   workItemTypes,
   workItems
 } from '../db/schema'
 import {
   archiveEntitySchema,
   attachTagSchema,
+  bulkAddResourceItemsSchema,
   createAreaSchema,
   createCustomFieldDefSchema,
   createGoalSchema,
   createMilestoneSchema,
   createNoteSchema,
   createProjectSchema,
+  createResourceItemSchema,
+  createResourceSchema,
   createTagSchema,
+  createWorkItemDependencySchema,
   createWorkItemSchema,
   createWorkItemTypeSchema,
   deleteEntitySchema,
+  deleteWorkItemDependencySchema,
+  linkResourceItemToWorkItemSchema,
+  reorderResourceItemsSchema,
   restoreEntitySchema,
   setCustomFieldValueSchema,
   updateAreaSchema,
@@ -34,6 +44,8 @@ import {
   updateGoalSchema,
   updateMilestoneSchema,
   updateProjectSchema,
+  updateResourceItemSchema,
+  updateResourceSchema,
   updateWorkItemSchema,
   updateWorkItemTypeSchema,
   type Area,
@@ -43,10 +55,14 @@ import {
   type Milestone,
   type Note,
   type Project,
+  type Resource,
+  type ResourceItem,
   type Tag,
   type WorkItem,
+  type WorkItemDependency,
   type WorkItemType
 } from '../../shared/entities'
+import { detectDependencyCycle, evaluateResourceItemsState } from '../../shared/dependency-utils'
 
 const now = (): number => Date.now()
 
@@ -594,6 +610,345 @@ export function updateWorkItem(input: unknown): WorkItem {
   return updated as unknown as WorkItem
 }
 
+// Stage 03 Services: Resources
+export function listResources(): Resource[] {
+  return getDatabase()
+    .select()
+    .from(resources)
+    .where(isNull(resources.archivedAt))
+    .orderBy(asc(resources.createdAt))
+    .all() as unknown as Resource[]
+}
+
+export function getResource(id: string): Resource {
+  const row = getDatabase().select().from(resources).where(eq(resources.id, id)).get()
+  if (!row) throw new Error('Resource not found')
+  return row as unknown as Resource
+}
+
+export function createResource(input: unknown): Resource {
+  const value = createResourceSchema.parse(input)
+  const time = now()
+  const row = {
+    id: randomUUID(),
+    title: value.title,
+    description: value.description ?? null,
+    resourceType: value.resourceType,
+    orderingMode: value.orderingMode,
+    areaId: value.areaId ?? null,
+    goalId: value.goalId ?? null,
+    projectId: value.projectId ?? null,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(resources).values(row).run()
+  return row as Resource
+}
+
+export function updateResource(input: unknown): Resource {
+  const value = updateResourceSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(resources).where(eq(resources.id, value.id)).get()
+  if (!existing) throw new Error('Resource not found')
+
+  const updated = {
+    ...existing,
+    title: value.title ?? existing.title,
+    description: value.description !== undefined ? value.description : existing.description,
+    resourceType: value.resourceType ?? existing.resourceType,
+    orderingMode: value.orderingMode ?? existing.orderingMode,
+    areaId: value.areaId !== undefined ? value.areaId : existing.areaId,
+    goalId: value.goalId !== undefined ? value.goalId : existing.goalId,
+    projectId: value.projectId !== undefined ? value.projectId : existing.projectId,
+    updatedAt: time
+  }
+  db.update(resources).set(updated).where(eq(resources.id, value.id)).run()
+  return updated as unknown as Resource
+}
+
+export function duplicateResource(input: { id: string }): Resource {
+  const db = getDatabase()
+  const target = getResource(input.id)
+  const time = now()
+
+  const newRes = createResource({
+    title: `${target.title} (Copy)`,
+    description: target.description,
+    resourceType: target.resourceType,
+    orderingMode: target.orderingMode,
+    areaId: target.areaId,
+    goalId: target.goalId,
+    projectId: target.projectId
+  })
+
+  // Duplicate items
+  const items = db
+    .select()
+    .from(resourceItems)
+    .where(and(eq(resourceItems.resourceId, target.id), isNull(resourceItems.archivedAt)))
+    .orderBy(asc(resourceItems.orderIndex))
+    .all()
+
+  const idMap = new Map<string, string>()
+  items.forEach((item) => {
+    idMap.set(item.id, randomUUID())
+  })
+
+  items.forEach((item) => {
+    const newId = idMap.get(item.id)!
+    const newParentId = item.parentId ? idMap.get(item.parentId) || null : null
+    db.insert(resourceItems).values({
+      id: newId,
+      resourceId: newRes.id,
+      parentId: newParentId,
+      title: item.title,
+      itemType: item.itemType,
+      sourceUrl: item.sourceUrl,
+      estimatedMinutes: item.estimatedMinutes,
+      orderIndex: item.orderIndex,
+      status: 'todo',
+      progress: 0,
+      notes: item.notes,
+      workItemId: null,
+      createdAt: time,
+      updatedAt: time,
+      archivedAt: null
+    }).run()
+  })
+
+  return newRes
+}
+
+// Stage 03 Services: Resource Items & Decision A14 Completion Truth
+export function listResourceItems(resourceId: string): ResourceItem[] {
+  const db = getDatabase()
+  const res = db.select().from(resources).where(eq(resources.id, resourceId)).get()
+  if (!res) return []
+
+  const items = db
+    .select()
+    .from(resourceItems)
+    .where(and(eq(resourceItems.resourceId, resourceId), isNull(resourceItems.archivedAt)))
+    .orderBy(asc(resourceItems.orderIndex))
+    .all()
+
+  // Fetch linked work items for Decision A14
+  const workItemsMap = new Map<string, { id: string; status: string; progress: number; actualMinutes: number }>()
+  for (const item of items) {
+    if (item.workItemId) {
+      const wi = db.select().from(workItems).where(eq(workItems.id, item.workItemId)).get()
+      if (wi) {
+        workItemsMap.set(wi.id, {
+          id: wi.id,
+          status: wi.status,
+          progress: wi.progress,
+          actualMinutes: wi.actualMinutes
+        })
+      }
+    }
+  }
+
+  // Fetch all dependencies
+  const deps = db.select().from(workItemDependencies).all()
+  const depEdges = deps.map((d) => ({ predecessorId: d.predecessorId, successorId: d.successorId }))
+
+  const titleMap = new Map<string, string>()
+  items.forEach((i) => titleMap.set(i.id, i.title))
+
+  // Run pure evaluation logic for Decision A14 & ordering modes
+  const evaluatedMap = evaluateResourceItemsState(
+    res.orderingMode as any,
+    items as any,
+    depEdges,
+    workItemsMap,
+    titleMap
+  )
+
+  return items.map((item) => {
+    const evalData = evaluatedMap.get(item.id)
+    return {
+      ...item,
+      effectiveStatus: evalData?.effectiveStatus ?? item.status,
+      effectiveProgress: evalData?.effectiveProgress ?? item.progress,
+      effectiveActualMinutes: evalData?.effectiveActualMinutes ?? 0,
+      isBlocked: evalData?.isBlocked ?? false,
+      blockedByTitle: evalData?.blockedByTitle
+    } as unknown as ResourceItem
+  })
+}
+
+export function createResourceItem(input: unknown): ResourceItem {
+  const value = createResourceItemSchema.parse(input)
+  const time = now()
+  const existingItems = listResourceItems(value.resourceId)
+  const row = {
+    id: randomUUID(),
+    resourceId: value.resourceId,
+    parentId: value.parentId ?? null,
+    title: value.title,
+    itemType: value.itemType,
+    sourceUrl: value.sourceUrl ?? null,
+    estimatedMinutes: value.estimatedMinutes,
+    orderIndex: existingItems.length,
+    status: value.status,
+    progress: value.progress,
+    notes: value.notes ?? null,
+    workItemId: value.workItemId ?? null,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(resourceItems).values(row).run()
+  return row as unknown as ResourceItem
+}
+
+export function updateResourceItem(input: unknown): ResourceItem {
+  const value = updateResourceItemSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(resourceItems).where(eq(resourceItems.id, value.id)).get()
+  if (!existing) throw new Error('Resource Item not found')
+
+  const updated = {
+    ...existing,
+    title: value.title ?? existing.title,
+    itemType: value.itemType ?? existing.itemType,
+    parentId: value.parentId !== undefined ? value.parentId : existing.parentId,
+    sourceUrl: value.sourceUrl !== undefined ? value.sourceUrl : existing.sourceUrl,
+    estimatedMinutes: value.estimatedMinutes !== undefined ? value.estimatedMinutes : existing.estimatedMinutes,
+    orderIndex: value.orderIndex !== undefined ? value.orderIndex : existing.orderIndex,
+    status: value.status ?? existing.status,
+    progress: value.progress !== undefined ? value.progress : existing.progress,
+    notes: value.notes !== undefined ? value.notes : existing.notes,
+    workItemId: value.workItemId !== undefined ? value.workItemId : existing.workItemId,
+    updatedAt: time
+  }
+  db.update(resourceItems).set(updated).where(eq(resourceItems.id, value.id)).run()
+  return updated as unknown as ResourceItem
+}
+
+export function bulkAddResourceItems(input: unknown): ResourceItem[] {
+  const value = bulkAddResourceItemsSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const currentItems = listResourceItems(value.resourceId)
+  let nextIndex = currentItems.length
+
+  const created: ResourceItem[] = []
+
+  for (const item of value.items) {
+    const row = {
+      id: randomUUID(),
+      resourceId: value.resourceId,
+      parentId: value.parentId ?? null,
+      title: item.title,
+      itemType: item.itemType || 'item',
+      sourceUrl: null,
+      estimatedMinutes: item.estimatedMinutes,
+      orderIndex: nextIndex++,
+      status: 'todo',
+      progress: 0,
+      notes: null,
+      workItemId: null,
+      createdAt: time,
+      updatedAt: time,
+      archivedAt: null
+    }
+    db.insert(resourceItems).values(row).run()
+    created.push(row as unknown as ResourceItem)
+  }
+
+  return created
+}
+
+export function reorderResourceItems(input: unknown): void {
+  const value = reorderResourceItemsSchema.parse(input)
+  const db = getDatabase()
+  const time = now()
+
+  value.itemIdsInOrder.forEach((id, index) => {
+    db.update(resourceItems)
+      .set({ orderIndex: index, updatedAt: time })
+      .where(eq(resourceItems.id, id))
+      .run()
+  })
+}
+
+export function linkResourceItemToWorkItem(input: unknown): WorkItem {
+  const value = linkResourceItemToWorkItemSchema.parse(input)
+  const db = getDatabase()
+
+  const item = db.select().from(resourceItems).where(eq(resourceItems.id, value.resourceItemId)).get()
+  if (!item) throw new Error('Resource Item not found')
+
+  if (item.workItemId) {
+    const existing = db.select().from(workItems).where(eq(workItems.id, item.workItemId)).get()
+    if (existing) return existing as unknown as WorkItem
+  }
+
+  const res = getResource(item.resourceId)
+  const time = now()
+
+  const newWorkItem = createWorkItem({
+    title: value.title || item.title,
+    description: `Generated from resource item in ${res.title}`,
+    estimatedMinutes: item.estimatedMinutes,
+    projectId: value.projectId ?? res.projectId ?? null,
+    goalId: value.goalId ?? res.goalId ?? null,
+    areaId: value.areaId ?? res.areaId ?? null,
+    status: item.status
+  })
+
+  db.update(resourceItems)
+    .set({ workItemId: newWorkItem.id, updatedAt: time })
+    .where(eq(resourceItems.id, item.id))
+    .run()
+
+  return newWorkItem
+}
+
+// Stage 03 Services: Work Item Dependencies & Cycle Detection
+export function listDependencies(): WorkItemDependency[] {
+  return getDatabase().select().from(workItemDependencies).all() as unknown as WorkItemDependency[]
+}
+
+export function createDependency(input: unknown): WorkItemDependency {
+  const value = createWorkItemDependencySchema.parse(input)
+  const existing = listDependencies()
+
+  // Check for dependency cycles using pure cycle detector
+  const cycleCheck = detectDependencyCycle(
+    existing.map((d) => ({ predecessorId: d.predecessorId, successorId: d.successorId })),
+    { predecessorId: value.predecessorId, successorId: value.successorId }
+  )
+
+  if (cycleCheck.hasCycle) {
+    const pathStr = cycleCheck.path ? cycleCheck.path.join(' -> ') : ''
+    throw new Error(`Dependency cycle detected: ${pathStr || 'A cycle would be created'}`)
+  }
+
+  const time = now()
+  const row = {
+    id: randomUUID(),
+    predecessorId: value.predecessorId,
+    successorId: value.successorId,
+    predecessorType: value.predecessorType,
+    successorType: value.successorType,
+    dependencyType: value.dependencyType,
+    createdAt: time,
+    updatedAt: time
+  }
+  getDatabase().insert(workItemDependencies).values(row).run()
+  return row as WorkItemDependency
+}
+
+export function deleteDependency(input: unknown): void {
+  const value = deleteWorkItemDependencySchema.parse(input)
+  getDatabase().delete(workItemDependencies).where(eq(workItemDependencies.id, value.id)).run()
+}
+
 // Tags
 export function listTags(): Tag[] {
   return getDatabase()
@@ -710,6 +1065,8 @@ export function archiveEntity(input: unknown): void {
   else if (value.kind === 'workItemType') db.update(workItemTypes).set(update).where(eq(workItemTypes.id, value.id)).run()
   else if (value.kind === 'tag') db.update(tags).set(update).where(eq(tags.id, value.id)).run()
   else if (value.kind === 'milestone') db.update(milestones).set(update).where(eq(milestones.id, value.id)).run()
+  else if (value.kind === 'resource') db.update(resources).set(update).where(eq(resources.id, value.id)).run()
+  else if (value.kind === 'resourceItem') db.update(resourceItems).set(update).where(eq(resourceItems.id, value.id)).run()
 }
 
 export function restoreEntity(input: unknown): void {
@@ -724,6 +1081,8 @@ export function restoreEntity(input: unknown): void {
   else if (value.kind === 'workItemType') db.update(workItemTypes).set(update).where(eq(workItemTypes.id, value.id)).run()
   else if (value.kind === 'tag') db.update(tags).set(update).where(eq(tags.id, value.id)).run()
   else if (value.kind === 'milestone') db.update(milestones).set(update).where(eq(milestones.id, value.id)).run()
+  else if (value.kind === 'resource') db.update(resources).set(update).where(eq(resources.id, value.id)).run()
+  else if (value.kind === 'resourceItem') db.update(resourceItems).set(update).where(eq(resourceItems.id, value.id)).run()
 }
 
 export function deleteEntity(input: unknown): void {
@@ -732,7 +1091,6 @@ export function deleteEntity(input: unknown): void {
   const time = now()
 
   if (value.kind === 'area') {
-    // Detach goals, projects, work items from area
     db.update(goals).set({ areaId: null, updatedAt: time }).where(eq(goals.areaId, value.id)).run()
     db.update(projects).set({ areaId: null, updatedAt: time }).where(eq(projects.areaId, value.id)).run()
     db.update(workItems).set({ areaId: null, updatedAt: time }).where(eq(workItems.areaId, value.id)).run()
@@ -763,5 +1121,9 @@ export function deleteEntity(input: unknown): void {
     db.delete(workItemTypes).where(eq(workItemTypes.id, value.id)).run()
   } else if (value.kind === 'tag') {
     db.delete(tags).where(eq(tags.id, value.id)).run()
+  } else if (value.kind === 'resource') {
+    db.delete(resources).where(eq(resources.id, value.id)).run()
+  } else if (value.kind === 'resourceItem') {
+    db.delete(resourceItems).where(eq(resourceItems.id, value.id)).run()
   }
 }

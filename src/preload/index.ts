@@ -56,6 +56,26 @@ const api = {
     create: (input: unknown) => ipcRenderer.invoke('notes:create', input),
     delete: (id: string) => ipcRenderer.invoke('notes:delete', { id })
   },
+  resources: {
+    list: () => ipcRenderer.invoke('resources:list', undefined),
+    get: (id: string) => ipcRenderer.invoke('resources:get', { id }),
+    create: (input: unknown) => ipcRenderer.invoke('resources:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('resources:update', input),
+    duplicate: (id: string) => ipcRenderer.invoke('resources:duplicate', { id })
+  },
+  resourceItems: {
+    list: (resourceId: string) => ipcRenderer.invoke('resource-items:list', { resourceId }),
+    create: (input: unknown) => ipcRenderer.invoke('resource-items:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('resource-items:update', input),
+    bulkAdd: (input: unknown) => ipcRenderer.invoke('resource-items:bulk-add', input),
+    reorder: (input: unknown) => ipcRenderer.invoke('resource-items:reorder', input),
+    linkWorkItem: (input: unknown) => ipcRenderer.invoke('resource-items:link-work-item', input)
+  },
+  dependencies: {
+    list: () => ipcRenderer.invoke('dependencies:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('dependencies:create', input),
+    delete: (id: string) => ipcRenderer.invoke('dependencies:delete', { id })
+  },
   entities: {
     archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),
     restore: (input: unknown) => ipcRenderer.invoke('entities:restore', input),

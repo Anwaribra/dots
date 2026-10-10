@@ -1,11 +1,13 @@
 import { z } from 'zod'
 
 export const prioritySchema = z.enum(['critical', 'high', 'medium', 'low'])
-export const statusSchema = z.enum(['active', 'completed', 'paused', 'cancelled', 'todo', 'in_progress', 'done'])
+export const statusSchema = z.enum(['active', 'completed', 'paused', 'cancelled', 'todo', 'in_progress', 'done', 'blocked'])
 export const flexibilitySchema = z.enum(['fixed', 'semi_flexible', 'flexible'])
 export const energyLevelSchema = z.enum(['low', 'medium', 'high']).nullable().optional()
 export const fieldTypeSchema = z.enum(['text', 'number', 'boolean', 'date', 'select'])
-export const entityKindSchema = z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note'])
+export const entityKindSchema = z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem'])
+export const orderingModeSchema = z.enum(['sequential', 'flexible', 'dependency_based'])
+export const resourceTypeSchema = z.enum(['course', 'book', 'playlist', 'pdf', 'article_collection', 'training_program', 'study_plan', 'custom'])
 
 // Areas
 export const createAreaSchema = z.object({
@@ -86,7 +88,7 @@ export const createCustomFieldDefSchema = z.object({
   workItemTypeId: z.string().uuid(),
   name: z.string().trim().min(1).max(100),
   fieldType: fieldTypeSchema,
-  options: z.array(z.string()).nullable().optional(), // For 'select' type
+  options: z.array(z.string()).nullable().optional(),
   required: z.boolean().optional().default(false)
 })
 export const updateCustomFieldDefSchema = createCustomFieldDefSchema.partial().extend({
@@ -145,6 +147,71 @@ export const createNoteSchema = z.object({
   content: z.string().trim().min(1).max(10000)
 })
 
+// Stage 03 Schemas: Resources & Items
+export const createResourceSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().max(4000).nullable().optional(),
+  resourceType: resourceTypeSchema.optional().default('course'),
+  orderingMode: orderingModeSchema.optional().default('sequential'),
+  areaId: z.string().uuid().nullable().optional(),
+  goalId: z.string().uuid().nullable().optional(),
+  projectId: z.string().uuid().nullable().optional()
+})
+export const updateResourceSchema = createResourceSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const createResourceItemSchema = z.object({
+  resourceId: z.string().uuid(),
+  parentId: z.string().uuid().nullable().optional(),
+  title: z.string().trim().min(1).max(200),
+  itemType: z.string().optional().default('item'),
+  sourceUrl: z.string().nullable().optional(),
+  estimatedMinutes: z.number().int().min(0).optional().default(0),
+  orderIndex: z.number().int().min(0).optional().default(0),
+  status: statusSchema.optional().default('todo'),
+  progress: z.number().min(0).max(100).optional().default(0),
+  notes: z.string().nullable().optional(),
+  workItemId: z.string().uuid().nullable().optional()
+})
+export const updateResourceItemSchema = createResourceItemSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const bulkAddResourceItemsSchema = z.object({
+  resourceId: z.string().uuid(),
+  parentId: z.string().uuid().nullable().optional(),
+  items: z.array(z.object({
+    title: z.string().trim().min(1),
+    estimatedMinutes: z.number().int().min(0).default(0),
+    itemType: z.string().optional().default('item')
+  }))
+})
+
+export const reorderResourceItemsSchema = z.object({
+  resourceId: z.string().uuid(),
+  itemIdsInOrder: z.array(z.string().uuid())
+})
+
+export const linkResourceItemToWorkItemSchema = z.object({
+  resourceItemId: z.string().uuid(),
+  title: z.string().trim().min(1).optional(),
+  projectId: z.string().uuid().nullable().optional(),
+  goalId: z.string().uuid().nullable().optional(),
+  areaId: z.string().uuid().nullable().optional()
+})
+
+export const createWorkItemDependencySchema = z.object({
+  predecessorId: z.string().uuid(),
+  successorId: z.string().uuid(),
+  predecessorType: z.string().optional().default('work_item'),
+  successorType: z.string().optional().default('work_item'),
+  dependencyType: z.string().optional().default('finish_to_start')
+})
+export const deleteWorkItemDependencySchema = z.object({
+  id: z.string().uuid()
+})
+
 // Actions
 export const archiveEntitySchema = z.object({
   kind: entityKindSchema,
@@ -155,7 +222,7 @@ export const restoreEntitySchema = z.object({
   id: z.string().uuid()
 })
 export const deleteEntitySchema = z.object({
-  kind: z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note']),
+  kind: z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem']),
   id: z.string().uuid(),
   childWorkItemAction: z.enum(['detach', 'archive']).optional()
 })
@@ -172,3 +239,7 @@ export type WorkItem = z.infer<typeof createWorkItemSchema> & { id: string; actu
 export type Tag = z.infer<typeof createTagSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
 export type EntityTag = { id: string; entityType: string; entityId: string; tagId: string; createdAt: number; updatedAt: number }
 export type Note = { id: string; entityType: string; entityId: string; content: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+
+export type Resource = z.infer<typeof createResourceSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type ResourceItem = z.infer<typeof createResourceItemSchema> & { id: string; effectiveStatus?: string; effectiveProgress?: number; effectiveActualMinutes?: number; isBlocked?: boolean; blockedByTitle?: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type WorkItemDependency = z.infer<typeof createWorkItemDependencySchema> & { id: string; createdAt: number; updatedAt: number }

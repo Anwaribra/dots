@@ -3,16 +3,23 @@ import { settingsSchema, settingsUpdateSchema } from './settings'
 import {
   archiveEntitySchema,
   attachTagSchema,
+  bulkAddResourceItemsSchema,
   createAreaSchema,
   createCustomFieldDefSchema,
   createGoalSchema,
   createMilestoneSchema,
   createNoteSchema,
   createProjectSchema,
+  createResourceItemSchema,
+  createResourceSchema,
   createTagSchema,
+  createWorkItemDependencySchema,
   createWorkItemSchema,
   createWorkItemTypeSchema,
   deleteEntitySchema,
+  deleteWorkItemDependencySchema,
+  linkResourceItemToWorkItemSchema,
+  reorderResourceItemsSchema,
   restoreEntitySchema,
   setCustomFieldValueSchema,
   updateAreaSchema,
@@ -20,6 +27,8 @@ import {
   updateGoalSchema,
   updateMilestoneSchema,
   updateProjectSchema,
+  updateResourceItemSchema,
+  updateResourceSchema,
   updateWorkItemSchema,
   updateWorkItemTypeSchema,
   type Area,
@@ -29,8 +38,11 @@ import {
   type Milestone,
   type Note,
   type Project,
+  type Resource,
+  type ResourceItem,
   type Tag,
   type WorkItem,
+  type WorkItemDependency,
   type WorkItemType
 } from './entities'
 
@@ -78,6 +90,23 @@ export const ipcChannels = {
   notesList: 'notes:list',
   notesCreate: 'notes:create',
   notesDelete: 'notes:delete',
+
+  resourcesList: 'resources:list',
+  resourcesGet: 'resources:get',
+  resourcesCreate: 'resources:create',
+  resourcesUpdate: 'resources:update',
+  resourcesDuplicate: 'resources:duplicate',
+
+  resourceItemsList: 'resource-items:list',
+  resourceItemsCreate: 'resource-items:create',
+  resourceItemsUpdate: 'resource-items:update',
+  resourceItemsBulkAdd: 'resource-items:bulk-add',
+  resourceItemsReorder: 'resource-items:reorder',
+  resourceItemsLinkWorkItem: 'resource-items:link-work-item',
+
+  dependenciesList: 'dependencies:list',
+  dependenciesCreate: 'dependencies:create',
+  dependenciesDelete: 'dependencies:delete',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -128,6 +157,23 @@ export const ipcSchemas = {
   [ipcChannels.notesList]: z.object({ entityType: z.string(), entityId: z.string().uuid() }),
   [ipcChannels.notesCreate]: createNoteSchema,
   [ipcChannels.notesDelete]: z.object({ id: z.string().uuid() }),
+
+  [ipcChannels.resourcesList]: z.undefined(),
+  [ipcChannels.resourcesGet]: z.object({ id: z.string().uuid() }),
+  [ipcChannels.resourcesCreate]: createResourceSchema,
+  [ipcChannels.resourcesUpdate]: updateResourceSchema,
+  [ipcChannels.resourcesDuplicate]: z.object({ id: z.string().uuid() }),
+
+  [ipcChannels.resourceItemsList]: z.object({ resourceId: z.string().uuid() }),
+  [ipcChannels.resourceItemsCreate]: createResourceItemSchema,
+  [ipcChannels.resourceItemsUpdate]: updateResourceItemSchema,
+  [ipcChannels.resourceItemsBulkAdd]: bulkAddResourceItemsSchema,
+  [ipcChannels.resourceItemsReorder]: reorderResourceItemsSchema,
+  [ipcChannels.resourceItemsLinkWorkItem]: linkResourceItemToWorkItemSchema,
+
+  [ipcChannels.dependenciesList]: z.undefined(),
+  [ipcChannels.dependenciesCreate]: createWorkItemDependencySchema,
+  [ipcChannels.dependenciesDelete]: deleteWorkItemDependencySchema,
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -188,6 +234,26 @@ export type PlannerApi = {
   notes: {
     list: (entityType: string, entityId: string) => Promise<Note[]>
     create: (input: z.input<typeof createNoteSchema>) => Promise<Note>
+    delete: (id: string) => Promise<void>
+  }
+  resources: {
+    list: () => Promise<Resource[]>
+    get: (id: string) => Promise<Resource>
+    create: (input: z.input<typeof createResourceSchema>) => Promise<Resource>
+    update: (input: z.input<typeof updateResourceSchema>) => Promise<Resource>
+    duplicate: (id: string) => Promise<Resource>
+  }
+  resourceItems: {
+    list: (resourceId: string) => Promise<ResourceItem[]>
+    create: (input: z.input<typeof createResourceItemSchema>) => Promise<ResourceItem>
+    update: (input: z.input<typeof updateResourceItemSchema>) => Promise<ResourceItem>
+    bulkAdd: (input: z.input<typeof bulkAddResourceItemsSchema>) => Promise<ResourceItem[]>
+    reorder: (input: z.input<typeof reorderResourceItemsSchema>) => Promise<void>
+    linkWorkItem: (input: z.input<typeof linkResourceItemToWorkItemSchema>) => Promise<WorkItem>
+  }
+  dependencies: {
+    list: () => Promise<WorkItemDependency[]>
+    create: (input: z.input<typeof createWorkItemDependencySchema>) => Promise<WorkItemDependency>
     delete: (id: string) => Promise<void>
   }
   entities: {

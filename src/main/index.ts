@@ -5,29 +5,41 @@ import { getSettings, updateSettings } from './services/settings-service'
 import {
   archiveEntity,
   attachTag,
+  bulkAddResourceItems,
   createArea,
   createCustomFieldDef,
+  createDependency,
   createGoal,
   createMilestone,
   createNote,
   createProject,
+  createResource,
+  createResourceItem,
   createTag,
   createWorkItem,
   createWorkItemType,
+  deleteDependency,
   deleteEntity,
   deleteNote,
   detachTag,
+  duplicateResource,
   getCustomFieldValues,
   getEntityTags,
+  getResource,
+  linkResourceItemToWorkItem,
   listAreas,
   listCustomFieldDefs,
+  listDependencies,
   listGoals,
   listMilestones,
   listNotes,
   listProjects,
+  listResourceItems,
+  listResources,
   listTags,
   listWorkItemTypes,
   listWorkItems,
+  reorderResourceItems,
   restoreEntity,
   seedBuiltInWorkItemTypes,
   setCustomFieldValue,
@@ -36,6 +48,8 @@ import {
   updateGoal,
   updateMilestone,
   updateProject,
+  updateResource,
+  updateResourceItem,
   updateWorkItem,
   updateWorkItemType
 } from './services/entity-service'
@@ -167,6 +181,46 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.notesDelete, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.notesDelete].parse(input)
     deleteNote(parsed.id)
+  })
+
+  // Stage 03: Resources
+  ipcMain.handle(ipcChannels.resourcesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.resourcesList].parse(input)
+    return listResources()
+  })
+  ipcMain.handle(ipcChannels.resourcesGet, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.resourcesGet].parse(input)
+    return getResource(parsed.id)
+  })
+  ipcMain.handle(ipcChannels.resourcesCreate, (_event, input: unknown) => createResource(ipcSchemas[ipcChannels.resourcesCreate].parse(input)))
+  ipcMain.handle(ipcChannels.resourcesUpdate, (_event, input: unknown) => updateResource(ipcSchemas[ipcChannels.resourcesUpdate].parse(input)))
+  ipcMain.handle(ipcChannels.resourcesDuplicate, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.resourcesDuplicate].parse(input)
+    return duplicateResource(parsed)
+  })
+
+  // Stage 03: Resource Items
+  ipcMain.handle(ipcChannels.resourceItemsList, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.resourceItemsList].parse(input)
+    return listResourceItems(parsed.resourceId)
+  })
+  ipcMain.handle(ipcChannels.resourceItemsCreate, (_event, input: unknown) => createResourceItem(ipcSchemas[ipcChannels.resourceItemsCreate].parse(input)))
+  ipcMain.handle(ipcChannels.resourceItemsUpdate, (_event, input: unknown) => updateResourceItem(ipcSchemas[ipcChannels.resourceItemsUpdate].parse(input)))
+  ipcMain.handle(ipcChannels.resourceItemsBulkAdd, (_event, input: unknown) => bulkAddResourceItems(ipcSchemas[ipcChannels.resourceItemsBulkAdd].parse(input)))
+  ipcMain.handle(ipcChannels.resourceItemsReorder, (_event, input: unknown) => {
+    reorderResourceItems(ipcSchemas[ipcChannels.resourceItemsReorder].parse(input))
+  })
+  ipcMain.handle(ipcChannels.resourceItemsLinkWorkItem, (_event, input: unknown) => linkResourceItemToWorkItem(ipcSchemas[ipcChannels.resourceItemsLinkWorkItem].parse(input)))
+
+  // Stage 03: Dependencies
+  ipcMain.handle(ipcChannels.dependenciesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.dependenciesList].parse(input)
+    return listDependencies()
+  })
+  ipcMain.handle(ipcChannels.dependenciesCreate, (_event, input: unknown) => createDependency(ipcSchemas[ipcChannels.dependenciesCreate].parse(input)))
+  ipcMain.handle(ipcChannels.dependenciesDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.dependenciesDelete].parse(input)
+    deleteDependency(parsed)
   })
 
   // Entity Management

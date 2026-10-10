@@ -21,6 +21,7 @@ import { AreasPage } from './pages/AreasPage'
 import { GoalsPage } from './pages/GoalsPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { WorkItemsPage } from './pages/WorkItemsPage'
+import { ResourcesPage } from './pages/ResourcesPage'
 import { TypesAndFieldsPage } from './pages/TypesAndFieldsPage'
 import { TagsPage } from './pages/TagsPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -166,6 +167,8 @@ export function App(): JSX.Element {
           <ProjectsPage />
         ) : active === 'inbox' ? (
           <WorkItemsPage />
+        ) : active === 'resources' ? (
+          <ResourcesPage />
         ) : active === 'types' ? (
           <TypesAndFieldsPage />
         ) : active === 'tags' ? (
@@ -189,8 +192,6 @@ export function App(): JSX.Element {
           </div>
         ) : active === 'planner' ? (
           <PlaceholderPage titleKey="planner" stageNumber={5} />
-        ) : active === 'resources' ? (
-          <PlaceholderPage titleKey="resources" stageNumber={3} />
         ) : active === 'routines' ? (
           <PlaceholderPage titleKey="routines" stageNumber={4} />
         ) : active === 'analytics' ? (
