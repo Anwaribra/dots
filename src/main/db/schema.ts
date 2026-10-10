@@ -167,3 +167,20 @@ export const habitLogs = sqliteTable('habit_logs', {
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
+
+export const scheduledItems = sqliteTable('scheduled_items', {
+  id: text('id').primaryKey(),
+  workItemId: text('work_item_id').references(() => workItems.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  date: text('date').notNull(),
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
+  durationMinutes: integer('duration_minutes').notNull(),
+  sessionIndex: integer('session_index').notNull().default(1),
+  totalSessions: integer('total_sessions').notNull().default(1),
+  isSplit: integer('is_split', { mode: 'boolean' }).notNull().default(false),
+  locked: integer('locked', { mode: 'boolean' }).notNull().default(false),
+  reason: text('reason'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})

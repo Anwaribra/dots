@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import path from 'node:path'
 import { ipcChannels, ipcSchemas } from '../shared/ipc'
 import { getSettings, updateSettings } from './services/settings-service'
+import { clearScheduleRange, generateWeekSchedule, listPersistedSchedule } from './services/planning-service'
 import {
   archiveEntity,
   attachTag,
@@ -299,6 +300,20 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.habitsListLogs, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.habitsListLogs].parse(input)
     return listHabitLogs(parsed)
+  })
+
+  // Stage 05: Planning Engine
+  ipcMain.handle(ipcChannels.planningGenerateWeek, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.planningGenerateWeek].parse(input)
+    return generateWeekSchedule(parsed?.startDate)
+  })
+  ipcMain.handle(ipcChannels.planningGetSchedule, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.planningGetSchedule].parse(input)
+    return listPersistedSchedule(parsed.startDate, parsed.endDate)
+  })
+  ipcMain.handle(ipcChannels.planningClearSchedule, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.planningClearSchedule].parse(input)
+    clearScheduleRange(parsed.startDate, parsed.endDate)
   })
 
   // Entity Management

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { settingsSchema, settingsUpdateSchema } from './settings'
+import type { PlanningResult, ScheduleItem as SchedulerScheduleItem } from '../main/scheduler/types'
 import {
   archiveEntitySchema,
   attachTagSchema,
@@ -154,6 +155,11 @@ export const ipcChannels = {
   habitsLog: 'habits:log',
   habitsListLogs: 'habits:list-logs',
 
+  // Stage 05 Channels: Planning Engine
+  planningGenerateWeek: 'planning:generate-week',
+  planningGetSchedule: 'planning:get-schedule',
+  planningClearSchedule: 'planning:clear-schedule',
+
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
   entityDelete: 'entities:delete'
@@ -246,6 +252,10 @@ export const ipcSchemas = {
   [ipcChannels.habitsUpdate]: updateHabitSchema,
   [ipcChannels.habitsLog]: logHabitSchema,
   [ipcChannels.habitsListLogs]: z.object({ habitId: z.string().uuid().optional(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).optional(),
+
+  [ipcChannels.planningGenerateWeek]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).optional(),
+  [ipcChannels.planningGetSchedule]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+  [ipcChannels.planningClearSchedule]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -361,6 +371,11 @@ export type PlannerApi = {
     update: (input: z.input<typeof updateHabitSchema>) => Promise<Habit>
     log: (input: z.input<typeof logHabitSchema>) => Promise<HabitLog>
     listLogs: (filter?: { habitId?: string; date?: string } | string) => Promise<HabitLog[]>
+  }
+  planning: {
+    generateWeek: (startDate?: string) => Promise<PlanningResult>
+    getSchedule: (startDate: string, endDate: string) => Promise<SchedulerScheduleItem[]>
+    clearSchedule: (startDate: string, endDate: string) => Promise<void>
   }
   entities: {
     archive: (input: z.input<typeof archiveEntitySchema>) => Promise<void>

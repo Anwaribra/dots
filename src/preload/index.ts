@@ -118,6 +118,11 @@ const api = {
       return ipcRenderer.invoke('habits:list-logs', payload)
     }
   },
+  planning: {
+    generateWeek: (startDate?: string) => ipcRenderer.invoke('planning:generate-week', { startDate }),
+    getSchedule: (startDate: string, endDate: string) => ipcRenderer.invoke('planning:get-schedule', { startDate, endDate }),
+    clearSchedule: (startDate: string, endDate: string) => ipcRenderer.invoke('planning:clear-schedule', { startDate, endDate })
+  },
   entities: {
     archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),
     restore: (input: unknown) => ipcRenderer.invoke('entities:restore', input),

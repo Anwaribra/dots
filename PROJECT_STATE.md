@@ -12,7 +12,13 @@
   - Pure Engines: `src/shared/capacity.ts` (single source of truth for daily capacity, buffer %, fixed event overlaps, locked/protected budgets) and `src/shared/recurrence.ts` (RRule expansion for daily, weekly, monthly, interval without generating infinite instances).
   - Main Services & IPC handlers: Seeded availability rules, overrides, conflict detection on fixed events, routines, habits, habit completion logging, and polymorphic reference cleanup on entity deletion.
   - UI: `AvailabilityAndCapacityPage` (schedule, overrides, fixed events, and live capacity breakdown), `TimeBudgetsPage` (budget creation, scope selection, protection indicators), `RoutinesAndHabitsPage` (habits tracker with daily toggles, recurring routine blocks), and Settings capacity/buffer preferences.
-  - Fully tested: 43 Vitest tests passing across 10 test suites, 0 TypeScript errors.
+- **Stage 5 — Planning engine**: Fully completed.
+  - Pure deterministic engine under `src/main/scheduler/` (`constraints/`, `scoring/`, `allocation/`, `capacity/`, `dependencies/`, `scheduling.ts`, `explanations.ts`, `types.ts`).
+  - Precedence & Constraint handling: Hard constraint prerequisite dependencies (checked before scoring), 100% deterministic (no `Math.random` or non-deterministic time references), Session splitting for items exceeding max session length, Hard deadline displacement of flexible/protected time budgets with exact numerical explanations. `locked` budgets and items never move.
+  - Database schema & Migration `0005_planner_engine`: `scheduled_items` table storing persisted weekly/daily schedule blocks with link to `work_items`.
+  - Main Service & IPC: `PlanningService` loading real entity DB state, invoking scheduler, and persisting results; exposed via `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`.
+  - Developer Debug View: `PlannerDebugPage.tsx` under the `Planner` tab for visualizing schedule generation, explanations, overload reports, and warnings.
+  - Tests: 54 Vitest unit/integration tests across 12 test suites passing, 0 TypeScript errors.
 
 ## How to run
 
@@ -29,7 +35,8 @@ cmd /c npm run dev
 ```text
 src/
 ├── main/
-│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0004)
+│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0005)
+│   ├── scheduler/   # pure deterministic planning engine (constraints, scoring, allocation, capacity, dependencies, scheduling, explanations, types)
 │   ├── services/    # domain services (settings-service, entity-service)
 │   └── index.ts     # main process & IPC handler registration
 ├── preload/
@@ -38,7 +45,7 @@ src/
 │   ├── src/
 │   │   ├── components/  # UI primitives (button, input, select, card, badge, dialog, tabs), BulkResourceModal, NotesWidget, DeleteDialog
 │   │   ├── locales/     # en/common.json, ar/common.json
-│   │   ├── pages/       # AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlaceholderPage
+│   │   ├── pages/       # AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, PlaceholderPage
 │   │   ├── App.tsx      # Main application shell with sidebar & topbar
 │   │   ├── i18n.ts
 │   │   └── main.tsx
@@ -48,7 +55,7 @@ src/
 
 ## Database
 
-Migrations `0000_foundation`, `0001_core_entities`, `0002_stage_foundation_and_entity_repairs`, `0003_resources_and_dependencies`, and `0004_time_model` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, and `habit_logs`.
+Migrations `0000_foundation` through `0005_planner_engine` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, and `scheduled_items`.
 
 ## IPC channels
 
@@ -71,7 +78,8 @@ Migrations `0000_foundation`, `0001_core_entities`, `0002_stage_foundation_and_e
 - Time Budgets: `time-budgets:list`, `time-budgets:create`, `time-budgets:update`
 - Routines & Habits: `routines:list`, `routines:create`, `routines:update`, `habits:list`, `habits:create`, `habits:update`, `habits:log`, `habits:logs:list`
 - Entity Management: `entities:archive`, `entities:restore`, `entities:delete`
+- Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`
 
 ## Next stage
 
-- Stage 5 — The Planner Engine: Adaptive scheduling engine, packing algorithms, scoring functions, manual reorder, drag & drop calendar/timeline, and auto-scheduling with respect to capacity and buffers.
+- Stage 6 — Planning UI & Interactive Schedule: Day/Week timeline views, drag-and-drop manual schedule overrides, interactive slot placement, overload indicator badges, and visual feedback for explanations and warnings.

@@ -28,6 +28,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { AvailabilityAndCapacityPage } from './pages/AvailabilityAndCapacityPage'
 import { TimeBudgetsPage } from './pages/TimeBudgetsPage'
 import { RoutinesAndHabitsPage } from './pages/RoutinesAndHabitsPage'
+import { PlannerDebugPage } from './pages/PlannerDebugPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
 const navigation = [
@@ -201,7 +202,7 @@ export function App(): JSX.Element {
             <WorkItemsPage />
           </div>
         ) : active === 'planner' ? (
-          <PlaceholderPage titleKey="planner" stageNumber={5} />
+          <PlannerDebugPage />
         ) : active === 'review' ? (
           <PlaceholderPage titleKey="review" stageNumber={8} />
         ) : (
