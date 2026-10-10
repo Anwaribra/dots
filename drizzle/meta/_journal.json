@@ -1,5 +1,5 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "entries": [{ "idx": 0, "version": "5", "when": 1791504000000, "tag": "0000_foundation", "breakpoints": true }]
+  "entries": [{ "idx": 0, "version": "5", "when": 1791504000000, "tag": "0000_foundation", "breakpoints": true }, { "idx": 1, "version": "5", "when": 1791504060000, "tag": "0001_core_entities", "breakpoints": true }]
 }
