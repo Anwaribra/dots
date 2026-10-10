@@ -18,7 +18,12 @@
   - Database schema & Migration `0005_planner_engine`: `scheduled_items` table storing persisted weekly/daily schedule blocks with link to `work_items`.
   - Main Service & IPC: `PlanningService` loading real entity DB state, invoking scheduler, and persisting results; exposed via `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`.
   - Developer Debug View: `PlannerDebugPage.tsx` under the `Planner` tab for visualizing schedule generation, explanations, overload reports, and warnings.
-  - Tests: 54 Vitest unit/integration tests across 12 test suites passing, 0 TypeScript errors.
+- **Stage 6 — Planner UI**: Fully completed.
+  - Today Dashboard (`TodayPage.tsx`): Real execution view with progress stats (Planned, Actual, Remaining, Completion %, Usable Capacity), zero-guilt analytical progress messages, Current Item card with timer placeholder (`[Timer Placeholder - Arriving Stage 7]`), and timeline view with quick actions.
+  - Weekly Planner (`WeeklyPlannerPage.tsx`): 7-day adaptive timeline grid respecting `weekStartsOn` setting, daily capacity indicators (`Healthy` / `Heavy` / `Overloaded`), overload warnings callout with suggested actions, manual control (move days, lock/unlock, split session, resize duration, delete, add manual block). Regeneration preserves locked items.
+  - Inbox Queue (`InboxPage.tsx`): Quick capture form, pending task queue, and "Plan Item" action with engine feedback reporting.
+  - Quick Add Modal (`QuickAddModal.tsx`): Accessible via topbar button or global keyboard shortcut (`Ctrl+K` or `Alt+N`) for structured fast task capture.
+  - Tests: 55 Vitest unit and integration tests across 12 test suites passing, 0 TypeScript compiler errors.
 
 ## How to run
 
@@ -37,15 +42,15 @@ src/
 ├── main/
 │   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0005)
 │   ├── scheduler/   # pure deterministic planning engine (constraints, scoring, allocation, capacity, dependencies, scheduling, explanations, types)
-│   ├── services/    # domain services (settings-service, entity-service)
+│   ├── services/    # domain services (settings-service, entity-service, planning-service)
 │   └── index.ts     # main process & IPC handler registration
 ├── preload/
 │   └── index.ts     # contextBridge API exposing typed planner IPC bridge
 ├── renderer/
 │   ├── src/
-│   │   ├── components/  # UI primitives (button, input, select, card, badge, dialog, tabs), BulkResourceModal, NotesWidget, DeleteDialog
+│   │   ├── components/  # UI primitives (button, input, select, card, badge, dialog, tabs), BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
 │   │   ├── locales/     # en/common.json, ar/common.json
-│   │   ├── pages/       # AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, PlaceholderPage
+│   │   ├── pages/       # TodayPage, InboxPage, WeeklyPlannerPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, PlaceholderPage
 │   │   ├── App.tsx      # Main application shell with sidebar & topbar
 │   │   ├── i18n.ts
 │   │   └── main.tsx
@@ -78,8 +83,8 @@ Migrations `0000_foundation` through `0005_planner_engine` create `settings`, `p
 - Time Budgets: `time-budgets:list`, `time-budgets:create`, `time-budgets:update`
 - Routines & Habits: `routines:list`, `routines:create`, `routines:update`, `habits:list`, `habits:create`, `habits:update`, `habits:log`, `habits:logs:list`
 - Entity Management: `entities:archive`, `entities:restore`, `entities:delete`
-- Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`
+- Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`, `planning:update-schedule-item`, `planning:create-schedule-item`, `planning:delete-schedule-item`
 
 ## Next stage
 
-- Stage 6 — Planning UI & Interactive Schedule: Day/Week timeline views, drag-and-drop manual schedule overrides, interactive slot placement, overload indicator badges, and visual feedback for explanations and warnings.
+- Stage 7 — Execution Engine: Focus timer, Pomodoro/time tracking, live execution logging, status updates, pause/resume, and actual duration sync back to work items.

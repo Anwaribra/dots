@@ -11,6 +11,7 @@ import {
   Inbox,
   Layers,
   Library,
+  Plus,
   Repeat2,
   Settings2,
   Tag as TagIcon
@@ -28,7 +29,10 @@ import { SettingsPage } from './pages/SettingsPage'
 import { AvailabilityAndCapacityPage } from './pages/AvailabilityAndCapacityPage'
 import { TimeBudgetsPage } from './pages/TimeBudgetsPage'
 import { RoutinesAndHabitsPage } from './pages/RoutinesAndHabitsPage'
-import { PlannerDebugPage } from './pages/PlannerDebugPage'
+import { TodayPage } from './pages/TodayPage'
+import { InboxPage } from './pages/InboxPage'
+import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage'
+import { QuickAddModal } from './components/QuickAddModal'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
 const navigation = [
@@ -51,6 +55,7 @@ export function App(): JSX.Element {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<Settings | null>(null)
   const [active, setActive] = useState<string>('today')
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
   const planner = window.planner
 
   useEffect(() => {
@@ -60,6 +65,15 @@ export function App(): JSX.Element {
         .then(applySettings)
         .catch(() => undefined)
     }
+
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.altKey && e.key.toLowerCase() === 'n')) {
+        e.preventDefault()
+        setQuickAddOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [planner])
 
   function applySettings(next: Settings): void {
@@ -138,6 +152,16 @@ export function App(): JSX.Element {
             {t(active)}
           </h2>
           <div className="settings-row flex items-center space-x-4 space-x-reverse text-xs">
+            <button
+              onClick={() => setQuickAddOpen(true)}
+              className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-500 shadow-sm"
+              title="Quick Capture (Ctrl+K or Alt+N)"
+            >
+              <Plus size={14} />
+              <span>Quick Add</span>
+              <kbd className="hidden md:inline-block rounded bg-indigo-700 px-1 text-[10px]">Ctrl+K</kbd>
+            </button>
+
             <label className="flex items-center space-x-2 space-x-reverse">
               <span>{t('language')}:</span>
               <select
@@ -171,7 +195,7 @@ export function App(): JSX.Element {
         ) : active === 'projects' ? (
           <ProjectsPage />
         ) : active === 'inbox' ? (
-          <WorkItemsPage />
+          <InboxPage />
         ) : active === 'resources' ? (
           <ResourcesPage />
         ) : active === 'routines' ? (
@@ -187,28 +211,23 @@ export function App(): JSX.Element {
         ) : active === 'settings' ? (
           <SettingsPage />
         ) : active === 'today' ? (
-          <div className="space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                {t('today')} Overview
-              </p>
-              <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {t('foundationReady')}
-              </h1>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                {t('foundationCopy')}
-              </p>
-            </div>
-            <WorkItemsPage />
-          </div>
+          <TodayPage />
         ) : active === 'planner' ? (
-          <PlannerDebugPage />
+          <WeeklyPlannerPage />
         ) : active === 'review' ? (
           <PlaceholderPage titleKey="review" stageNumber={8} />
         ) : (
           <PlaceholderPage titleKey={active} stageNumber={0} />
         )}
       </section>
+
+      <QuickAddModal
+        isOpen={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        onCreated={() => {
+          // Refresh views if needed
+        }}
+      />
     </main>
   )
 }

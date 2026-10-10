@@ -121,7 +121,10 @@ const api = {
   planning: {
     generateWeek: (startDate?: string) => ipcRenderer.invoke('planning:generate-week', { startDate }),
     getSchedule: (startDate: string, endDate: string) => ipcRenderer.invoke('planning:get-schedule', { startDate, endDate }),
-    clearSchedule: (startDate: string, endDate: string) => ipcRenderer.invoke('planning:clear-schedule', { startDate, endDate })
+    clearSchedule: (startDate: string, endDate: string) => ipcRenderer.invoke('planning:clear-schedule', { startDate, endDate }),
+    updateScheduleItem: (input: unknown) => ipcRenderer.invoke('planning:update-schedule-item', input),
+    createScheduleItem: (input: unknown) => ipcRenderer.invoke('planning:create-schedule-item', input),
+    deleteScheduleItem: (id: string) => ipcRenderer.invoke('planning:delete-schedule-item', { id })
   },
   entities: {
     archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),

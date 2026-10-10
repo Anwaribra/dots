@@ -8,8 +8,11 @@ import { setDatabase } from '../src/main/db/database'
 import { createArea, createWorkItem } from '../src/main/services/entity-service'
 import {
   clearScheduleRange,
+  createScheduleItem,
+  deleteScheduleItem,
   generateWeekSchedule,
-  listPersistedSchedule
+  listPersistedSchedule,
+  updateScheduleItem
 } from '../src/main/services/planning-service'
 
 describe('Stage 05 PlanningService Integration Tests', () => {
@@ -61,5 +64,45 @@ describe('Stage 05 PlanningService Integration Tests', () => {
     clearScheduleRange(todayStr, endDateStr)
     const afterClear = listPersistedSchedule(todayStr, endDateStr)
     expect(afterClear).toHaveLength(0)
+  })
+
+  it('Stage 06: supports manual schedule item CRUD and preserves locked items during regeneration', () => {
+    const todayStr = new Date().toISOString().substring(0, 10)
+
+    // 1. Create manual item
+    const created = createScheduleItem({
+      title: 'Manual Review Session',
+      date: todayStr,
+      startTime: '14:00',
+      endTime: '15:00',
+      durationMinutes: 60,
+      locked: true
+    })
+
+    expect(created.id).toBeDefined()
+    expect(created.locked).toBe(true)
+
+    // 2. Update item
+    const updated = updateScheduleItem({
+      id: created.id,
+      startTime: '14:30',
+      endTime: '15:30'
+    })
+    expect(updated.startTime).toBe('14:30')
+    expect(updated.endTime).toBe('15:30')
+
+    // 3. Generate week schedule and verify locked item is preserved
+    const area = createArea({ name: 'Testing Area' })
+    createWorkItem({ title: 'Flexible Task', areaId: area.id, priority: 'medium', estimatedMinutes: 60 })
+
+    const result = generateWeekSchedule(todayStr)
+    expect(result.scheduledItems.some((s) => s.id === created.id)).toBe(true)
+
+    // 4. Delete item
+    deleteScheduleItem(created.id)
+    const end = new Date()
+    end.setUTCDate(end.getUTCDate() + 6)
+    const afterDelete = listPersistedSchedule(todayStr, end.toISOString().substring(0, 10))
+    expect(afterDelete.some((s) => s.id === created.id)).toBe(false)
   })
 })

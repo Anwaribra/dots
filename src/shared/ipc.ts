@@ -155,10 +155,13 @@ export const ipcChannels = {
   habitsLog: 'habits:log',
   habitsListLogs: 'habits:list-logs',
 
-  // Stage 05 Channels: Planning Engine
+  // Stage 05 & 06 Channels: Planning Engine & UI
   planningGenerateWeek: 'planning:generate-week',
   planningGetSchedule: 'planning:get-schedule',
   planningClearSchedule: 'planning:clear-schedule',
+  planningUpdateScheduleItem: 'planning:update-schedule-item',
+  planningCreateScheduleItem: 'planning:create-schedule-item',
+  planningDeleteScheduleItem: 'planning:delete-schedule-item',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -256,6 +259,26 @@ export const ipcSchemas = {
   [ipcChannels.planningGenerateWeek]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).optional(),
   [ipcChannels.planningGetSchedule]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
   [ipcChannels.planningClearSchedule]: z.object({ startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+  [ipcChannels.planningUpdateScheduleItem]: z.object({
+    id: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    durationMinutes: z.number().optional(),
+    locked: z.boolean().optional(),
+    title: z.string().optional()
+  }),
+  [ipcChannels.planningCreateScheduleItem]: z.object({
+    workItemId: z.string().uuid().optional(),
+    title: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    startTime: z.string(),
+    endTime: z.string(),
+    durationMinutes: z.number(),
+    locked: z.boolean().optional(),
+    reason: z.string().optional()
+  }),
+  [ipcChannels.planningDeleteScheduleItem]: z.object({ id: z.string() }),
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -376,6 +399,26 @@ export type PlannerApi = {
     generateWeek: (startDate?: string) => Promise<PlanningResult>
     getSchedule: (startDate: string, endDate: string) => Promise<SchedulerScheduleItem[]>
     clearSchedule: (startDate: string, endDate: string) => Promise<void>
+    updateScheduleItem: (input: {
+      id: string
+      date?: string
+      startTime?: string
+      endTime?: string
+      durationMinutes?: number
+      locked?: boolean
+      title?: string
+    }) => Promise<SchedulerScheduleItem>
+    createScheduleItem: (input: {
+      workItemId?: string
+      title: string
+      date: string
+      startTime: string
+      endTime: string
+      durationMinutes: number
+      locked?: boolean
+      reason?: string
+    }) => Promise<SchedulerScheduleItem>
+    deleteScheduleItem: (id: string) => Promise<void>
   }
   entities: {
     archive: (input: z.input<typeof archiveEntitySchema>) => Promise<void>
