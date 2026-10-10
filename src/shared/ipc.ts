@@ -65,6 +65,14 @@ import {
   type WorkItemType
 } from './entities'
 import type { DayCapacityResult } from './capacity'
+import type {
+  TimeSessionItem,
+  TimeSessionInput,
+  TimeSessionUpdateInput
+} from '../main/services/session-service'
+import type { TimerInfoResponse } from '../main/services/timer-service'
+import type { EstimationAccuracyResult, AggregatedAccuracyResult } from './time-math'
+import type { BackupJsonExport } from '../main/services/backup-service'
 
 export const ipcChannels = {
   settingsGet: 'settings:get',
@@ -162,6 +170,27 @@ export const ipcChannels = {
   planningUpdateScheduleItem: 'planning:update-schedule-item',
   planningCreateScheduleItem: 'planning:create-schedule-item',
   planningDeleteScheduleItem: 'planning:delete-schedule-item',
+
+  // Stage 07 Channels: Execution Engine, Timer, Sessions, Accuracy & Backup
+  sessionsList: 'sessions:list',
+  sessionsCreate: 'sessions:create',
+  sessionsUpdate: 'sessions:update',
+  sessionsDelete: 'sessions:delete',
+
+  timerGetState: 'timer:get-state',
+  timerStart: 'timer:start',
+  timerPause: 'timer:pause',
+  timerResume: 'timer:resume',
+  timerStop: 'timer:stop',
+  timerComplete: 'timer:complete',
+  timerAddTime: 'timer:add-time',
+
+  accuracyGetForWorkItem: 'accuracy:get-for-work-item',
+  accuracyGetOverall: 'accuracy:get-overall',
+
+  backupExportJson: 'backup:export-json',
+  backupRestore: 'backup:restore',
+  backupCreateDb: 'backup:create-db',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -279,6 +308,61 @@ export const ipcSchemas = {
     reason: z.string().optional()
   }),
   [ipcChannels.planningDeleteScheduleItem]: z.object({ id: z.string() }),
+
+  // Stage 07: Sessions
+  [ipcChannels.sessionsList]: z.object({ workItemId: z.string().uuid().optional() }).optional(),
+  [ipcChannels.sessionsCreate]: z.object({
+    workItemId: z.string().uuid().optional().nullable(),
+    scheduledItemId: z.string().optional().nullable(),
+    projectId: z.string().uuid().optional().nullable(),
+    goalId: z.string().uuid().optional().nullable(),
+    areaId: z.string().uuid().optional().nullable(),
+    startTime: z.number(),
+    endTime: z.number(),
+    durationMinutes: z.number().optional(),
+    pausedDurationMinutes: z.number().optional(),
+    interruptionsCount: z.number().int().optional(),
+    mode: z.enum(['countdown', 'stopwatch', 'pomodoro', 'custom']).optional(),
+    notes: z.string().optional().nullable()
+  }),
+  [ipcChannels.sessionsUpdate]: z.object({
+    id: z.string().uuid(),
+    startTime: z.number().optional(),
+    endTime: z.number().optional(),
+    durationMinutes: z.number().optional(),
+    pausedDurationMinutes: z.number().optional(),
+    interruptionsCount: z.number().int().optional(),
+    notes: z.string().optional().nullable()
+  }),
+  [ipcChannels.sessionsDelete]: z.object({ id: z.string().uuid() }),
+
+  // Stage 07: Timer
+  [ipcChannels.timerGetState]: z.undefined(),
+  [ipcChannels.timerStart]: z.object({
+    mode: z.enum(['countdown', 'stopwatch', 'pomodoro', 'custom']).optional(),
+    workItemId: z.string().uuid().optional().nullable(),
+    workItemTitle: z.string().optional().nullable(),
+    scheduledItemId: z.string().optional().nullable(),
+    projectId: z.string().uuid().optional().nullable(),
+    goalId: z.string().uuid().optional().nullable(),
+    areaId: z.string().uuid().optional().nullable(),
+    targetDurationMinutes: z.number().optional(),
+    notes: z.string().optional().nullable()
+  }),
+  [ipcChannels.timerPause]: z.undefined(),
+  [ipcChannels.timerResume]: z.undefined(),
+  [ipcChannels.timerStop]: z.undefined(),
+  [ipcChannels.timerComplete]: z.undefined(),
+  [ipcChannels.timerAddTime]: z.object({ minutes: z.number() }),
+
+  // Stage 07: Accuracy
+  [ipcChannels.accuracyGetForWorkItem]: z.object({ workItemId: z.string().uuid() }),
+  [ipcChannels.accuracyGetOverall]: z.undefined(),
+
+  // Stage 07: Backup
+  [ipcChannels.backupExportJson]: z.undefined(),
+  [ipcChannels.backupRestore]: z.object({ jsonData: z.string() }),
+  [ipcChannels.backupCreateDb]: z.object({ destPath: z.string().optional() }).optional(),
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -424,5 +508,39 @@ export type PlannerApi = {
     archive: (input: z.input<typeof archiveEntitySchema>) => Promise<void>
     restore: (input: z.input<typeof restoreEntitySchema>) => Promise<void>
     delete: (input: z.input<typeof deleteEntitySchema>) => Promise<void>
+  }
+  sessions: {
+    list: (workItemId?: string) => Promise<TimeSessionItem[]>
+    create: (input: TimeSessionInput) => Promise<TimeSessionItem>
+    update: (input: TimeSessionUpdateInput) => Promise<TimeSessionItem>
+    delete: (id: string) => Promise<void>
+  }
+  timer: {
+    getState: () => Promise<TimerInfoResponse>
+    start: (input: {
+      mode?: 'countdown' | 'stopwatch' | 'pomodoro' | 'custom'
+      workItemId?: string | null
+      workItemTitle?: string | null
+      scheduledItemId?: string | null
+      projectId?: string | null
+      goalId?: string | null
+      areaId?: string | null
+      targetDurationMinutes?: number
+      notes?: string | null
+    }) => Promise<TimerInfoResponse>
+    pause: () => Promise<TimerInfoResponse>
+    resume: () => Promise<TimerInfoResponse>
+    stop: () => Promise<TimerInfoResponse>
+    complete: () => Promise<{ session: TimeSessionItem; timerInfo: TimerInfoResponse }>
+    addTime: (minutes: number) => Promise<TimerInfoResponse>
+  }
+  accuracy: {
+    getForWorkItem: (workItemId: string) => Promise<EstimationAccuracyResult>
+    getOverall: () => Promise<AggregatedAccuracyResult>
+  }
+  backup: {
+    exportJson: () => Promise<BackupJsonExport>
+    restore: (jsonData: string) => Promise<void>
+    createDb: (destPath?: string) => Promise<string>
   }
 }

@@ -130,6 +130,30 @@ const api = {
     archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),
     restore: (input: unknown) => ipcRenderer.invoke('entities:restore', input),
     delete: (input: unknown) => ipcRenderer.invoke('entities:delete', input)
+  },
+  sessions: {
+    list: (workItemId?: string) => ipcRenderer.invoke('sessions:list', workItemId ? { workItemId } : undefined),
+    create: (input: unknown) => ipcRenderer.invoke('sessions:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('sessions:update', input),
+    delete: (id: string) => ipcRenderer.invoke('sessions:delete', { id })
+  },
+  timer: {
+    getState: () => ipcRenderer.invoke('timer:get-state', undefined),
+    start: (input: unknown) => ipcRenderer.invoke('timer:start', input),
+    pause: () => ipcRenderer.invoke('timer:pause', undefined),
+    resume: () => ipcRenderer.invoke('timer:resume', undefined),
+    stop: () => ipcRenderer.invoke('timer:stop', undefined),
+    complete: () => ipcRenderer.invoke('timer:complete', undefined),
+    addTime: (minutes: number) => ipcRenderer.invoke('timer:add-time', { minutes })
+  },
+  accuracy: {
+    getForWorkItem: (workItemId: string) => ipcRenderer.invoke('accuracy:get-for-work-item', { workItemId }),
+    getOverall: () => ipcRenderer.invoke('accuracy:get-overall', undefined)
+  },
+  backup: {
+    exportJson: () => ipcRenderer.invoke('backup:export-json', undefined),
+    restore: (jsonData: string) => ipcRenderer.invoke('backup:restore', { jsonData }),
+    createDb: (destPath?: string) => ipcRenderer.invoke('backup:create-db', destPath ? { destPath } : undefined)
   }
 }
 

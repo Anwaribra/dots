@@ -83,6 +83,30 @@ import {
   updateWorkItemType
 } from './services/entity-service'
 import { runApplicationMigrations } from './db/application-migrations'
+import {
+  listTimeSessions,
+  createTimeSession,
+  updateTimeSession,
+  deleteTimeSession
+} from './services/session-service'
+import {
+  getTimerState,
+  startTimer,
+  pauseTimer,
+  resumeTimer,
+  stopTimer,
+  completeTimer,
+  addTimerTime
+} from './services/timer-service'
+import {
+  calculateEstimationAccuracy,
+  aggregateEstimationAccuracy
+} from '../shared/time-math'
+import {
+  exportJsonData,
+  restoreJsonData,
+  createDatabaseBackupFile
+} from './services/backup-service'
 
 let mainWindow: BrowserWindow | undefined
 
@@ -339,6 +363,82 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.entityArchive, (_event, input: unknown) => archiveEntity(ipcSchemas[ipcChannels.entityArchive].parse(input)))
   ipcMain.handle(ipcChannels.entityRestore, (_event, input: unknown) => restoreEntity(ipcSchemas[ipcChannels.entityRestore].parse(input)))
   ipcMain.handle(ipcChannels.entityDelete, (_event, input: unknown) => deleteEntity(ipcSchemas[ipcChannels.entityDelete].parse(input)))
+
+  // Stage 07: Sessions
+  ipcMain.handle(ipcChannels.sessionsList, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.sessionsList].parse(input)
+    return listTimeSessions(parsed?.workItemId)
+  })
+  ipcMain.handle(ipcChannels.sessionsCreate, (_event, input: unknown) => {
+    return createTimeSession(ipcSchemas[ipcChannels.sessionsCreate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.sessionsUpdate, (_event, input: unknown) => {
+    return updateTimeSession(ipcSchemas[ipcChannels.sessionsUpdate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.sessionsDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.sessionsDelete].parse(input)
+    deleteTimeSession(parsed.id)
+  })
+
+  // Stage 07: Timer
+  ipcMain.handle(ipcChannels.timerGetState, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timerGetState].parse(input)
+    return getTimerState()
+  })
+  ipcMain.handle(ipcChannels.timerStart, (_event, input: unknown) => {
+    return startTimer(ipcSchemas[ipcChannels.timerStart].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.timerPause, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timerPause].parse(input)
+    return pauseTimer()
+  })
+  ipcMain.handle(ipcChannels.timerResume, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timerResume].parse(input)
+    return resumeTimer()
+  })
+  ipcMain.handle(ipcChannels.timerStop, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timerStop].parse(input)
+    return stopTimer()
+  })
+  ipcMain.handle(ipcChannels.timerComplete, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timerComplete].parse(input)
+    return completeTimer()
+  })
+  ipcMain.handle(ipcChannels.timerAddTime, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.timerAddTime].parse(input)
+    return addTimerTime(parsed.minutes)
+  })
+
+  // Stage 07: Accuracy
+  ipcMain.handle(ipcChannels.accuracyGetForWorkItem, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.accuracyGetForWorkItem].parse(input)
+    const sessions = listTimeSessions(parsed.workItemId)
+    const totalActual = sessions.reduce((acc, s) => acc + Math.max(0, s.durationMinutes - (s.pausedDurationMinutes || 0)), 0)
+    const workItemsList = listWorkItems()
+    const wi = workItemsList.find((w) => w.id === parsed.workItemId)
+    return calculateEstimationAccuracy(wi?.estimatedMinutes ?? 0, totalActual)
+  })
+  ipcMain.handle(ipcChannels.accuracyGetOverall, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.accuracyGetOverall].parse(input)
+    const allItems = listWorkItems()
+    return aggregateEstimationAccuracy(
+      allItems.map((w) => ({ estimatedMinutes: w.estimatedMinutes ?? 0, actualMinutes: w.actualMinutes ?? 0 }))
+    )
+  })
+
+  // Stage 07: Backup
+  ipcMain.handle(ipcChannels.backupExportJson, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.backupExportJson].parse(input)
+    return exportJsonData()
+  })
+  ipcMain.handle(ipcChannels.backupRestore, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.backupRestore].parse(input)
+    restoreJsonData(parsed.jsonData)
+  })
+  ipcMain.handle(ipcChannels.backupCreateDb, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.backupCreateDb].parse(input)
+    return createDatabaseBackupFile(parsed?.destPath)
+  })
 }
 
 app.whenReady().then(() => {

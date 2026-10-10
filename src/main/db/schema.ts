@@ -10,6 +10,7 @@ export const settings = sqliteTable('settings', {
   use24HourTime: integer('use_24_hour_time', { mode: 'boolean' }).notNull().default(true),
   planningCapacityPercentage: integer('planning_capacity_percentage').notNull().default(75),
   bufferPercentage: integer('buffer_percentage').notNull().default(20),
+  notificationsEnabled: integer('notifications_enabled', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
@@ -181,6 +182,24 @@ export const scheduledItems = sqliteTable('scheduled_items', {
   isSplit: integer('is_split', { mode: 'boolean' }).notNull().default(false),
   locked: integer('locked', { mode: 'boolean' }).notNull().default(false),
   reason: text('reason'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const timeSessions = sqliteTable('time_sessions', {
+  id: text('id').primaryKey(),
+  workItemId: text('work_item_id').references(() => workItems.id, { onDelete: 'cascade' }),
+  scheduledItemId: text('scheduled_item_id').references(() => scheduledItems.id, { onDelete: 'set null' }),
+  projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }),
+  goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }),
+  areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }),
+  startTime: integer('start_time').notNull(),
+  endTime: integer('end_time').notNull(),
+  durationMinutes: integer('duration_minutes').notNull(),
+  pausedDurationMinutes: integer('paused_duration_minutes').notNull().default(0),
+  interruptionsCount: integer('interruptions_count').notNull().default(0),
+  mode: text('mode').notNull().default('stopwatch'),
+  notes: text('notes'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

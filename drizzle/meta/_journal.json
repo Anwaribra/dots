@@ -7,6 +7,7 @@
     { "idx": 2, "version": "5", "when": 1791504120000, "tag": "0002_stage_foundation_and_entity_repairs", "breakpoints": true },
     { "idx": 3, "version": "5", "when": 1791504180000, "tag": "0003_resources_and_dependencies", "breakpoints": true },
     { "idx": 4, "version": "5", "when": 1791504240000, "tag": "0004_time_model", "breakpoints": true },
-    { "idx": 5, "version": "5", "when": 1791504300000, "tag": "0005_planner_engine", "breakpoints": true }
+    { "idx": 5, "version": "5", "when": 1791504300000, "tag": "0005_planner_engine", "breakpoints": true },
+    { "idx": 6, "version": "5", "when": 1791504360000, "tag": "0006_execution_engine", "breakpoints": true }
   ]
 }

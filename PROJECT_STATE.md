@@ -19,11 +19,23 @@
   - Main Service & IPC: `PlanningService` loading real entity DB state, invoking scheduler, and persisting results; exposed via `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`.
   - Developer Debug View: `PlannerDebugPage.tsx` under the `Planner` tab for visualizing schedule generation, explanations, overload reports, and warnings.
 - **Stage 6 — Planner UI**: Fully completed.
-  - Today Dashboard (`TodayPage.tsx`): Real execution view with progress stats (Planned, Actual, Remaining, Completion %, Usable Capacity), zero-guilt analytical progress messages, Current Item card with timer placeholder (`[Timer Placeholder - Arriving Stage 7]`), and timeline view with quick actions.
-  - Weekly Planner (`WeeklyPlannerPage.tsx`): 7-day adaptive timeline grid respecting `weekStartsOn` setting, daily capacity indicators (`Healthy` / `Heavy` / `Overloaded`), overload warnings callout with suggested actions, manual control (move days, lock/unlock, split session, resize duration, delete, add manual block). Regeneration preserves locked items.
-  - Inbox Queue (`InboxPage.tsx`): Quick capture form, pending task queue, and "Plan Item" action with engine feedback reporting.
-  - Quick Add Modal (`QuickAddModal.tsx`): Accessible via topbar button or global keyboard shortcut (`Ctrl+K` or `Alt+N`) for structured fast task capture.
-  - Tests: 55 Vitest unit and integration tests across 12 test suites passing, 0 TypeScript compiler errors.
+  - Today Dashboard (`TodayPage.tsx`): Real execution view with progress stats (Planned, Actual, Remaining, Completion %, Usable Capacity), zero-guilt analytical progress messages, Current Item card (timer placeholder replaced in Stage 7), and timeline view with quick actions.
+  - Weekly Planner (`WeeklyPlannerPage.tsx`): 7-day adaptive timeline grid respecting `weekStartsOn` setting, daily capacity indicators, overload warnings, manual control (move, lock/unlock, split, resize, delete, add). Regeneration preserves locked items.
+  - Inbox Queue (`InboxPage.tsx`): Quick capture form, pending queue, "Plan Item" action.
+  - Quick Add Modal (`QuickAddModal.tsx`): Accessible via `Ctrl+K` or `Alt+N` for structured fast task capture.
+- **Stage 7 — Execution Engine**: Fully completed.
+  - **Timer Service** (`src/main/services/timer-service.ts`): Main-process singleton timer that survives window reloads and restarts. Modes: countdown, stopwatch, pomodoro, custom. Controls: start, pause, resume, stop, complete, add-time. Completion persists a session automatically.
+  - **Session Service** (`src/main/services/session-service.ts`): CRUD for `time_sessions` table. Every create/update/delete runs `syncWorkItemActualInTx` inside the same drizzle transaction to keep `work_items.actual_minutes` as a transactionally-consistent cache that always equals `SUM(time_sessions.net_minutes)`. Also updates `projects.completed_minutes`.
+  - **Notification Service** (`src/main/services/notification-service.ts`): Wraps `Electron.Notification` with deduplication by key (5-minute window). Used exclusively for timer completion in this stage.
+  - **Backup Service** (`src/main/services/backup-service.ts`): `exportJsonData()` (full DB dump), `validateJsonBackup()` (structural validation), `restoreJsonData()` (atomic delete-then-reinsert in one transaction, validated before touching DB), `createDatabaseBackupFile()` (DB file copy with timestamp).
+  - **Pure Time-Math Module** (`src/shared/time-math.ts`): `computeNetSessionMinutes`, `computeRemainingWorkMinutes`, `calculateEstimationAccuracy`, `aggregateEstimationAccuracy`. `EstimationAccuracyResult` surface bias as suggestion only — never edits estimates.
+  - **Database**: Migration `0006_execution_engine.sql` — `time_sessions` table + `notifications_enabled` column in `settings`.
+  - **IPC**: `sessions:list/create/update/delete`, `timer:get-state/start/pause/resume/stop/complete/add-time`, `accuracy:get-for-work-item/get-overall`, `backup:export-json/restore/create-db`. All channels have Zod input schemas, preload bridge entries, and main-process handlers.
+  - **Timer UI**: `TodayPage.tsx` timer placeholder replaced with real modal — shows elapsed/remaining clock, Start/Pause/Resume/+5m/Complete/Stop controls, live polling every 1s, over-target indicator.
+  - **Tests**: 97 tests passing across 15 test suites, 0 TypeScript errors.
+    - `tests/time-math.test.ts` — 22 pure unit tests covering all math functions, midnight-crossing, pause/resume accuracy, and aggregation.
+    - `tests/session-service.test.ts` — 8 integration tests proving the `actualMinutes` cache invariant holds after create, update, delete, and multi-session scenarios.
+    - `tests/backup-service.test.ts` — 12 integration tests: export round-trip, validation rejections, JSON string input, atomicity on corrupt data.
 
 ## How to run
 
@@ -40,27 +52,27 @@ cmd /c npm run dev
 ```text
 src/
 ├── main/
-│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0005)
+│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0006)
 │   ├── scheduler/   # pure deterministic planning engine (constraints, scoring, allocation, capacity, dependencies, scheduling, explanations, types)
-│   ├── services/    # domain services (settings-service, entity-service, planning-service)
+│   ├── services/    # domain services (settings-service, entity-service, planning-service, session-service, timer-service, notification-service, backup-service)
 │   └── index.ts     # main process & IPC handler registration
 ├── preload/
 │   └── index.ts     # contextBridge API exposing typed planner IPC bridge
 ├── renderer/
 │   ├── src/
-│   │   ├── components/  # UI primitives (button, input, select, card, badge, dialog, tabs), BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
+│   │   ├── components/  # UI primitives, BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
 │   │   ├── locales/     # en/common.json, ar/common.json
-│   │   ├── pages/       # TodayPage, InboxPage, WeeklyPlannerPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, PlaceholderPage
+│   │   ├── pages/       # TodayPage (real timer), InboxPage, WeeklyPlannerPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, PlaceholderPage
 │   │   ├── App.tsx      # Main application shell with sidebar & topbar
 │   │   ├── i18n.ts
 │   │   └── main.tsx
 │   └── index.html
-└── shared/          # Zod schemas (entities.ts, settings.ts), bulk-parser.ts, dependency-utils.ts, capacity.ts, recurrence.ts & IPC contract (ipc.ts)
+└── shared/          # Zod schemas (entities.ts, settings.ts), bulk-parser.ts, dependency-utils.ts, capacity.ts, recurrence.ts, time-math.ts & IPC contract (ipc.ts)
 ```
 
 ## Database
 
-Migrations `0000_foundation` through `0005_planner_engine` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, and `scheduled_items`.
+Migrations `0000_foundation` through `0006_execution_engine` create `settings` (with `notifications_enabled`), `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, `scheduled_items`, and `time_sessions`.
 
 ## IPC channels
 
@@ -81,10 +93,14 @@ Migrations `0000_foundation` through `0005_planner_engine` create `settings`, `p
 - Availability & Capacity: `availability-rules:list`, `availability-rules:update`, `availability-overrides:list`, `availability-overrides:create`, `availability-overrides:delete`, `capacity:calculate`
 - Fixed Events: `fixed-events:list`, `fixed-events:create`, `fixed-events:update`
 - Time Budgets: `time-budgets:list`, `time-budgets:create`, `time-budgets:update`
-- Routines & Habits: `routines:list`, `routines:create`, `routines:update`, `habits:list`, `habits:create`, `habits:update`, `habits:log`, `habits:logs:list`
+- Routines & Habits: `routines:list`, `routines:create`, `routines:update`, `habits:list`, `habits:create`, `habits:update`, `habits:log`, `habits:list-logs`
 - Entity Management: `entities:archive`, `entities:restore`, `entities:delete`
 - Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`, `planning:update-schedule-item`, `planning:create-schedule-item`, `planning:delete-schedule-item`
+- Sessions: `sessions:list`, `sessions:create`, `sessions:update`, `sessions:delete`
+- Timer: `timer:get-state`, `timer:start`, `timer:pause`, `timer:resume`, `timer:stop`, `timer:complete`, `timer:add-time`
+- Accuracy: `accuracy:get-for-work-item`, `accuracy:get-overall`
+- Backup: `backup:export-json`, `backup:restore`, `backup:create-db`
 
 ## Next stage
 
-- Stage 7 — Execution Engine: Focus timer, Pomodoro/time tracking, live execution logging, status updates, pause/resume, and actual duration sync back to work items.
+- Stage 8 — Review & Reflection: Weekly review, retrospective, habit streak tracking, completion history, and reporting dashboard.

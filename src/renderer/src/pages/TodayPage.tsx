@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   CheckCircle2,
   Clock,
   Lock,
+  Pause,
   Play,
+  Plus,
+  Square,
   SkipForward,
   Unlock,
   Calendar,
@@ -31,6 +34,16 @@ function formatMinutes(mins: number): string {
   return `${m}m`
 }
 
+function formatSeconds(secs: number): string {
+  const h = Math.floor(secs / 3600)
+  const m = Math.floor((secs % 3600) / 60)
+  const s = secs % 60
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+type TimerStatus = 'idle' | 'running' | 'paused'
+
 export function TodayPage(): JSX.Element {
   const { t } = useTranslation()
   const planner = window.planner
@@ -44,6 +57,35 @@ export function TodayPage(): JSX.Element {
 
   const [timerModalOpen, setTimerModalOpen] = useState(false)
   const [activeItemForTimer, setActiveItemForTimer] = useState<ScheduleItem | null>(null)
+
+  // Timer state
+  const [timerStatus, setTimerStatus] = useState<TimerStatus>('idle')
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const [isOverTarget, setIsOverTarget] = useState(false)
+  const timerPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const refreshTimerState = useCallback(async () => {
+    if (!planner) return
+    try {
+      const info = await planner.timer.getState()
+      setTimerStatus(info.activeState.status as TimerStatus)
+      setElapsedSeconds(info.elapsedSeconds)
+      setRemainingSeconds(info.remainingSeconds)
+      setIsOverTarget(info.isOverTarget)
+    } catch { /* ignore */ }
+  }, [planner])
+
+  // Poll timer state every second when modal is open
+  useEffect(() => {
+    if (timerModalOpen) {
+      refreshTimerState()
+      timerPollRef.current = setInterval(refreshTimerState, 1000)
+    } else {
+      if (timerPollRef.current) clearInterval(timerPollRef.current)
+    }
+    return () => { if (timerPollRef.current) clearInterval(timerPollRef.current) }
+  }, [timerModalOpen, refreshTimerState])
 
   useEffect(() => {
     loadTodayData()
@@ -349,29 +391,109 @@ export function TodayPage(): JSX.Element {
         )}
       </div>
 
-      {/* Timer Placeholder Modal */}
+      {/* Real Timer Modal */}
       {timerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Focus Timer
             </h3>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Focus session for: <strong>{activeItemForTimer?.title}</strong>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {activeItemForTimer?.title ?? 'Focus Session'}
             </p>
-            <div className="my-6 rounded-lg bg-indigo-50 p-4 text-center dark:bg-indigo-950/60">
-              <span className="block text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                [Timer Placeholder - Arriving Stage 7]
+
+            {/* Clock display */}
+            <div className={`my-6 rounded-lg p-6 text-center ${isOverTarget ? 'bg-red-50 dark:bg-red-950/40' : 'bg-indigo-50 dark:bg-indigo-950/60'}`}>
+              <span className={`block font-mono text-5xl font-bold tabular-nums ${isOverTarget ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                {timerStatus === 'idle'
+                  ? formatSeconds((activeItemForTimer?.durationMinutes ?? 30) * 60)
+                  : formatSeconds(elapsedSeconds)}
               </span>
-              <span className="mt-1 block font-mono text-3xl font-bold text-slate-900 dark:text-slate-100">
-                {formatMinutes(activeItemForTimer?.durationMinutes || 30)}
+              {timerStatus !== 'idle' && (
+                <span className="mt-2 block text-sm text-slate-500 dark:text-slate-400">
+                  {isOverTarget
+                    ? `Over target by ${formatSeconds(elapsedSeconds - ((activeItemForTimer?.durationMinutes ?? 30) * 60))}`
+                    : `${formatSeconds(remainingSeconds)} remaining`}
+                </span>
+              )}
+              <span className="mt-1 block text-xs font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">
+                {timerStatus === 'idle' ? 'Ready' : timerStatus === 'running' ? 'Running' : 'Paused'}
               </span>
             </div>
 
-            <div className="flex justify-end">
+            {/* Controls */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {timerStatus === 'idle' && (
+                <button
+                  onClick={async () => {
+                    await planner.timer.start({
+                      mode: 'countdown',
+                      workItemId: activeItemForTimer?.workItemId ?? null,
+                      workItemTitle: activeItemForTimer?.title ?? null,
+                      scheduledItemId: activeItemForTimer?.id ?? null,
+                      targetDurationMinutes: activeItemForTimer?.durationMinutes ?? 30
+                    })
+                    await refreshTimerState()
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                >
+                  <Play size={16} /> Start
+                </button>
+              )}
+
+              {timerStatus === 'running' && (
+                <>
+                  <button
+                    onClick={async () => { await planner.timer.pause(); await refreshTimerState() }}
+                    className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-400"
+                  >
+                    <Pause size={16} /> Pause
+                  </button>
+                  <button
+                    onClick={async () => { await planner.timer.addTime(5); await refreshTimerState() }}
+                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    <Plus size={14} /> 5m
+                  </button>
+                </>
+              )}
+
+              {timerStatus === 'paused' && (
+                <button
+                  onClick={async () => { await planner.timer.resume(); await refreshTimerState() }}
+                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                >
+                  <Play size={16} /> Resume
+                </button>
+              )}
+
+              {timerStatus !== 'idle' && (
+                <>
+                  <button
+                    onClick={async () => {
+                      await planner.timer.complete()
+                      await refreshTimerState()
+                      setTimerModalOpen(false)
+                      loadTodayData()
+                    }}
+                    className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
+                  >
+                    <CheckCircle2 size={16} /> Complete
+                  </button>
+                  <button
+                    onClick={async () => { await planner.timer.stop(); await refreshTimerState() }}
+                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+                  >
+                    <Square size={16} /> Stop
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setTimerModalOpen(false)}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 Close
               </button>
