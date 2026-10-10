@@ -1,42 +1,66 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-// Sandboxed preload scripts may only load Electron's restricted runtime APIs.
-// Keep runtime channel names local; shared schemas remain in main/renderer builds.
-const ipcChannels = {
-  settingsGet: 'settings:get',
-  settingsUpdate: 'settings:update'
-} as const
-
-type PreloadSettings = {
-  locale: 'en' | 'ar'
-  theme: 'light' | 'dark' | 'system'
-  weekStartsOn: number
-  timezone: string
-  use24HourTime: boolean
-}
-
-type PreloadApi = {
+const api = {
   settings: {
-    get: () => Promise<PreloadSettings>
-    update: (input: Partial<PreloadSettings>) => Promise<PreloadSettings>
-  }
-  areas: { list: () => Promise<unknown[]>; create: (input: { name: string; description?: string; color?: string }) => Promise<unknown> }
-  goals: { list: () => Promise<unknown[]>; create: (input: { title: string; areaId?: string | null; priority?: string; targetDate?: string | null }) => Promise<unknown> }
-  projects: { list: () => Promise<unknown[]>; create: (input: { title: string; goalId?: string | null; areaId?: string | null; priority?: string; deadline?: string | null }) => Promise<unknown> }
-  workItems: { list: () => Promise<unknown[]>; create: (input: { title: string; projectId?: string | null; estimatedMinutes?: number; priority?: string }) => Promise<unknown> }
-  entities: { archive: (input: { kind: string; id: string }) => Promise<void> }
-}
-
-const api: PreloadApi = {
-  settings: {
-    get: () => ipcRenderer.invoke(ipcChannels.settingsGet, undefined),
-    update: (input) => ipcRenderer.invoke(ipcChannels.settingsUpdate, input)
+    get: () => ipcRenderer.invoke('settings:get', undefined),
+    update: (input: unknown) => ipcRenderer.invoke('settings:update', input)
   },
-  areas: { list: () => ipcRenderer.invoke('areas:list', undefined), create: (input) => ipcRenderer.invoke('areas:create', input) },
-  goals: { list: () => ipcRenderer.invoke('goals:list', undefined), create: (input) => ipcRenderer.invoke('goals:create', input) },
-  projects: { list: () => ipcRenderer.invoke('projects:list', undefined), create: (input) => ipcRenderer.invoke('projects:create', input) },
-  workItems: { list: () => ipcRenderer.invoke('work-items:list', undefined), create: (input) => ipcRenderer.invoke('work-items:create', input) },
-  entities: { archive: (input) => ipcRenderer.invoke('entities:archive', input) }
+  areas: {
+    list: () => ipcRenderer.invoke('areas:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('areas:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('areas:update', input)
+  },
+  goals: {
+    list: () => ipcRenderer.invoke('goals:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('goals:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('goals:update', input)
+  },
+  milestones: {
+    list: (goalId?: string) => ipcRenderer.invoke('milestones:list', { goalId }),
+    create: (input: unknown) => ipcRenderer.invoke('milestones:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('milestones:update', input)
+  },
+  projects: {
+    list: () => ipcRenderer.invoke('projects:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('projects:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('projects:update', input)
+  },
+  workItemTypes: {
+    list: () => ipcRenderer.invoke('work-item-types:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('work-item-types:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('work-item-types:update', input)
+  },
+  customFieldDefs: {
+    list: (workItemTypeId?: string) => ipcRenderer.invoke('custom-field-defs:list', { workItemTypeId }),
+    create: (input: unknown) => ipcRenderer.invoke('custom-field-defs:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('custom-field-defs:update', input)
+  },
+  customFieldValues: {
+    get: (workItemId: string) => ipcRenderer.invoke('custom-field-values:get', { workItemId }),
+    set: (input: unknown) => ipcRenderer.invoke('custom-field-values:set', input)
+  },
+  workItems: {
+    list: () => ipcRenderer.invoke('work-items:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('work-items:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('work-items:update', input)
+  },
+  tags: {
+    list: () => ipcRenderer.invoke('tags:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('tags:create', input),
+    attach: (input: unknown) => ipcRenderer.invoke('tags:attach', input),
+    detach: (input: unknown) => ipcRenderer.invoke('tags:detach', input),
+    getForEntity: (entityType: string, entityId: string) => ipcRenderer.invoke('tags:get-for-entity', { entityType, entityId })
+  },
+  notes: {
+    list: (entityType: string, entityId: string) => ipcRenderer.invoke('notes:list', { entityType, entityId }),
+    create: (input: unknown) => ipcRenderer.invoke('notes:create', input),
+    delete: (id: string) => ipcRenderer.invoke('notes:delete', { id })
+  },
+  entities: {
+    archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),
+    restore: (input: unknown) => ipcRenderer.invoke('entities:restore', input),
+    delete: (input: unknown) => ipcRenderer.invoke('entities:delete', input)
+  }
 }
 
 contextBridge.exposeInMainWorld('planner', api)

@@ -7,6 +7,10 @@ import fs from 'node:fs'
 
 let database: ReturnType<typeof drizzle<typeof schema>> | undefined
 
+export function setDatabase(db: ReturnType<typeof drizzle<typeof schema>>): void {
+  database = db
+}
+
 export function getDatabase(): ReturnType<typeof drizzle<typeof schema>> {
   if (database) return database
   const folder = path.join(app.getPath('userData'), 'data')
