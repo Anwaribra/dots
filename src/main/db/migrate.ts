@@ -1,8 +1,7 @@
-import { app } from 'electron'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
-import path from 'node:path'
-import { getDatabase } from './database'
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import * as schema from './schema'
 
-export function runMigrations(): void {
-  migrate(getDatabase(), { migrationsFolder: path.join(app.getAppPath(), 'drizzle') })
+export function runMigrations(database: BetterSQLite3Database<typeof schema>, migrationsFolder: string): void {
+  migrate(database, { migrationsFolder })
 }

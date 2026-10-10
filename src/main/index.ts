@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import path from 'node:path'
 import { ipcChannels, ipcSchemas } from '../shared/ipc'
 import { getSettings, updateSettings } from './services/settings-service'
-import { runMigrations } from './db/migrate'
+import { runApplicationMigrations } from './db/application-migrations'
 
 let mainWindow: BrowserWindow | undefined
 
@@ -42,7 +42,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
-  runMigrations()
+  runApplicationMigrations()
   registerIpc()
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })

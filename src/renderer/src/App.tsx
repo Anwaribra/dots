@@ -13,8 +13,11 @@ export function App(): JSX.Element {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<Settings | null>(null)
   const [active, setActive] = useState('today')
+  const planner = window.planner
 
-  useEffect(() => { window.planner.settings.get().then(applySettings) }, [])
+  useEffect(() => {
+    if (planner) planner.settings.get().then(applySettings).catch(() => undefined)
+  }, [planner])
   function applySettings(next: Settings): void {
     setSettings(next)
     i18n.changeLanguage(next.locale)
@@ -22,9 +25,15 @@ export function App(): JSX.Element {
     document.documentElement.dir = next.locale === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.dataset.theme = next.theme
   }
-  async function changeSettings(patch: Partial<Settings>): Promise<void> { applySettings(await window.planner.settings.update(patch)) }
+  async function changeSettings(patch: Partial<Settings>): Promise<void> {
+    if (planner) applySettings(await planner.settings.update(patch))
+  }
 
-  return <main className="app-shell">
+  if (!planner) {
+    return <main className="fatal min-h-screen" role="alert"><h1>Application bridge unavailable</h1><p>The secure desktop bridge did not load. Close the app and restart it with <code>npm run dev</code>. If this persists, check the Electron main-process console.</p></main>
+  }
+
+  return <main className="app-shell min-h-screen">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">C</div><div><strong>{t('appName')}</strong><small>{t('appTagline')}</small></div></div>
       <nav aria-label="Main navigation">{navigation.map(([key, Icon]) => <button key={key} className={active === key ? 'nav-item active' : 'nav-item'} onClick={() => setActive(key)}><Icon size={18}/><span>{t(key)}</span></button>)}</nav>

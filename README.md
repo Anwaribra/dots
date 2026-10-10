@@ -8,10 +8,9 @@ Install Node.js 20+ and run:
 
 ```powershell
 npm install
-npm run rebuild:electron
 npm run dev
 ```
 
-Use `npm run rebuild:node` when running native-module tooling under Node rather than Electron. Run `npm run typecheck` and `npm test` before changes are merged.
+`npm run dev` runs `predev`, which rebuilds `better-sqlite3` for Electron before opening the desktop window. `npm test` runs `pretest`, which rebuilds it for plain Node before Vitest starts. You can also run `npm run rebuild:electron` or `npm run rebuild:node` directly after changing Electron or Node versions. Run `npm run typecheck` and `npm test` before changes are merged.
 
 The database is stored under Electron's per-user data directory; it is never accessed by the renderer process.

@@ -2,75 +2,48 @@
 
 ## Completed stages
 
-- Stage 1 — Foundation (completed in source; execution verification is pending because Node.js/npm are not installed in the current environment).
+- Stage 1 — Foundation. Verified source includes secure Electron, Drizzle/SQLite migration infrastructure, typed and Zod-validated settings IPC, English/Arabic RTL-ready renderer shell, Tailwind configuration, and migration idempotence coverage. The sandboxed preload contains no third-party runtime imports; it exposes the `planner` bridge using Electron APIs only.
 
 ## How to run
 
-1. Install Node.js 20+.
-2. Run `npm install`, then `npm run rebuild:electron`.
-3. Run `npm run dev`.
-4. Verify with `npm run typecheck` and `npm test`.
+```powershell
+npm install
+npm run typecheck
+npm test
+npm run dev
+```
 
-`npm run rebuild:node` rebuilds `better-sqlite3` for Node-based tooling. `npm run db:generate` generates a migration and `npm run db:migrate` is available for database tooling.
+`pretest` runs `rebuild:node` so Vitest uses a Node-compatible `better-sqlite3`. `predev` runs `rebuild:electron` so Electron uses an Electron-compatible native module. Run either rebuild script directly after switching Node/Electron ABI versions.
 
 ## Folder tree
 
 ```text
-.
-├── drizzle/
-│   ├── meta/
-│   └── 0000_foundation.sql
-├── src/
-│   ├── main/
-│   │   ├── db/
-│   │   ├── services/
-│   │   └── index.ts
-│   ├── preload/
-│   │   └── index.ts
-│   ├── renderer/
-│   │   ├── src/
-│   │   └── index.html
-│   └── shared/
-│       ├── ipc.ts
-│       └── settings.ts
-└── tests/
-    └── settings-schema.test.ts
+src/
+├── main/
+│   ├── db/          # database, migration runner, schema
+│   ├── services/    # main-process domain services
+│   └── index.ts
+├── preload/
+│   └── index.ts
+├── renderer/
+│   ├── src/         # React, styles, i18n, renderer window types
+│   └── index.html
+└── shared/          # Zod schemas and typed IPC contract
 ```
 
 ## Database
 
-Migration `0000_foundation` creates `settings`: `id`, `locale`, `theme`, `weekStartsOn`, `timezone`, `use24HourTime`, `createdAt`, `updatedAt`. `id` is the primary key. The singleton row uses a stable UUID.
+Migration `0000_foundation` creates `settings` with UUID `id`, locale, theme, week-start, timezone, 24-hour preference, and UTC-millisecond audit fields. The pure `runMigrations(database, folder)` runner is idempotent; the application wrapper supplies Electron's data location.
 
 ## IPC channels
 
-- `settings:get`: payload `undefined`; returns validated `Settings`.
-- `settings:update`: payload validated by `settingsUpdateSchema`; returns validated `Settings`.
-
-All renderer-to-main payloads are Zod validated in main. The preload bridge exposes only the typed `window.planner.settings` API. Context isolation is enabled, Node integration disabled, and sandbox enabled.
-
-## Services
-
-- `getSettings(): Settings`
-- `updateSettings(input: unknown): Settings`
-- `getDatabase()` and `runMigrations()` initialize SQLite and Drizzle migrations.
-
-## Engines
-
-None yet. Stage 1 deliberately contains no planning/business engines.
-
-## Conventions
-
-- Strict TypeScript; shared contracts live in `src/shared`.
-- Instants are UTC milliseconds; later calendar days use `YYYY-MM-DD` and times `HH:mm`.
-- Week start defaults to Saturday (`6`).
-- English and Arabic text belongs only in `src/renderer/src/locales/*/common.json`.
-- Layout CSS uses logical properties for RTL compatibility.
+- `settings:get`: payload `undefined`, returns `Settings`.
+- `settings:update`: partial settings payload, Zod-validated in main, returns `Settings`.
 
 ## Known limitations
 
-- Node.js/npm are absent on the current machine, so dependencies could not be installed and typecheck/tests could not be executed.
-- Stage 1 only persists application settings; all domain tables arrive in the relevant later stages.
+- No domain entities have been started; those remain Stage 2.
 
 ## Next stage
 
-Stage 2: core entities — areas, optional-area goals, milestones, projects, work items, work-item types, custom field definitions/values, tags, and notes.
+Stage 2 — core entities, only when explicitly requested.
