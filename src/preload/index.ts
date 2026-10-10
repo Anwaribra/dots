@@ -76,6 +76,48 @@ const api = {
     create: (input: unknown) => ipcRenderer.invoke('dependencies:create', input),
     delete: (id: string) => ipcRenderer.invoke('dependencies:delete', { id })
   },
+  availabilityRules: {
+    list: () => ipcRenderer.invoke('availability-rules:list', undefined),
+    update: (rules: unknown[]) => ipcRenderer.invoke('availability-rules:update', { rules })
+  },
+  availabilityOverrides: {
+    list: () => ipcRenderer.invoke('availability-overrides:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('availability-overrides:create', input),
+    delete: (id: string) => ipcRenderer.invoke('availability-overrides:delete', { id })
+  },
+  capacity: {
+    calculate: (date: string) => ipcRenderer.invoke('capacity:calculate', { date })
+  },
+  fixedEvents: {
+    list: () => ipcRenderer.invoke('fixed-events:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('fixed-events:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('fixed-events:update', input)
+  },
+  timeBudgets: {
+    list: () => ipcRenderer.invoke('time-budgets:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('time-budgets:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('time-budgets:update', input)
+  },
+  routines: {
+    list: () => ipcRenderer.invoke('routines:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('routines:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('routines:update', input)
+  },
+  habits: {
+    list: () => ipcRenderer.invoke('habits:list', undefined),
+    create: (input: unknown) => ipcRenderer.invoke('habits:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('habits:update', input),
+    log: (input: unknown) => ipcRenderer.invoke('habits:log', input),
+    listLogs: (filter?: { habitId?: string; date?: string } | string) => {
+      const payload =
+        typeof filter === 'string'
+          ? filter.includes('-')
+            ? { date: filter }
+            : { habitId: filter }
+          : filter
+      return ipcRenderer.invoke('habits:list-logs', payload)
+    }
+  },
   entities: {
     archive: (input: unknown) => ipcRenderer.invoke('entities:archive', input),
     restore: (input: unknown) => ipcRenderer.invoke('entities:restore', input),

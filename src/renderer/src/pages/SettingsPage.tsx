@@ -73,6 +73,35 @@ export function SettingsPage(): JSX.Element {
             { value: '1', label: t('monday') }
           ]}
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Planning Capacity % (e.g. 75%)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={settings.planningCapacityPercentage ?? 75}
+              onChange={(e) => void updateSetting({ planningCapacityPercentage: Number(e.target.value) })}
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Buffer % of Usable (e.g. 20%)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={settings.bufferPercentage ?? 20}
+              onChange={(e) => void updateSetting({ bufferPercentage: Number(e.target.value) })}
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
       </Card>
     </div>
   )

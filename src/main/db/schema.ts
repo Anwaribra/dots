@@ -1,4 +1,5 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { check, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 export const settings = sqliteTable('settings', {
   id: text('id').primaryKey(),
@@ -7,6 +8,8 @@ export const settings = sqliteTable('settings', {
   weekStartsOn: integer('week_starts_on').notNull().default(6),
   timezone: text('timezone').notNull().default('UTC'),
   use24HourTime: integer('use_24_hour_time', { mode: 'boolean' }).notNull().default(true),
+  planningCapacityPercentage: integer('planning_capacity_percentage').notNull().default(75),
+  bufferPercentage: integer('buffer_percentage').notNull().default(20),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
@@ -33,7 +36,7 @@ export const tags = sqliteTable('tags', { id: text('id').primaryKey(), name: tex
 export const entityTags = sqliteTable('entity_tags', { id: text('id').primaryKey(), entityType: text('entity_type').notNull(), entityId: text('entity_id').notNull(), tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
 export const notes = sqliteTable('notes', { id: text('id').primaryKey(), entityType: text('entity_type').notNull(), entityId: text('entity_id').notNull(), content: text('content').notNull(), ...audit })
 
-// Stage 03 Tables: Resources, Resource Items, Work Item Dependencies
+// Stage 03 Tables
 export const resources = sqliteTable('resources', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
@@ -69,6 +72,98 @@ export const workItemDependencies = sqliteTable('work_item_dependencies', {
   predecessorType: text('predecessor_type').notNull().default('work_item'),
   successorType: text('successor_type').notNull().default('work_item'),
   dependencyType: text('dependency_type').notNull().default('finish_to_start'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+// Stage 04 Tables: Time Model
+export const availabilityRules = sqliteTable('availability_rules', {
+  id: text('id').primaryKey(),
+  dayOfWeek: integer('day_of_week').notNull(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime: text('start_time').notNull().default('09:00'),
+  endTime: text('end_time').notNull().default('17:00'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const availabilityOverrides = sqliteTable('availability_overrides', {
+  id: text('id').primaryKey(),
+  date: text('date').notNull(), // YYYY-MM-DD
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
+  isUnavailable: integer('is_unavailable', { mode: 'boolean' }).notNull().default(false),
+  notes: text('notes'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const fixedEvents = sqliteTable('fixed_events', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  startTime: text('start_time').notNull(), // HH:mm or YYYY-MM-DD HH:mm
+  endTime: text('end_time').notNull(),
+  recurrenceRule: text('recurrence_rule'),
+  flexibility: text('flexibility').notNull().default('fixed'),
+  locked: integer('locked', { mode: 'boolean' }).notNull().default(true),
+  notes: text('notes'),
+  ...audit
+})
+
+export const timeBudgets = sqliteTable('time_budgets', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  allocationMode: text('allocation_mode').notNull().default('target'), // minimum | target | maximum | range
+  protection: text('protection').notNull().default('flexible'), // flexible | protected | locked
+  minimumMinutes: integer('minimum_minutes').notNull().default(0),
+  targetMinutes: integer('target_minutes').notNull().default(0),
+  maximumMinutes: integer('maximum_minutes').notNull().default(0),
+  daysOfWeek: text('days_of_week').notNull().default('[0,1,2,3,4,5,6]'),
+  priority: text('priority').notNull().default('medium'),
+  startDate: text('start_date'),
+  endDate: text('end_date'),
+  areaId: text('area_id').references(() => areas.id, { onDelete: 'cascade' }),
+  goalId: text('goal_id').references(() => goals.id, { onDelete: 'cascade' }),
+  projectId: text('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  workItemTypeId: text('work_item_type_id').references(() => workItemTypes.id, { onDelete: 'cascade' }),
+  ...audit
+}, (table) => [
+  check('exactly_one_scope', sql`((CASE WHEN ${table.areaId} IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN ${table.goalId} IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN ${table.projectId} IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN ${table.workItemTypeId} IS NOT NULL THEN 1 ELSE 0 END)) = 1`)
+])
+
+export const routines = sqliteTable('routines', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  itemType: text('item_type').notNull().default('routine'),
+  targetDuration: integer('target_duration').notNull().default(30),
+  recurrenceRule: text('recurrence_rule').notNull().default('FREQ=DAILY'),
+  preferredTime: text('preferred_time'),
+  flexibility: text('flexibility').notNull().default('semi_flexible'),
+  protected: integer('protected', { mode: 'boolean' }).notNull().default(false),
+  priority: text('priority').notNull().default('medium'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  ...audit
+})
+
+export const habits = sqliteTable('habits', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  targetType: text('target_type').notNull().default('binary'), // binary | count | duration | frequency
+  targetValue: integer('target_value').notNull().default(1),
+  targetFrequencyDays: integer('target_frequency_days').notNull().default(7),
+  unit: text('unit'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  ...audit
+})
+
+export const habitLogs = sqliteTable('habit_logs', {
+  id: text('id').primaryKey(),
+  habitId: text('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+  date: text('date').notNull(), // YYYY-MM-DD
+  value: integer('value').notNull().default(1),
+  notes: text('notes'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

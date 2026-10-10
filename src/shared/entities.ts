@@ -5,9 +5,12 @@ export const statusSchema = z.enum(['active', 'completed', 'paused', 'cancelled'
 export const flexibilitySchema = z.enum(['fixed', 'semi_flexible', 'flexible'])
 export const energyLevelSchema = z.enum(['low', 'medium', 'high']).nullable().optional()
 export const fieldTypeSchema = z.enum(['text', 'number', 'boolean', 'date', 'select'])
-export const entityKindSchema = z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem'])
+export const entityKindSchema = z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem', 'timeBudget', 'fixedEvent', 'routine', 'habit'])
 export const orderingModeSchema = z.enum(['sequential', 'flexible', 'dependency_based'])
 export const resourceTypeSchema = z.enum(['course', 'book', 'playlist', 'pdf', 'article_collection', 'training_program', 'study_plan', 'custom'])
+export const allocationModeSchema = z.enum(['minimum', 'target', 'maximum', 'range'])
+export const protectionSchema = z.enum(['flexible', 'protected', 'locked'])
+export const habitTargetTypeSchema = z.enum(['binary', 'count', 'duration', 'frequency'])
 
 // Areas
 export const createAreaSchema = z.object({
@@ -212,6 +215,91 @@ export const deleteWorkItemDependencySchema = z.object({
   id: z.string().uuid()
 })
 
+// Stage 04 Schemas: Time Model
+export const createAvailabilityRuleSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('09:00'),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('17:00'),
+  isActive: z.boolean().optional().default(true)
+})
+
+export const createAvailabilityOverrideSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/),
+  isUnavailable: z.boolean().optional().default(false),
+  notes: z.string().nullable().optional()
+})
+
+export const createFixedEventSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  startTime: z.string(),
+  endTime: z.string(),
+  recurrenceRule: z.string().nullable().optional(),
+  flexibility: flexibilitySchema.optional().default('fixed'),
+  locked: z.boolean().optional().default(true),
+  notes: z.string().nullable().optional()
+})
+export const updateFixedEventSchema = createFixedEventSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const createTimeBudgetSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  allocationMode: allocationModeSchema.optional().default('target'),
+  protection: protectionSchema.optional().default('flexible'),
+  minimumMinutes: z.number().int().min(0).optional().default(0),
+  targetMinutes: z.number().int().min(0).optional().default(0),
+  maximumMinutes: z.number().int().min(0).optional().default(0),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).optional().default([0, 1, 2, 3, 4, 5, 6]),
+  priority: prioritySchema.optional().default('medium'),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
+  areaId: z.string().uuid().nullable().optional(),
+  goalId: z.string().uuid().nullable().optional(),
+  projectId: z.string().uuid().nullable().optional(),
+  workItemTypeId: z.string().uuid().nullable().optional()
+})
+export const updateTimeBudgetSchema = createTimeBudgetSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const createRoutineSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(4000).nullable().optional(),
+  itemType: z.string().optional().default('routine'),
+  targetDuration: z.number().int().min(1).optional().default(30),
+  recurrenceRule: z.string().optional().default('FREQ=DAILY'),
+  preferredTime: z.string().nullable().optional(),
+  flexibility: flexibilitySchema.optional().default('semi_flexible'),
+  protected: z.boolean().optional().default(false),
+  priority: prioritySchema.optional().default('medium'),
+  active: z.boolean().optional().default(true)
+})
+export const updateRoutineSchema = createRoutineSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const createHabitSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(4000).nullable().optional(),
+  targetType: habitTargetTypeSchema.optional().default('binary'),
+  targetValue: z.number().int().min(1).optional().default(1),
+  targetFrequencyDays: z.number().int().min(1).optional().default(7),
+  unit: z.string().max(32).nullable().optional(),
+  active: z.boolean().optional().default(true)
+})
+export const updateHabitSchema = createHabitSchema.partial().extend({
+  id: z.string().uuid()
+})
+
+export const logHabitSchema = z.object({
+  habitId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  value: z.number().int().min(0).optional().default(1),
+  notes: z.string().nullable().optional()
+})
+
 // Actions
 export const archiveEntitySchema = z.object({
   kind: entityKindSchema,
@@ -222,7 +310,7 @@ export const restoreEntitySchema = z.object({
   id: z.string().uuid()
 })
 export const deleteEntitySchema = z.object({
-  kind: z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem']),
+  kind: z.enum(['area', 'goal', 'milestone', 'project', 'workItem', 'workItemType', 'tag', 'note', 'resource', 'resourceItem', 'timeBudget', 'fixedEvent', 'routine', 'habit']),
   id: z.string().uuid(),
   childWorkItemAction: z.enum(['detach', 'archive']).optional()
 })
@@ -243,3 +331,11 @@ export type Note = { id: string; entityType: string; entityId: string; content: 
 export type Resource = z.infer<typeof createResourceSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
 export type ResourceItem = z.infer<typeof createResourceItemSchema> & { id: string; effectiveStatus?: string; effectiveProgress?: number; effectiveActualMinutes?: number; isBlocked?: boolean; blockedByTitle?: string; createdAt: number; updatedAt: number; archivedAt: number | null }
 export type WorkItemDependency = z.infer<typeof createWorkItemDependencySchema> & { id: string; createdAt: number; updatedAt: number }
+
+export type AvailabilityRule = z.infer<typeof createAvailabilityRuleSchema> & { id: string; createdAt: number; updatedAt: number }
+export type AvailabilityOverride = z.infer<typeof createAvailabilityOverrideSchema> & { id: string; createdAt: number; updatedAt: number }
+export type FixedEvent = z.infer<typeof createFixedEventSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type TimeBudget = z.infer<typeof createTimeBudgetSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type Routine = z.infer<typeof createRoutineSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type Habit = z.infer<typeof createHabitSchema> & { id: string; createdAt: number; updatedAt: number; archivedAt: number | null }
+export type HabitLog = z.infer<typeof logHabitSchema> & { id: string; createdAt: number; updatedAt: number }

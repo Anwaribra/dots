@@ -3,16 +3,24 @@ import { randomUUID } from 'node:crypto'
 import { getDatabase } from '../db/database'
 import {
   areas,
+  availabilityOverrides,
+  availabilityRules,
   customFieldDefinitions,
   customFieldValues,
   entityTags,
+  fixedEvents,
   goals,
+  habitLogs,
+  habits,
   milestones,
   notes,
   projects,
   resourceItems,
   resources,
+  routines,
+  settings,
   tags,
+  timeBudgets,
   workItemDependencies,
   workItemTypes,
   workItems
@@ -22,47 +30,68 @@ import {
   attachTagSchema,
   bulkAddResourceItemsSchema,
   createAreaSchema,
+  createAvailabilityOverrideSchema,
+  createAvailabilityRuleSchema,
   createCustomFieldDefSchema,
+  createFixedEventSchema,
   createGoalSchema,
+  createHabitSchema,
   createMilestoneSchema,
   createNoteSchema,
   createProjectSchema,
   createResourceItemSchema,
   createResourceSchema,
+  createRoutineSchema,
   createTagSchema,
+  createTimeBudgetSchema,
   createWorkItemDependencySchema,
   createWorkItemSchema,
   createWorkItemTypeSchema,
   deleteEntitySchema,
   deleteWorkItemDependencySchema,
   linkResourceItemToWorkItemSchema,
+  logHabitSchema,
   reorderResourceItemsSchema,
   restoreEntitySchema,
   setCustomFieldValueSchema,
   updateAreaSchema,
   updateCustomFieldDefSchema,
+  updateFixedEventSchema,
   updateGoalSchema,
+  updateHabitSchema,
   updateMilestoneSchema,
   updateProjectSchema,
   updateResourceItemSchema,
   updateResourceSchema,
+  updateRoutineSchema,
+  updateTimeBudgetSchema,
   updateWorkItemSchema,
   updateWorkItemTypeSchema,
   type Area,
+  type AvailabilityOverride,
+  type AvailabilityRule,
   type CustomFieldDefinition,
   type CustomFieldValue,
+  type FixedEvent,
   type Goal,
+  type Habit,
+  type HabitLog,
   type Milestone,
   type Note,
   type Project,
   type Resource,
   type ResourceItem,
+  type Routine,
   type Tag,
+  type TimeBudget,
   type WorkItem,
   type WorkItemDependency,
   type WorkItemType
 } from '../../shared/entities'
 import { detectDependencyCycle, evaluateResourceItemsState } from '../../shared/dependency-utils'
+import { calculateDayCapacity, type DayCapacityResult } from '../../shared/capacity'
+import { expandRecurrenceRule } from '../../shared/recurrence'
+import { getSettings } from './settings-service'
 
 const now = (): number => Date.now()
 
@@ -103,9 +132,30 @@ export function seedBuiltInWorkItemTypes(): void {
   })
 }
 
+// Seed default availability rules (0-6 days)
+export function seedDefaultAvailabilityRules(): void {
+  const db = getDatabase()
+  const existing = db.select().from(availabilityRules).all()
+  if (existing.length > 0) return
+
+  const timestamp = now()
+  for (let i = 0; i <= 6; i++) {
+    db.insert(availabilityRules).values({
+      id: randomUUID(),
+      dayOfWeek: i,
+      startTime: '09:00',
+      endTime: '17:00',
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    }).run()
+  }
+}
+
 // Areas
 export function listAreas(): Area[] {
   seedBuiltInWorkItemTypes()
+  seedDefaultAvailabilityRules()
   return getDatabase()
     .select()
     .from(areas)
@@ -683,7 +733,6 @@ export function duplicateResource(input: { id: string }): Resource {
     projectId: target.projectId
   })
 
-  // Duplicate items
   const items = db
     .select()
     .from(resourceItems)
@@ -721,7 +770,6 @@ export function duplicateResource(input: { id: string }): Resource {
   return newRes
 }
 
-// Stage 03 Services: Resource Items & Decision A14 Completion Truth
 export function listResourceItems(resourceId: string): ResourceItem[] {
   const db = getDatabase()
   const res = db.select().from(resources).where(eq(resources.id, resourceId)).get()
@@ -734,7 +782,6 @@ export function listResourceItems(resourceId: string): ResourceItem[] {
     .orderBy(asc(resourceItems.orderIndex))
     .all()
 
-  // Fetch linked work items for Decision A14
   const workItemsMap = new Map<string, { id: string; status: string; progress: number; actualMinutes: number }>()
   for (const item of items) {
     if (item.workItemId) {
@@ -750,14 +797,12 @@ export function listResourceItems(resourceId: string): ResourceItem[] {
     }
   }
 
-  // Fetch all dependencies
   const deps = db.select().from(workItemDependencies).all()
   const depEdges = deps.map((d) => ({ predecessorId: d.predecessorId, successorId: d.successorId }))
 
   const titleMap = new Map<string, string>()
   items.forEach((i) => titleMap.set(i.id, i.title))
 
-  // Run pure evaluation logic for Decision A14 & ordering modes
   const evaluatedMap = evaluateResourceItemsState(
     res.orderingMode as any,
     items as any,
@@ -918,7 +963,6 @@ export function createDependency(input: unknown): WorkItemDependency {
   const value = createWorkItemDependencySchema.parse(input)
   const existing = listDependencies()
 
-  // Check for dependency cycles using pure cycle detector
   const cycleCheck = detectDependencyCycle(
     existing.map((d) => ({ predecessorId: d.predecessorId, successorId: d.successorId })),
     { predecessorId: value.predecessorId, successorId: value.successorId }
@@ -947,6 +991,429 @@ export function createDependency(input: unknown): WorkItemDependency {
 export function deleteDependency(input: unknown): void {
   const value = deleteWorkItemDependencySchema.parse(input)
   getDatabase().delete(workItemDependencies).where(eq(workItemDependencies.id, value.id)).run()
+}
+
+// Stage 04 Services: Time Model (Availability, Capacity, Fixed Events, Time Budgets, Routines, Habits)
+export function listAvailabilityRules(): AvailabilityRule[] {
+  seedDefaultAvailabilityRules()
+  return getDatabase()
+    .select()
+    .from(availabilityRules)
+    .orderBy(asc(availabilityRules.dayOfWeek))
+    .all() as unknown as AvailabilityRule[]
+}
+
+export function updateAvailabilityRules(input: { rules: unknown[] }): AvailabilityRule[] {
+  const db = getDatabase()
+  const time = now()
+  for (const r of input.rules) {
+    const parsed = createAvailabilityRuleSchema.parse(r)
+    const existing = db.select().from(availabilityRules).where(eq(availabilityRules.dayOfWeek, parsed.dayOfWeek)).get()
+    if (existing) {
+      db.update(availabilityRules).set({ ...parsed, updatedAt: time }).where(eq(availabilityRules.id, existing.id)).run()
+    } else {
+      db.insert(availabilityRules).values({ id: randomUUID(), ...parsed, createdAt: time, updatedAt: time }).run()
+    }
+  }
+  return listAvailabilityRules()
+}
+
+export function listAvailabilityOverrides(): AvailabilityOverride[] {
+  return getDatabase().select().from(availabilityOverrides).orderBy(asc(availabilityOverrides.date)).all() as unknown as AvailabilityOverride[]
+}
+
+export function createAvailabilityOverride(input: unknown): AvailabilityOverride {
+  const parsed = createAvailabilityOverrideSchema.parse(input)
+  const time = now()
+  const row = { id: randomUUID(), ...parsed, notes: parsed.notes ?? null, createdAt: time, updatedAt: time }
+  getDatabase().insert(availabilityOverrides).values(row).run()
+  return row as AvailabilityOverride
+}
+
+export function deleteAvailabilityOverride(id: string): void {
+  getDatabase().delete(availabilityOverrides).where(eq(availabilityOverrides.id, id)).run()
+}
+
+export function listFixedEvents(): FixedEvent[] {
+  return getDatabase()
+    .select()
+    .from(fixedEvents)
+    .where(isNull(fixedEvents.archivedAt))
+    .orderBy(asc(fixedEvents.startTime))
+    .all() as unknown as FixedEvent[]
+}
+
+export function createFixedEvent(input: unknown): FixedEvent {
+  const parsed = createFixedEventSchema.parse(input)
+  const time = now()
+  const row = {
+    id: randomUUID(),
+    title: parsed.title,
+    startTime: parsed.startTime,
+    endTime: parsed.endTime,
+    recurrenceRule: parsed.recurrenceRule ?? null,
+    flexibility: parsed.flexibility,
+    locked: parsed.locked,
+    notes: parsed.notes ?? null,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(fixedEvents).values(row).run()
+  return row as FixedEvent
+}
+
+export function updateFixedEvent(input: unknown): FixedEvent {
+  const parsed = updateFixedEventSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(fixedEvents).where(eq(fixedEvents.id, parsed.id)).get()
+  if (!existing) throw new Error('Fixed event not found')
+
+  const updated = {
+    ...existing,
+    title: parsed.title ?? existing.title,
+    startTime: parsed.startTime ?? existing.startTime,
+    endTime: parsed.endTime ?? existing.endTime,
+    recurrenceRule: parsed.recurrenceRule !== undefined ? parsed.recurrenceRule : existing.recurrenceRule,
+    flexibility: parsed.flexibility ?? existing.flexibility,
+    locked: parsed.locked !== undefined ? parsed.locked : existing.locked,
+    notes: parsed.notes !== undefined ? parsed.notes : existing.notes,
+    updatedAt: time
+  }
+  db.update(fixedEvents).set(updated).where(eq(fixedEvents.id, parsed.id)).run()
+  return updated as unknown as FixedEvent
+}
+
+export function getFixedEventConflicts(date: string): Array<{ eventA: FixedEvent; eventB: FixedEvent }> {
+  const events = listFixedEvents().filter((fe) => {
+    if (fe.recurrenceRule) {
+      const dates = expandRecurrenceRule(fe.recurrenceRule, date, date, fe.startTime.substring(0, 10))
+      return dates.includes(date)
+    }
+    return fe.startTime.startsWith(date)
+  })
+
+  function parseMinutes(timeStr: string): number {
+    const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr
+    const [h, m] = timePart.split(':').map(Number)
+    return (h || 0) * 60 + (m || 0)
+  }
+
+  const conflicts: Array<{ eventA: FixedEvent; eventB: FixedEvent }> = []
+  for (let i = 0; i < events.length; i++) {
+    for (let j = i + 1; j < events.length; j++) {
+      const a = events[i]
+      const b = events[j]
+      const aStart = parseMinutes(a.startTime)
+      const aEnd = parseMinutes(a.endTime)
+      const bStart = parseMinutes(b.startTime)
+      const bEnd = parseMinutes(b.endTime)
+      if (Math.max(aStart, bStart) < Math.min(aEnd, bEnd)) {
+        conflicts.push({ eventA: a, eventB: b })
+      }
+    }
+  }
+  return conflicts
+}
+
+// Time Budgets (Decision A10: Real FKs, exactly ONE set via CHECK)
+export function listTimeBudgets(): TimeBudget[] {
+  return getDatabase()
+    .select()
+    .from(timeBudgets)
+    .where(isNull(timeBudgets.archivedAt))
+    .all()
+    .map((row) => ({
+      ...row,
+      daysOfWeek: JSON.parse(row.daysOfWeek)
+    })) as unknown as TimeBudget[]
+}
+
+export function createTimeBudget(input: unknown): TimeBudget {
+  const parsed = createTimeBudgetSchema.parse(input)
+  const time = now()
+
+  // Validate exactly ONE scope FK is provided
+  const scopes = [parsed.areaId, parsed.goalId, parsed.projectId, parsed.workItemTypeId].filter(Boolean)
+  if (scopes.length !== 1) {
+    throw new Error('Time budget must target exactly one scope (areaId, goalId, projectId, or workItemTypeId)')
+  }
+
+  const row = {
+    id: randomUUID(),
+    name: parsed.name,
+    allocationMode: parsed.allocationMode,
+    protection: parsed.protection,
+    minimumMinutes: parsed.minimumMinutes,
+    targetMinutes: parsed.targetMinutes,
+    maximumMinutes: parsed.maximumMinutes,
+    daysOfWeek: JSON.stringify(parsed.daysOfWeek),
+    priority: parsed.priority,
+    startDate: parsed.startDate ?? null,
+    endDate: parsed.endDate ?? null,
+    areaId: parsed.areaId ?? null,
+    goalId: parsed.goalId ?? null,
+    projectId: parsed.projectId ?? null,
+    workItemTypeId: parsed.workItemTypeId ?? null,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(timeBudgets).values(row).run()
+  return { ...row, daysOfWeek: parsed.daysOfWeek } as unknown as TimeBudget
+}
+
+export function updateTimeBudget(input: unknown): TimeBudget {
+  const parsed = updateTimeBudgetSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(timeBudgets).where(eq(timeBudgets.id, parsed.id)).get()
+  if (!existing) throw new Error('Time budget not found')
+
+  const targetAreaId = parsed.areaId !== undefined ? parsed.areaId : existing.areaId
+  const targetGoalId = parsed.goalId !== undefined ? parsed.goalId : existing.goalId
+  const targetProjectId = parsed.projectId !== undefined ? parsed.projectId : existing.projectId
+  const targetWorkItemTypeId = parsed.workItemTypeId !== undefined ? parsed.workItemTypeId : existing.workItemTypeId
+
+  const scopes = [targetAreaId, targetGoalId, targetProjectId, targetWorkItemTypeId].filter(Boolean)
+  if (scopes.length !== 1) {
+    throw new Error('Time budget must target exactly one scope')
+  }
+
+  const updatedRow = {
+    ...existing,
+    name: parsed.name ?? existing.name,
+    allocationMode: parsed.allocationMode ?? existing.allocationMode,
+    protection: parsed.protection ?? existing.protection,
+    minimumMinutes: parsed.minimumMinutes !== undefined ? parsed.minimumMinutes : existing.minimumMinutes,
+    targetMinutes: parsed.targetMinutes !== undefined ? parsed.targetMinutes : existing.targetMinutes,
+    maximumMinutes: parsed.maximumMinutes !== undefined ? parsed.maximumMinutes : existing.maximumMinutes,
+    daysOfWeek: parsed.daysOfWeek !== undefined ? JSON.stringify(parsed.daysOfWeek) : existing.daysOfWeek,
+    priority: parsed.priority ?? existing.priority,
+    startDate: parsed.startDate !== undefined ? parsed.startDate : existing.startDate,
+    endDate: parsed.endDate !== undefined ? parsed.endDate : existing.endDate,
+    areaId: targetAreaId,
+    goalId: targetGoalId,
+    projectId: targetProjectId,
+    workItemTypeId: targetWorkItemTypeId,
+    updatedAt: time
+  }
+  db.update(timeBudgets).set(updatedRow).where(eq(timeBudgets.id, parsed.id)).run()
+  return { ...updatedRow, daysOfWeek: JSON.parse(updatedRow.daysOfWeek) } as unknown as TimeBudget
+}
+
+// Routines
+export function listRoutines(): Routine[] {
+  return getDatabase()
+    .select()
+    .from(routines)
+    .where(isNull(routines.archivedAt))
+    .all() as unknown as Routine[]
+}
+
+export function createRoutine(input: unknown): Routine {
+  const parsed = createRoutineSchema.parse(input)
+  const time = now()
+  const row = {
+    id: randomUUID(),
+    name: parsed.name,
+    description: parsed.description ?? null,
+    itemType: parsed.itemType,
+    targetDuration: parsed.targetDuration,
+    recurrenceRule: parsed.recurrenceRule,
+    preferredTime: parsed.preferredTime ?? null,
+    flexibility: parsed.flexibility,
+    protected: parsed.protected,
+    priority: parsed.priority,
+    active: parsed.active,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(routines).values(row).run()
+  return row as Routine
+}
+
+export function updateRoutine(input: unknown): Routine {
+  const parsed = updateRoutineSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(routines).where(eq(routines.id, parsed.id)).get()
+  if (!existing) throw new Error('Routine not found')
+
+  const updated = {
+    ...existing,
+    name: parsed.name ?? existing.name,
+    description: parsed.description !== undefined ? parsed.description : existing.description,
+    itemType: parsed.itemType ?? existing.itemType,
+    targetDuration: parsed.targetDuration !== undefined ? parsed.targetDuration : existing.targetDuration,
+    recurrenceRule: parsed.recurrenceRule ?? existing.recurrenceRule,
+    preferredTime: parsed.preferredTime !== undefined ? parsed.preferredTime : existing.preferredTime,
+    flexibility: parsed.flexibility ?? existing.flexibility,
+    protected: parsed.protected !== undefined ? parsed.protected : existing.protected,
+    priority: parsed.priority ?? existing.priority,
+    active: parsed.active !== undefined ? parsed.active : existing.active,
+    updatedAt: time
+  }
+  db.update(routines).set(updated).where(eq(routines.id, parsed.id)).run()
+  return updated as unknown as Routine
+}
+
+// Habits
+export function listHabits(): Habit[] {
+  return getDatabase()
+    .select()
+    .from(habits)
+    .where(isNull(habits.archivedAt))
+    .all() as unknown as Habit[]
+}
+
+export function createHabit(input: unknown): Habit {
+  const parsed = createHabitSchema.parse(input)
+  const time = now()
+  const row = {
+    id: randomUUID(),
+    name: parsed.name,
+    description: parsed.description ?? null,
+    targetType: parsed.targetType,
+    targetValue: parsed.targetValue,
+    targetFrequencyDays: parsed.targetFrequencyDays,
+    unit: parsed.unit ?? null,
+    active: parsed.active,
+    createdAt: time,
+    updatedAt: time,
+    archivedAt: null
+  }
+  getDatabase().insert(habits).values(row).run()
+  return row as Habit
+}
+
+export function updateHabit(input: unknown): Habit {
+  const parsed = updateHabitSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+  const existing = db.select().from(habits).where(eq(habits.id, parsed.id)).get()
+  if (!existing) throw new Error('Habit not found')
+
+  const updated = {
+    ...existing,
+    name: parsed.name ?? existing.name,
+    description: parsed.description !== undefined ? parsed.description : existing.description,
+    targetType: parsed.targetType ?? existing.targetType,
+    targetValue: parsed.targetValue !== undefined ? parsed.targetValue : existing.targetValue,
+    targetFrequencyDays: parsed.targetFrequencyDays !== undefined ? parsed.targetFrequencyDays : existing.targetFrequencyDays,
+    unit: parsed.unit !== undefined ? parsed.unit : existing.unit,
+    active: parsed.active !== undefined ? parsed.active : existing.active,
+    updatedAt: time
+  }
+  db.update(habits).set(updated).where(eq(habits.id, parsed.id)).run()
+  return updated as unknown as Habit
+}
+
+export function logHabit(input: unknown): HabitLog {
+  const parsed = logHabitSchema.parse(input)
+  const time = now()
+  const db = getDatabase()
+
+  const existing = db
+    .select()
+    .from(habitLogs)
+    .where(and(eq(habitLogs.habitId, parsed.habitId), eq(habitLogs.date, parsed.date)))
+    .get()
+
+  if (existing) {
+    const updated = {
+      ...existing,
+      value: parsed.value,
+      notes: parsed.notes !== undefined ? parsed.notes : existing.notes,
+      updatedAt: time
+    }
+    db.update(habitLogs).set(updated).where(eq(habitLogs.id, existing.id)).run()
+    return updated as HabitLog
+  } else {
+    const row = {
+      id: randomUUID(),
+      habitId: parsed.habitId,
+      date: parsed.date,
+      value: parsed.value,
+      notes: parsed.notes ?? null,
+      createdAt: time,
+      updatedAt: time
+    }
+    db.insert(habitLogs).values(row).run()
+    return row as HabitLog
+  }
+}
+
+export function listHabitLogs(filter?: { habitId?: string; date?: string }): HabitLog[] {
+  const db = getDatabase()
+  if (filter?.habitId && filter?.date) {
+    return db
+      .select()
+      .from(habitLogs)
+      .where(and(eq(habitLogs.habitId, filter.habitId), eq(habitLogs.date, filter.date)))
+      .orderBy(asc(habitLogs.date))
+      .all() as HabitLog[]
+  }
+  if (filter?.habitId) {
+    return db
+      .select()
+      .from(habitLogs)
+      .where(eq(habitLogs.habitId, filter.habitId))
+      .orderBy(asc(habitLogs.date))
+      .all() as HabitLog[]
+  }
+  if (filter?.date) {
+    return db
+      .select()
+      .from(habitLogs)
+      .where(eq(habitLogs.date, filter.date))
+      .orderBy(asc(habitLogs.date))
+      .all() as HabitLog[]
+  }
+  return db.select().from(habitLogs).orderBy(asc(habitLogs.date)).all() as HabitLog[]
+}
+
+// Stage 04 Capacity Service wrapper
+export function getCapacityForDate(date: string): DayCapacityResult {
+  const setts = getSettings()
+  const rules = listAvailabilityRules()
+  const overrides = listAvailabilityOverrides()
+  const fixedEvts = listFixedEvents()
+  const budgets = listTimeBudgets()
+  const routs = listRoutines()
+
+  const dateObj = new Date(date)
+  const dayOfWeek = isNaN(dateObj.getUTCDay()) ? 0 : dateObj.getUTCDay()
+
+  // Filter fixed events occurring on this date
+  const dateFixedEvents = fixedEvts.filter((fe) => {
+    if (fe.recurrenceRule) {
+      const dates = expandRecurrenceRule(fe.recurrenceRule, date, date, fe.startTime.substring(0, 10))
+      return dates.includes(date)
+    }
+    return fe.startTime.startsWith(date)
+  })
+
+  // Filter active routines occurring on this date
+  const dateRoutines = routs.filter((r) => {
+    if (!r.active) return false
+    const dates = expandRecurrenceRule(r.recurrenceRule, date, date)
+    return dates.includes(date)
+  })
+
+  return calculateDayCapacity({
+    date,
+    dayOfWeek,
+    availabilityRules: rules,
+    availabilityOverrides: overrides,
+    planningCapacityPercentage: setts.planningCapacityPercentage ?? 75,
+    bufferPercentage: setts.bufferPercentage ?? 20,
+    fixedEvents: dateFixedEvents.map((f) => ({ id: f.id, title: f.title, startTime: f.startTime, endTime: f.endTime, locked: f.locked })),
+    timeBudgets: budgets,
+    routines: dateRoutines.map((r) => ({ id: r.id, name: r.name, targetDuration: r.targetDuration, protected: r.protected }))
+  })
 }
 
 // Tags
@@ -1052,6 +1519,13 @@ export function deleteNote(id: string): void {
   getDatabase().delete(notes).where(eq(notes.id, id)).run()
 }
 
+// Helper: Clean up polymorphic references (notes and entity_tags) for deleted/archived target entity
+export function cleanupPolymorphicReferences(entityType: string, entityId: string): void {
+  const db = getDatabase()
+  db.delete(notes).where(and(eq(notes.entityType, entityType), eq(notes.entityId, entityId))).run()
+  db.delete(entityTags).where(and(eq(entityTags.entityType, entityType), eq(entityTags.entityId, entityId))).run()
+}
+
 // Archive / Restore / Delete
 export function archiveEntity(input: unknown): void {
   const value = archiveEntitySchema.parse(input)
@@ -1067,6 +1541,12 @@ export function archiveEntity(input: unknown): void {
   else if (value.kind === 'milestone') db.update(milestones).set(update).where(eq(milestones.id, value.id)).run()
   else if (value.kind === 'resource') db.update(resources).set(update).where(eq(resources.id, value.id)).run()
   else if (value.kind === 'resourceItem') db.update(resourceItems).set(update).where(eq(resourceItems.id, value.id)).run()
+  else if (value.kind === 'timeBudget') db.update(timeBudgets).set(update).where(eq(timeBudgets.id, value.id)).run()
+  else if (value.kind === 'fixedEvent') db.update(fixedEvents).set(update).where(eq(fixedEvents.id, value.id)).run()
+  else if (value.kind === 'routine') db.update(routines).set(update).where(eq(routines.id, value.id)).run()
+  else if (value.kind === 'habit') db.update(habits).set(update).where(eq(habits.id, value.id)).run()
+
+  cleanupPolymorphicReferences(value.kind, value.id)
 }
 
 export function restoreEntity(input: unknown): void {
@@ -1083,6 +1563,10 @@ export function restoreEntity(input: unknown): void {
   else if (value.kind === 'milestone') db.update(milestones).set(update).where(eq(milestones.id, value.id)).run()
   else if (value.kind === 'resource') db.update(resources).set(update).where(eq(resources.id, value.id)).run()
   else if (value.kind === 'resourceItem') db.update(resourceItems).set(update).where(eq(resourceItems.id, value.id)).run()
+  else if (value.kind === 'timeBudget') db.update(timeBudgets).set(update).where(eq(timeBudgets.id, value.id)).run()
+  else if (value.kind === 'fixedEvent') db.update(fixedEvents).set(update).where(eq(fixedEvents.id, value.id)).run()
+  else if (value.kind === 'routine') db.update(routines).set(update).where(eq(routines.id, value.id)).run()
+  else if (value.kind === 'habit') db.update(habits).set(update).where(eq(habits.id, value.id)).run()
 }
 
 export function deleteEntity(input: unknown): void {
@@ -1125,5 +1609,15 @@ export function deleteEntity(input: unknown): void {
     db.delete(resources).where(eq(resources.id, value.id)).run()
   } else if (value.kind === 'resourceItem') {
     db.delete(resourceItems).where(eq(resourceItems.id, value.id)).run()
+  } else if (value.kind === 'timeBudget') {
+    db.delete(timeBudgets).where(eq(timeBudgets.id, value.id)).run()
+  } else if (value.kind === 'fixedEvent') {
+    db.delete(fixedEvents).where(eq(fixedEvents.id, value.id)).run()
+  } else if (value.kind === 'routine') {
+    db.delete(routines).where(eq(routines.id, value.id)).run()
+  } else if (value.kind === 'habit') {
+    db.delete(habits).where(eq(habits.id, value.id)).run()
   }
+
+  cleanupPolymorphicReferences(value.kind, value.id)
 }

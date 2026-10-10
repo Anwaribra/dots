@@ -7,49 +7,70 @@ import {
   attachTag,
   bulkAddResourceItems,
   createArea,
+  createAvailabilityOverride,
   createCustomFieldDef,
   createDependency,
+  createFixedEvent,
   createGoal,
+  createHabit,
   createMilestone,
   createNote,
   createProject,
   createResource,
   createResourceItem,
+  createRoutine,
   createTag,
+  createTimeBudget,
   createWorkItem,
   createWorkItemType,
+  deleteAvailabilityOverride,
   deleteDependency,
   deleteEntity,
   deleteNote,
   detachTag,
   duplicateResource,
+  getCapacityForDate,
   getCustomFieldValues,
   getEntityTags,
   getResource,
   linkResourceItemToWorkItem,
   listAreas,
+  listAvailabilityOverrides,
+  listAvailabilityRules,
   listCustomFieldDefs,
   listDependencies,
+  listFixedEvents,
   listGoals,
+  listHabitLogs,
+  listHabits,
   listMilestones,
   listNotes,
   listProjects,
   listResourceItems,
   listResources,
+  listRoutines,
   listTags,
+  listTimeBudgets,
   listWorkItemTypes,
   listWorkItems,
+  logHabit,
   reorderResourceItems,
   restoreEntity,
   seedBuiltInWorkItemTypes,
+  seedDefaultAvailabilityRules,
   setCustomFieldValue,
   updateArea,
+  updateAvailabilityRules,
   updateCustomFieldDef,
+  updateFixedEvent,
   updateGoal,
+  updateHabit,
   updateMilestone,
   updateProject,
   updateResource,
   updateResourceItem,
+  updateRoutine,
+  updateTimeBudget,
   updateWorkItem,
   updateWorkItemType
 } from './services/entity-service'
@@ -223,6 +244,63 @@ function registerIpc(): void {
     deleteDependency(parsed)
   })
 
+  // Stage 04: Time Model
+  ipcMain.handle(ipcChannels.availabilityRulesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.availabilityRulesList].parse(input)
+    return listAvailabilityRules()
+  })
+  ipcMain.handle(ipcChannels.availabilityRulesUpdate, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.availabilityRulesUpdate].parse(input)
+    return updateAvailabilityRules(parsed)
+  })
+  ipcMain.handle(ipcChannels.availabilityOverridesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.availabilityOverridesList].parse(input)
+    return listAvailabilityOverrides()
+  })
+  ipcMain.handle(ipcChannels.availabilityOverridesCreate, (_event, input: unknown) => createAvailabilityOverride(ipcSchemas[ipcChannels.availabilityOverridesCreate].parse(input)))
+  ipcMain.handle(ipcChannels.availabilityOverridesDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.availabilityOverridesDelete].parse(input)
+    deleteAvailabilityOverride(parsed.id)
+  })
+
+  ipcMain.handle(ipcChannels.capacityCalculate, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.capacityCalculate].parse(input)
+    return getCapacityForDate(parsed.date)
+  })
+
+  ipcMain.handle(ipcChannels.fixedEventsList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.fixedEventsList].parse(input)
+    return listFixedEvents()
+  })
+  ipcMain.handle(ipcChannels.fixedEventsCreate, (_event, input: unknown) => createFixedEvent(ipcSchemas[ipcChannels.fixedEventsCreate].parse(input)))
+  ipcMain.handle(ipcChannels.fixedEventsUpdate, (_event, input: unknown) => updateFixedEvent(ipcSchemas[ipcChannels.fixedEventsUpdate].parse(input)))
+
+  ipcMain.handle(ipcChannels.timeBudgetsList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.timeBudgetsList].parse(input)
+    return listTimeBudgets()
+  })
+  ipcMain.handle(ipcChannels.timeBudgetsCreate, (_event, input: unknown) => createTimeBudget(ipcSchemas[ipcChannels.timeBudgetsCreate].parse(input)))
+  ipcMain.handle(ipcChannels.timeBudgetsUpdate, (_event, input: unknown) => updateTimeBudget(ipcSchemas[ipcChannels.timeBudgetsUpdate].parse(input)))
+
+  ipcMain.handle(ipcChannels.routinesList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.routinesList].parse(input)
+    return listRoutines()
+  })
+  ipcMain.handle(ipcChannels.routinesCreate, (_event, input: unknown) => createRoutine(ipcSchemas[ipcChannels.routinesCreate].parse(input)))
+  ipcMain.handle(ipcChannels.routinesUpdate, (_event, input: unknown) => updateRoutine(ipcSchemas[ipcChannels.routinesUpdate].parse(input)))
+
+  ipcMain.handle(ipcChannels.habitsList, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.habitsList].parse(input)
+    return listHabits()
+  })
+  ipcMain.handle(ipcChannels.habitsCreate, (_event, input: unknown) => createHabit(ipcSchemas[ipcChannels.habitsCreate].parse(input)))
+  ipcMain.handle(ipcChannels.habitsUpdate, (_event, input: unknown) => updateHabit(ipcSchemas[ipcChannels.habitsUpdate].parse(input)))
+  ipcMain.handle(ipcChannels.habitsLog, (_event, input: unknown) => logHabit(ipcSchemas[ipcChannels.habitsLog].parse(input)))
+  ipcMain.handle(ipcChannels.habitsListLogs, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.habitsListLogs].parse(input)
+    return listHabitLogs(parsed)
+  })
+
   // Entity Management
   ipcMain.handle(ipcChannels.entityArchive, (_event, input: unknown) => archiveEntity(ipcSchemas[ipcChannels.entityArchive].parse(input)))
   ipcMain.handle(ipcChannels.entityRestore, (_event, input: unknown) => restoreEntity(ipcSchemas[ipcChannels.entityRestore].parse(input)))
@@ -232,6 +310,7 @@ function registerIpc(): void {
 app.whenReady().then(() => {
   runApplicationMigrations()
   seedBuiltInWorkItemTypes()
+  seedDefaultAvailabilityRules()
   registerIpc()
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })

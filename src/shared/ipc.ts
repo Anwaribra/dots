@@ -5,46 +5,65 @@ import {
   attachTagSchema,
   bulkAddResourceItemsSchema,
   createAreaSchema,
+  createAvailabilityOverrideSchema,
+  createAvailabilityRuleSchema,
   createCustomFieldDefSchema,
+  createFixedEventSchema,
   createGoalSchema,
+  createHabitSchema,
   createMilestoneSchema,
   createNoteSchema,
   createProjectSchema,
   createResourceItemSchema,
   createResourceSchema,
+  createRoutineSchema,
   createTagSchema,
+  createTimeBudgetSchema,
   createWorkItemDependencySchema,
   createWorkItemSchema,
   createWorkItemTypeSchema,
   deleteEntitySchema,
   deleteWorkItemDependencySchema,
   linkResourceItemToWorkItemSchema,
+  logHabitSchema,
   reorderResourceItemsSchema,
   restoreEntitySchema,
   setCustomFieldValueSchema,
   updateAreaSchema,
   updateCustomFieldDefSchema,
+  updateFixedEventSchema,
   updateGoalSchema,
+  updateHabitSchema,
   updateMilestoneSchema,
   updateProjectSchema,
   updateResourceItemSchema,
   updateResourceSchema,
+  updateRoutineSchema,
+  updateTimeBudgetSchema,
   updateWorkItemSchema,
   updateWorkItemTypeSchema,
   type Area,
+  type AvailabilityOverride,
+  type AvailabilityRule,
   type CustomFieldDefinition,
   type CustomFieldValue,
+  type FixedEvent,
   type Goal,
+  type Habit,
+  type HabitLog,
   type Milestone,
   type Note,
   type Project,
   type Resource,
   type ResourceItem,
+  type Routine,
   type Tag,
+  type TimeBudget,
   type WorkItem,
   type WorkItemDependency,
   type WorkItemType
 } from './entities'
+import type { DayCapacityResult } from './capacity'
 
 export const ipcChannels = {
   settingsGet: 'settings:get',
@@ -107,6 +126,33 @@ export const ipcChannels = {
   dependenciesList: 'dependencies:list',
   dependenciesCreate: 'dependencies:create',
   dependenciesDelete: 'dependencies:delete',
+
+  // Stage 04 Channels: Time Model
+  availabilityRulesList: 'availability-rules:list',
+  availabilityRulesUpdate: 'availability-rules:update',
+  availabilityOverridesList: 'availability-overrides:list',
+  availabilityOverridesCreate: 'availability-overrides:create',
+  availabilityOverridesDelete: 'availability-overrides:delete',
+
+  capacityCalculate: 'capacity:calculate',
+
+  fixedEventsList: 'fixed-events:list',
+  fixedEventsCreate: 'fixed-events:create',
+  fixedEventsUpdate: 'fixed-events:update',
+
+  timeBudgetsList: 'time-budgets:list',
+  timeBudgetsCreate: 'time-budgets:create',
+  timeBudgetsUpdate: 'time-budgets:update',
+
+  routinesList: 'routines:list',
+  routinesCreate: 'routines:create',
+  routinesUpdate: 'routines:update',
+
+  habitsList: 'habits:list',
+  habitsCreate: 'habits:create',
+  habitsUpdate: 'habits:update',
+  habitsLog: 'habits:log',
+  habitsListLogs: 'habits:list-logs',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -174,6 +220,32 @@ export const ipcSchemas = {
   [ipcChannels.dependenciesList]: z.undefined(),
   [ipcChannels.dependenciesCreate]: createWorkItemDependencySchema,
   [ipcChannels.dependenciesDelete]: deleteWorkItemDependencySchema,
+
+  [ipcChannels.availabilityRulesList]: z.undefined(),
+  [ipcChannels.availabilityRulesUpdate]: z.object({ rules: z.array(createAvailabilityRuleSchema) }),
+  [ipcChannels.availabilityOverridesList]: z.undefined(),
+  [ipcChannels.availabilityOverridesCreate]: createAvailabilityOverrideSchema,
+  [ipcChannels.availabilityOverridesDelete]: z.object({ id: z.string().uuid() }),
+
+  [ipcChannels.capacityCalculate]: z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+
+  [ipcChannels.fixedEventsList]: z.undefined(),
+  [ipcChannels.fixedEventsCreate]: createFixedEventSchema,
+  [ipcChannels.fixedEventsUpdate]: updateFixedEventSchema,
+
+  [ipcChannels.timeBudgetsList]: z.undefined(),
+  [ipcChannels.timeBudgetsCreate]: createTimeBudgetSchema,
+  [ipcChannels.timeBudgetsUpdate]: updateTimeBudgetSchema,
+
+  [ipcChannels.routinesList]: z.undefined(),
+  [ipcChannels.routinesCreate]: createRoutineSchema,
+  [ipcChannels.routinesUpdate]: updateRoutineSchema,
+
+  [ipcChannels.habitsList]: z.undefined(),
+  [ipcChannels.habitsCreate]: createHabitSchema,
+  [ipcChannels.habitsUpdate]: updateHabitSchema,
+  [ipcChannels.habitsLog]: logHabitSchema,
+  [ipcChannels.habitsListLogs]: z.object({ habitId: z.string().uuid().optional(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).optional(),
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
@@ -255,6 +327,40 @@ export type PlannerApi = {
     list: () => Promise<WorkItemDependency[]>
     create: (input: z.input<typeof createWorkItemDependencySchema>) => Promise<WorkItemDependency>
     delete: (id: string) => Promise<void>
+  }
+  availabilityRules: {
+    list: () => Promise<AvailabilityRule[]>
+    update: (rules: z.input<typeof createAvailabilityRuleSchema>[]) => Promise<AvailabilityRule[]>
+  }
+  availabilityOverrides: {
+    list: () => Promise<AvailabilityOverride[]>
+    create: (input: z.input<typeof createAvailabilityOverrideSchema>) => Promise<AvailabilityOverride>
+    delete: (id: string) => Promise<void>
+  }
+  capacity: {
+    calculate: (date: string) => Promise<DayCapacityResult>
+  }
+  fixedEvents: {
+    list: () => Promise<FixedEvent[]>
+    create: (input: z.input<typeof createFixedEventSchema>) => Promise<FixedEvent>
+    update: (input: z.input<typeof updateFixedEventSchema>) => Promise<FixedEvent>
+  }
+  timeBudgets: {
+    list: () => Promise<TimeBudget[]>
+    create: (input: z.input<typeof createTimeBudgetSchema>) => Promise<TimeBudget>
+    update: (input: z.input<typeof updateTimeBudgetSchema>) => Promise<TimeBudget>
+  }
+  routines: {
+    list: () => Promise<Routine[]>
+    create: (input: z.input<typeof createRoutineSchema>) => Promise<Routine>
+    update: (input: z.input<typeof updateRoutineSchema>) => Promise<Routine>
+  }
+  habits: {
+    list: () => Promise<Habit[]>
+    create: (input: z.input<typeof createHabitSchema>) => Promise<Habit>
+    update: (input: z.input<typeof updateHabitSchema>) => Promise<Habit>
+    log: (input: z.input<typeof logHabitSchema>) => Promise<HabitLog>
+    listLogs: (filter?: { habitId?: string; date?: string } | string) => Promise<HabitLog[]>
   }
   entities: {
     archive: (input: z.input<typeof archiveEntitySchema>) => Promise<void>

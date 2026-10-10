@@ -25,6 +25,9 @@ import { ResourcesPage } from './pages/ResourcesPage'
 import { TypesAndFieldsPage } from './pages/TypesAndFieldsPage'
 import { TagsPage } from './pages/TagsPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { AvailabilityAndCapacityPage } from './pages/AvailabilityAndCapacityPage'
+import { TimeBudgetsPage } from './pages/TimeBudgetsPage'
+import { RoutinesAndHabitsPage } from './pages/RoutinesAndHabitsPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
 const navigation = [
@@ -36,9 +39,10 @@ const navigation = [
   ['areas', Layers],
   ['resources', Library],
   ['routines', Repeat2],
+  ['budgets', BarChart3],
+  ['availability', CalendarDays],
   ['types', Activity],
   ['tags', TagIcon],
-  ['analytics', BarChart3],
   ['review', CheckSquare]
 ] as const
 
@@ -169,6 +173,12 @@ export function App(): JSX.Element {
           <WorkItemsPage />
         ) : active === 'resources' ? (
           <ResourcesPage />
+        ) : active === 'routines' ? (
+          <RoutinesAndHabitsPage />
+        ) : active === 'budgets' ? (
+          <TimeBudgetsPage />
+        ) : active === 'availability' ? (
+          <AvailabilityAndCapacityPage />
         ) : active === 'types' ? (
           <TypesAndFieldsPage />
         ) : active === 'tags' ? (
@@ -192,10 +202,6 @@ export function App(): JSX.Element {
           </div>
         ) : active === 'planner' ? (
           <PlaceholderPage titleKey="planner" stageNumber={5} />
-        ) : active === 'routines' ? (
-          <PlaceholderPage titleKey="routines" stageNumber={4} />
-        ) : active === 'analytics' ? (
-          <PlaceholderPage titleKey="analytics" stageNumber={10} />
         ) : active === 'review' ? (
           <PlaceholderPage titleKey="review" stageNumber={8} />
         ) : (
