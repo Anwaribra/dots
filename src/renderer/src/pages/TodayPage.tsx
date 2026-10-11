@@ -13,11 +13,18 @@ import {
   Unlock,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  RotateCcw,
+  History,
+  FastForward
 } from 'lucide-react'
-import type { ScheduleItem } from '../../../main/scheduler/types'
+import type { ReplanningResult, ScheduleItem, SkippedItemResolution } from '../../../main/scheduler/types'
 import type { DayCapacityResult } from '../../../shared/capacity'
 import type { Area, Project, WorkItem } from '../../../shared/entities'
+import { ReplanPreviewModal } from '../components/ReplanPreviewModal'
+import { PlanHistoryModal } from '../components/PlanHistoryModal'
+
 
 function getTodayString(d = new Date()): string {
   const year = d.getFullYear()
@@ -173,16 +180,94 @@ export function TodayPage(): JSX.Element {
     loadTodayData()
   }
 
+  // Replanning state
+  const [replanModalOpen, setReplanModalOpen] = useState(false)
+  const [replanResult, setReplanResult] = useState<ReplanningResult | null>(null)
+  const [replanLoading, setReplanLoading] = useState(false)
+  const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [skipModalItem, setSkipModalItem] = useState<ScheduleItem | null>(null)
+
   const handleSkipItem = async (item: ScheduleItem): Promise<void> => {
+    setSkipModalItem(item)
+  }
+
+  const handleTriggerReplan = async (trigger?: any): Promise<void> => {
     if (!planner) return
-    await planner.planning.deleteScheduleItem(item.id)
-    loadTodayData()
+    setReplanLoading(true)
+    try {
+      const activeWorkItemId = currentItem && currentItem.workItemId ? currentItem.workItemId : null
+      const res = await planner.replanning.preview({
+        targetDate: selectedDate,
+        activeWorkItemId,
+        trigger
+      })
+      setReplanResult(res)
+      setReplanModalOpen(true)
+    } finally {
+      setReplanLoading(false)
+    }
+  }
+
+  const handleApproveReplan = async (): Promise<void> => {
+    if (!planner || !replanResult) return
+    setReplanLoading(true)
+    try {
+      await planner.replanning.apply({
+        targetDate: selectedDate,
+        updatedSchedule: replanResult.updatedSchedule,
+        changes: replanResult.changes,
+        trigger: 'replan_my_day',
+        summary: `Replanned day with ${replanResult.changes.length} change(s).`
+      })
+      setReplanModalOpen(false)
+      setReplanResult(null)
+      await loadTodayData()
+    } finally {
+      setReplanLoading(false)
+    }
+  }
+
+  const handleUndoPlan = async (): Promise<void> => {
+    if (!planner) return
+    try {
+      const res = await planner.replanning.undo(selectedDate)
+      if (res.success) {
+        await loadTodayData()
+      }
+    } catch { /* ignore */ }
+  }
+
+  const handleSkipWithResolution = async (
+    item: ScheduleItem,
+    resolution: SkippedItemResolution
+  ): Promise<void> => {
+    setSkipModalItem(null)
+    if (!planner) return
+
+    if (resolution === 'cancel') {
+      return
+    }
+
+    if (resolution === 'skip') {
+      await planner.planning.deleteScheduleItem(item.id)
+      await loadTodayData()
+      return
+    }
+
+    // Trigger replan preview with the skipped resolution
+    await handleTriggerReplan({
+      type: 'skipped_item',
+      details: {
+        skippedWorkItemId: item.workItemId,
+        skippedResolution: resolution
+      }
+    })
   }
 
   return (
     <div className="space-y-6">
       {/* Date Bar Navigator */}
-      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center space-x-3 space-x-reverse">
           <Calendar className="text-indigo-600 dark:text-indigo-400" size={22} />
           <div>
@@ -193,7 +278,33 @@ export function TodayPage(): JSX.Element {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 space-x-reverse">
+        <div className="flex flex-wrap items-center space-x-2 space-x-reverse">
+          <button
+            onClick={() => handleTriggerReplan()}
+            className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            <Sparkles size={14} />
+            <span>{t('replanMyDay')}</span>
+          </button>
+          <button
+            onClick={handleUndoPlan}
+            className="flex items-center space-x-1.5 space-x-reverse rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            title={t('undoPlan')}
+          >
+            <RotateCcw size={14} />
+            <span>{t('undoPlan')}</span>
+          </button>
+          <button
+            onClick={() => setHistoryModalOpen(true)}
+            className="flex items-center space-x-1.5 space-x-reverse rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            title={t('planHistory')}
+          >
+            <History size={14} />
+            <span>{t('planHistory')}</span>
+          </button>
+
+          <div className="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700" />
+
           <button
             onClick={() => navigateDate(-1)}
             className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -383,6 +494,15 @@ export function TodayPage(): JSX.Element {
                     >
                       {item.locked ? <Lock size={16} className="text-amber-500" /> : <Unlock size={16} />}
                     </button>
+                    {!isDone && (
+                      <button
+                        onClick={() => handleSkipItem(item)}
+                        className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-800"
+                        title="Skip / Reschedule"
+                      >
+                        <SkipForward size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               )
@@ -501,6 +621,81 @@ export function TodayPage(): JSX.Element {
           </div>
         </div>
       )}
+
+      {/* Skip / Missed Item Dialog */}
+      {skipModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              {t('skipOrMissed')}
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              How would you like to handle &ldquo;{skipModalItem.title}&rdquo;?
+            </p>
+
+            <div className="mt-5 space-y-2.5">
+              <button
+                onClick={() => handleSkipWithResolution(skipModalItem, 'move_later_today')}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
+              >
+                <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('moveLaterToday')}</div>
+                <div className="text-[11px] font-normal text-slate-500">Postpone this item to a later slot today.</div>
+              </button>
+
+              <button
+                onClick={() => handleSkipWithResolution(skipModalItem, 'next_free_slot')}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
+              >
+                <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('nextFreeSlot')}</div>
+                <div className="text-[11px] font-normal text-slate-500">Insert into the very next available window.</div>
+              </button>
+
+              <button
+                onClick={() => handleSkipWithResolution(skipModalItem, 'move_tomorrow')}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
+              >
+                <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('moveTomorrow')}</div>
+                <div className="text-[11px] font-normal text-slate-500">Postpone to tomorrow's plan.</div>
+              </button>
+
+              <button
+                onClick={() => handleSkipWithResolution(skipModalItem, 'skip')}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <div className="font-bold text-slate-700 dark:text-slate-300">{t('skipTask')}</div>
+                <div className="text-[11px] font-normal text-slate-500">Remove from today's schedule entirely without rescheduling.</div>
+              </button>
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                onClick={() => setSkipModalItem(null)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {t('cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Replan Preview Modal */}
+      <ReplanPreviewModal
+        isOpen={replanModalOpen}
+        onClose={() => setReplanModalOpen(false)}
+        onApprove={handleApproveReplan}
+        result={replanResult}
+        isLoading={replanLoading}
+      />
+
+      {/* Plan History & Versions Modal */}
+      <PlanHistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        targetDate={selectedDate}
+        onRestored={loadTodayData}
+      />
     </div>
   )
 }
+

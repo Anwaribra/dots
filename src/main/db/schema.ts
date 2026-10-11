@@ -239,3 +239,28 @@ export const reviewEvents = sqliteTable('review_events', {
 }, (table) => [
   check('exactly_one_ref', sql`((CASE WHEN ${table.workItemId} IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN ${table.resourceItemId} IS NOT NULL THEN 1 ELSE 0 END)) = 1`)
 ])
+
+// Stage 09 Tables: Replanning Engine, History & Plan Versions
+
+export const replanningHistory = sqliteTable('replanning_history', {
+  id: text('id').primaryKey(),
+  targetDate: text('target_date').notNull(),
+  timestamp: integer('timestamp').notNull(),
+  trigger: text('trigger').notNull(),
+  summary: text('summary').notNull(),
+  changesJson: text('changes_json').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const planVersions = sqliteTable('plan_versions', {
+  id: text('id').primaryKey(),
+  planDate: text('plan_date').notNull(),
+  versionName: text('version_name').notNull(),
+  versionIndex: integer('version_index').notNull().default(1),
+  scheduleSnapshotJson: text('schedule_snapshot_json').notNull(),
+  trigger: text('trigger'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+

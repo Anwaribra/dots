@@ -86,5 +86,18 @@
   "deleteModalTitle": "Confirm Deletion",
   "deleteModalQuestion": "This item has child work items. What would you like to do with them?",
   "detachWorkItems": "Detach Work Items (Keep as unassigned)",
-  "archiveWorkItems": "Archive Work Items"
+  "archiveWorkItems": "Archive Work Items",
+
+  "replanMyDay": "Replan My Day",
+  "replanPreview": "Replan Preview",
+  "undoPlan": "Undo Plan",
+  "planHistory": "Plan History & Versions",
+  "approveAndApplyPlan": "Approve & Apply Plan",
+  "skipOrMissed": "Skip / Missed Item",
+  "moveLaterToday": "Move Later Today",
+  "moveTomorrow": "Move Tomorrow",
+  "nextFreeSlot": "Next Free Slot",
+  "skipTask": "Skip",
+  "cancelTask": "Cancel"
 }
+

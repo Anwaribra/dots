@@ -6,3 +6,5 @@ export * from './capacity'
 export * from './constraints'
 export * from './dependencies'
 export * from './allocation'
+export * from './replanning'
+

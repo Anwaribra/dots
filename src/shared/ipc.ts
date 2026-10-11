@@ -1,6 +1,13 @@
 import { z } from 'zod'
 import { settingsSchema, settingsUpdateSchema } from './settings'
-import type { PlanningResult, ScheduleItem as SchedulerScheduleItem } from '../main/scheduler/types'
+import type {
+  PlanningResult,
+  ScheduleItem as SchedulerScheduleItem,
+  ReplanningResult,
+  ReplanningChange,
+  ReplanningHistoryItem,
+  PlanVersionItem
+} from '../main/scheduler/types'
 import {
   archiveEntitySchema,
   attachTagSchema,
@@ -205,6 +212,13 @@ export const ipcChannels = {
   reviewEventsList: 'review-events:list',
   reviewGetDue: 'review:get-due',
   reviewSyncToPlanner: 'review:sync-to-planner',
+
+  // Stage 09 Channels: Replanning Engine, History & Versions
+  replanningPreview: 'replanning:preview',
+  replanningApply: 'replanning:apply',
+  replanningUndo: 'replanning:undo',
+  replanningGetHistory: 'replanning:get-history',
+  replanningGetVersions: 'replanning:get-versions',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -420,6 +434,30 @@ export const ipcSchemas = {
   [ipcChannels.reviewGetDue]: z.object({ nowMs: z.number().optional() }).optional(),
   [ipcChannels.reviewSyncToPlanner]: z.object({ nowMs: z.number().optional() }).optional(),
 
+  // Stage 09: Replanning Engine
+  [ipcChannels.replanningPreview]: z.object({
+    targetDate: z.string(),
+    currentTime: z.string().optional(),
+    activeWorkItemId: z.string().nullable().optional(),
+    trigger: z.any().optional()
+  }),
+  [ipcChannels.replanningApply]: z.object({
+    targetDate: z.string(),
+    updatedSchedule: z.array(z.any()),
+    changes: z.array(z.any()),
+    trigger: z.string().optional(),
+    summary: z.string().optional()
+  }),
+  [ipcChannels.replanningUndo]: z.object({
+    targetDate: z.string()
+  }),
+  [ipcChannels.replanningGetHistory]: z.object({
+    targetDate: z.string().optional()
+  }).optional(),
+  [ipcChannels.replanningGetVersions]: z.object({
+    targetDate: z.string()
+  }),
+
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
   [ipcChannels.entityDelete]: deleteEntitySchema
@@ -610,5 +648,23 @@ export type PlannerApi = {
     listEvents: (filter?: { workItemId?: string; resourceItemId?: string }) => Promise<any[]>
     getDue: (nowMs?: number) => Promise<DueReviewsFilterResult>
     syncToPlanner: (nowMs?: number) => Promise<string[]>
+  }
+  replanning: {
+    preview: (input: {
+      targetDate: string
+      currentTime?: string
+      activeWorkItemId?: string | null
+      trigger?: any
+    }) => Promise<ReplanningResult>
+    apply: (input: {
+      targetDate: string
+      updatedSchedule: SchedulerScheduleItem[]
+      changes: ReplanningChange[]
+      trigger?: string
+      summary?: string
+    }) => Promise<{ success: boolean; versionId: string; historyId: string }>
+    undo: (targetDate: string) => Promise<{ success: boolean; restoredSchedule: SchedulerScheduleItem[] }>
+    getHistory: (targetDate?: string) => Promise<ReplanningHistoryItem[]>
+    getVersions: (targetDate: string) => Promise<PlanVersionItem[]>
   }
 }

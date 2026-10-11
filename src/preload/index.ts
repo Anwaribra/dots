@@ -169,6 +169,13 @@ const api = {
       ipcRenderer.invoke('review-events:list', filter),
     getDue: (nowMs?: number) => ipcRenderer.invoke('review:get-due', nowMs ? { nowMs } : undefined),
     syncToPlanner: (nowMs?: number) => ipcRenderer.invoke('review:sync-to-planner', nowMs ? { nowMs } : undefined)
+  },
+  replanning: {
+    preview: (input: unknown) => ipcRenderer.invoke('replanning:preview', input),
+    apply: (input: unknown) => ipcRenderer.invoke('replanning:apply', input),
+    undo: (targetDate: string) => ipcRenderer.invoke('replanning:undo', { targetDate }),
+    getHistory: (targetDate?: string) => ipcRenderer.invoke('replanning:get-history', targetDate ? { targetDate } : undefined),
+    getVersions: (targetDate: string) => ipcRenderer.invoke('replanning:get-versions', { targetDate })
   }
 }
 

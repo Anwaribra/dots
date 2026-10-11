@@ -119,6 +119,14 @@ import {
   recordReviewEvent,
   updateReviewPolicy
 } from './services/review-service'
+import {
+  previewReplanDay,
+  applyReplanDay,
+  undoLastReplan,
+  listReplanningHistory,
+  listPlanVersions
+} from './services/replanning-service'
+
 
 let mainWindow: BrowserWindow | undefined
 
@@ -489,6 +497,28 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.reviewSyncToPlanner, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.reviewSyncToPlanner].parse(input)
     return ensureDueReviewsAsWorkItems(parsed?.nowMs)
+  })
+
+  // Stage 09: Replanning Engine, History & Plan Versions
+  ipcMain.handle(ipcChannels.replanningPreview, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.replanningPreview].parse(input)
+    return previewReplanDay(parsed)
+  })
+  ipcMain.handle(ipcChannels.replanningApply, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.replanningApply].parse(input)
+    return applyReplanDay(parsed)
+  })
+  ipcMain.handle(ipcChannels.replanningUndo, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.replanningUndo].parse(input)
+    return undoLastReplan(parsed.targetDate)
+  })
+  ipcMain.handle(ipcChannels.replanningGetHistory, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.replanningGetHistory].parse(input)
+    return listReplanningHistory(parsed?.targetDate)
+  })
+  ipcMain.handle(ipcChannels.replanningGetVersions, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.replanningGetVersions].parse(input)
+    return listPlanVersions(parsed.targetDate)
   })
 }
 

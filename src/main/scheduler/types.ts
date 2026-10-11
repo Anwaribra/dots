@@ -176,3 +176,100 @@ export type PlanningResult = {
   explanations: PlanningExplanation[]
   dayCapacities: Record<string, DayCapacityInfo>
 }
+
+export type ReplanningTriggerType =
+  | 'urgent_work_added'
+  | 'task_overrun'
+  | 'task_finished_early'
+  | 'skipped_item'
+  | 'availability_changed'
+  | 'deadline_changed'
+  | 'fixed_event_added'
+  | 'manual_replan'
+
+export type SkippedItemResolution =
+  | 'move_later_today'
+  | 'move_tomorrow'
+  | 'next_free_slot'
+  | 'skip'
+  | 'cancel'
+
+export type ReplanningChangeType =
+  | 'inserted'
+  | 'moved'
+  | 'split'
+  | 'displaced'
+  | 'cancelled'
+  | 'skipped'
+  | 'preserved'
+  | 'extended'
+  | 'shortened'
+
+export type ReplanningChange = {
+  entityId: string
+  entityTitle: string
+  changeType: ReplanningChangeType
+  originalTime?: string | null
+  newTime?: string | null
+  reason: string
+}
+
+export type ReplanningInput = {
+  nowDate: string
+  currentTime: string
+  existingSchedule: ScheduleItem[]
+  completedItemIds?: string[]
+  activeWorkItemId?: string | null
+  candidateWorkItems: WorkItemCandidate[]
+  dependencies: DependencyEdge[]
+  availability: AvailabilitySlot[]
+  fixedEvents: FixedEventItem[]
+  timeBudgets: TimeBudgetItem[]
+  routines: RoutineItem[]
+  preferences: PlanningPreferences
+  capacitySettings: CapacitySettings
+  trigger?: {
+    type: ReplanningTriggerType
+    details?: {
+      overrunMinutes?: number
+      savedMinutes?: number
+      skippedWorkItemId?: string
+      skippedResolution?: SkippedItemResolution
+      urgentItem?: WorkItemCandidate
+    }
+  }
+}
+
+export type ReplanningResult = {
+  updatedSchedule: ScheduleItem[]
+  changes: ReplanningChange[]
+  explanations: PlanningExplanation[]
+  warnings: PlanningWarning[]
+  dayCapacities: Record<string, DayCapacityInfo>
+  overloadSuggestions: string[]
+  isOverloaded: boolean
+  overloadMinutes: number
+}
+
+export type ReplanningHistoryItem = {
+  id: string
+  targetDate: string
+  timestamp: number
+  trigger: string
+  summary: string
+  changes: ReplanningChange[]
+  createdAt: number
+  updatedAt: number
+}
+
+export type PlanVersionItem = {
+  id: string
+  planDate: string
+  versionName: string
+  versionIndex: number
+  scheduleSnapshot: ScheduleItem[]
+  trigger?: string | null
+  createdAt: number
+  updatedAt: number
+}
+

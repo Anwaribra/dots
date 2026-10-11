@@ -86,5 +86,17 @@
   "deleteModalTitle": "تأكيد الحذف",
   "deleteModalQuestion": "يحتوي هذا العنصر على عناصر عمل مرتبطة. ماذا تريد أن تفعل بها؟",
   "detachWorkItems": "فصل عناصر العمل (إبقاؤها بدون تخصيص)",
-  "archiveWorkItems": "أرشفة عناصر العمل"
+  "archiveWorkItems": "أرشفة عناصر العمل",
+
+  "replanMyDay": "إعادة تخطيط يومي",
+  "replanPreview": "معاينة إعادة التخطيط",
+  "undoPlan": "التراجع عن الخطة",
+  "planHistory": "سجل الخطط والإصدارات",
+  "approveAndApplyPlan": "اعتماد وتطبيق الخطة",
+  "skipOrMissed": "عنصر تم تجاوزه أو فات موعده",
+  "moveLaterToday": "نقله لوقت لاحق اليوم",
+  "moveTomorrow": "نقله إلى الغد",
+  "nextFreeSlot": "أول فترة شاغرة متاحة",
+  "skipTask": "تجاوز",
+  "cancelTask": "إلغاء"
 }
