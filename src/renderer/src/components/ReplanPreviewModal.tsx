@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   ArrowRight,
@@ -25,6 +26,7 @@ export function ReplanPreviewModal({
   result,
   isLoading = false
 }: ReplanPreviewModalProps): JSX.Element | null {
+  const { t } = useTranslation()
   if (!isOpen || !result) return null
 
   const renderChangeBadge = (type: ReplanningChange['changeType']) => {
@@ -32,43 +34,43 @@ export function ReplanPreviewModal({
       case 'inserted':
         return (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-            INSERTED
+            {t('changeInserted')}
           </span>
         )
       case 'moved':
         return (
           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-            MOVED
+            {t('changeMoved')}
           </span>
         )
       case 'extended':
         return (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-            EXTENDED
+            {t('changeExtended')}
           </span>
         )
       case 'shortened':
         return (
           <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
-            SHORTENED
+            {t('changeShortened')}
           </span>
         )
       case 'displaced':
         return (
           <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
-            DISPLACED
+            {t('changeDisplaced')}
           </span>
         )
       case 'skipped':
         return (
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-300">
-            SKIPPED
+            {t('changeSkipped')}
           </span>
         )
       default:
         return (
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-            PRESERVED
+            {t('changePreserved')}
           </span>
         )
     }
@@ -85,10 +87,10 @@ export function ReplanPreviewModal({
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                Replan My Day — Preview & Diff
+                {t('replanPreviewTitle')}
               </h2>
               <p className="text-xs text-slate-500">
-                Review automated schedule adjustments before applying them to your day.
+                {t('replanPreviewSubtitle')}
               </p>
             </div>
           </div>
@@ -109,10 +111,10 @@ export function ReplanPreviewModal({
                 <AlertTriangle className="mt-0.5 text-amber-600 dark:text-amber-400" size={18} />
                 <div className="flex-1">
                   <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                    Day Overloaded by {result.overloadMinutes} minutes
+                    {t('dayOverloadedBy', { minutes: result.overloadMinutes })}
                   </h4>
                   <p className="mt-1 text-xs text-amber-800 dark:text-amber-300">
-                    Planned demand exceeds usable capacity. The engine adjusted what it could and suggests:
+                    {t('dayOverloadedHint')}
                   </p>
                   <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-amber-900 dark:text-amber-200">
                     {result.overloadSuggestions.map((sug, idx) => (
@@ -125,14 +127,14 @@ export function ReplanPreviewModal({
           ) : (
             <div className="flex items-center space-x-2 space-x-reverse rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300">
               <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
-              <span>All remaining tasks fit comfortably within your available capacity window.</span>
+              <span>{t('capacityFits')}</span>
             </div>
           )}
 
           {/* Planned Changes Diff */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-              Plan Changes ({result.changes.length})
+              {t('planChanges')} ({result.changes.length})
             </h3>
             <div className="space-y-2">
               {result.changes.map((change, idx) => (
@@ -173,7 +175,7 @@ export function ReplanPreviewModal({
           {result.explanations.length > 0 && (
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                Analytical Explanations
+                {t('analyticalExplanations')}
               </h3>
               <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50/40 p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/30 dark:text-slate-400">
                 {result.explanations.map((exp, idx) => (
@@ -194,7 +196,7 @@ export function ReplanPreviewModal({
             disabled={isLoading}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={onApprove}
@@ -202,7 +204,7 @@ export function ReplanPreviewModal({
             className="flex items-center space-x-2 space-x-reverse rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
           >
             <Sparkles size={16} />
-            <span>{isLoading ? 'Applying...' : 'Approve & Apply Plan'}</span>
+            <span>{isLoading ? t('applying') : t('approveAndApplyPlan')}</span>
           </button>
         </div>
       </div>

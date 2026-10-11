@@ -482,7 +482,7 @@ export function TodayPage(): JSX.Element {
                       <button
                         onClick={() => handleCompleteItem(item)}
                         className="rounded p-1 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950"
-                        title="Mark Complete"
+                        title={t('markComplete')}
                       >
                         <CheckCircle2 size={16} />
                       </button>
@@ -498,7 +498,7 @@ export function TodayPage(): JSX.Element {
                       <button
                         onClick={() => handleSkipItem(item)}
                         className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-800"
-                        title="Skip / Reschedule"
+                        title={t('skipReschedule')}
                       >
                         <SkipForward size={16} />
                       </button>
@@ -639,7 +639,7 @@ export function TodayPage(): JSX.Element {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
               >
                 <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('moveLaterToday')}</div>
-                <div className="text-[11px] font-normal text-slate-500">Postpone this item to a later slot today.</div>
+                <div className="text-[11px] font-normal text-slate-500">{t('postponeLaterTodayHelp')}</div>
               </button>
 
               <button
@@ -647,7 +647,7 @@ export function TodayPage(): JSX.Element {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
               >
                 <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('nextFreeSlot')}</div>
-                <div className="text-[11px] font-normal text-slate-500">Insert into the very next available window.</div>
+                <div className="text-[11px] font-normal text-slate-500">{t('insertNextWindowHelp')}</div>
               </button>
 
               <button
@@ -655,7 +655,7 @@ export function TodayPage(): JSX.Element {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-indigo-950/40"
               >
                 <div className="font-bold text-indigo-600 dark:text-indigo-400">{t('moveTomorrow')}</div>
-                <div className="text-[11px] font-normal text-slate-500">Postpone to tomorrow's plan.</div>
+                <div className="text-[11px] font-normal text-slate-500">{t('postponeTomorrowHelp')}</div>
               </button>
 
               <button
@@ -663,7 +663,7 @@ export function TodayPage(): JSX.Element {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-start text-xs font-semibold text-slate-800 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 <div className="font-bold text-slate-700 dark:text-slate-300">{t('skipTask')}</div>
-                <div className="text-[11px] font-normal text-slate-500">Remove from today's schedule entirely without rescheduling.</div>
+                <div className="text-[11px] font-normal text-slate-500">{t('removeFromTodayHelp')}</div>
               </button>
             </div>
 

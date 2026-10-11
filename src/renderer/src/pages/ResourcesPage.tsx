@@ -193,7 +193,7 @@ export function ResourcesPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('resources')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Structured sources of content (Courses, Books, Playlists, PDFs, Training Plans) with no invented content.
+            {t('resourcesSubtitle')}
           </p>
         </div>
         <Button
@@ -216,7 +216,7 @@ export function ResourcesPage(): JSX.Element {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column: Resources List */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">All Resources</h3>
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('allResources')}</h3>
           <div className="space-y-2">
             {resources.map((res) => (
               <Card
@@ -250,8 +250,12 @@ export function ResourcesPage(): JSX.Element {
                     <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                       {selectedResource.title}
                     </h2>
-                    <Badge variant="secondary" className="capitalize">
-                      {selectedResource.orderingMode} mode
+                    <Badge variant="secondary">
+                      {selectedResource.orderingMode === 'dependency_based'
+                        ? t('dependencyBasedOrdering')
+                        : selectedResource.orderingMode === 'sequential'
+                          ? t('sequentialOrdering')
+                          : t('flexibleOrdering')}
                     </Badge>
                   </div>
                   {selectedResource.description && (
@@ -263,12 +267,12 @@ export function ResourcesPage(): JSX.Element {
 
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Button variant="outline" size="sm" onClick={() => setIsBulkModalOpen(true)}>
-                    Bulk Add
+                    {t('bulkAdd')}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsItemModalOpen(true)}>
-                    <Plus size={16} className="me-1" /> Item
+                    <Plus size={16} className="me-1" /> {t('add')}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => void handleDuplicateResource()} title="Duplicate">
+                  <Button variant="ghost" size="sm" onClick={() => void handleDuplicateResource()} title={t('duplicate')}>
                     <Copy size={16} />
                   </Button>
                   <Button
@@ -285,12 +289,12 @@ export function ResourcesPage(): JSX.Element {
               {/* Items Tree / List */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Content Items ({items.length})
+                  {t('contentItems')} ({items.length})
                 </h4>
 
                 {items.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400 dark:border-slate-800">
-                    No content items in this resource yet. Click <strong>Bulk Add</strong> or <strong>+ Item</strong> to add content.
+                    {t('noContentItemsYet')}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -332,7 +336,7 @@ export function ResourcesPage(): JSX.Element {
                               <span>{item.estimatedMinutes}m</span>
                               {item.blockedByTitle && (
                                 <span className="text-amber-600 dark:text-amber-400">
-                                  (Blocked by {item.blockedByTitle})
+                                  ({t('blockedByTitle', { title: item.blockedByTitle })})
                                 </span>
                               )}
                             </div>
@@ -357,16 +361,16 @@ export function ResourcesPage(): JSX.Element {
 
                           {item.workItemId ? (
                             <span className="inline-flex items-center text-xs text-indigo-600 dark:text-indigo-400">
-                              <Link size={12} className="me-1" /> Schedulable
+                              <Link size={12} className="me-1" /> {t('schedulable')}
                             </span>
                           ) : (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => void handleLinkWorkItem(item)}
-                              title="Turn into Schedulable Work Item"
+                              title={t('turnIntoSchedulable')}
                             >
-                              <Link size={14} className="me-1" /> Plan
+                              <Link size={14} className="me-1" /> {t('planAction')}
                             </Button>
                           )}
                         </div>
@@ -380,7 +384,7 @@ export function ResourcesPage(): JSX.Element {
             </Card>
           ) : (
             <Card className="p-8 text-center text-slate-400">
-              Select a resource to view its structured content.
+              {t('selectResourceToView')}
             </Card>
           )}
         </div>
@@ -397,39 +401,39 @@ export function ResourcesPage(): JSX.Element {
             label={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. React 18 Course, Atomic Habits Book, Training Plan"
+            placeholder={t('resourcePlaceholder')}
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={t('optionalDescription')}
           />
 
           <div className="grid grid-cols-2 gap-4">
             <Select
-              label="Resource Type"
+              label={t('resourceType')}
               value={resourceType}
               onChange={(e) => setResourceType(e.target.value as any)}
               options={[
-                { value: 'course', label: 'Course' },
-                { value: 'book', label: 'Book' },
-                { value: 'playlist', label: 'Playlist' },
-                { value: 'pdf', label: 'PDF' },
-                { value: 'article_collection', label: 'Article Collection' },
-                { value: 'training_program', label: 'Training Program' },
-                { value: 'study_plan', label: 'Study Plan' },
-                { value: 'custom', label: 'Custom' }
+                { value: 'course', label: t('course') },
+                { value: 'book', label: t('book') },
+                { value: 'playlist', label: t('playlist') },
+                { value: 'pdf', label: t('pdf') },
+                { value: 'article_collection', label: t('articleCollection') },
+                { value: 'training_program', label: t('trainingProgram') },
+                { value: 'study_plan', label: t('studyPlan') },
+                { value: 'custom', label: t('customType') }
               ]}
             />
             <Select
-              label="Ordering Mode"
+              label={t('orderingMode')}
               value={orderingMode}
               onChange={(e) => setOrderingMode(e.target.value as any)}
               options={[
-                { value: 'sequential', label: 'Sequential (Item N+1 blocked by Item N)' },
-                { value: 'flexible', label: 'Flexible (Independent items)' },
-                { value: 'dependency_based', label: 'Dependency-Based' }
+                { value: 'sequential', label: t('sequentialOrdering') },
+                { value: 'flexible', label: t('flexibleOrdering') },
+                { value: 'dependency_based', label: t('dependencyBasedOrdering') }
               ]}
             />
           </div>
@@ -468,14 +472,14 @@ export function ResourcesPage(): JSX.Element {
       <Dialog
         isOpen={isItemModalOpen}
         onClose={() => setIsItemModalOpen(false)}
-        title="Add Content Item"
+        title={t('addContentItem')}
       >
         <div className="space-y-4">
           <Input
             label={t('title')}
             value={itemTitle}
             onChange={(e) => setItemTitle(e.target.value)}
-            placeholder="e.g. Video 1, Chapter 3, Practice Session"
+            placeholder={t('contentItemPlaceholder')}
           />
           <Input
             label={t('estimatedMinutes')}

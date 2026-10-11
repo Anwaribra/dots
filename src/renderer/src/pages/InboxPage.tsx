@@ -170,7 +170,7 @@ export function InboxPage(): JSX.Element {
               <AlertTriangle className="mt-0.5 text-amber-600 dark:text-amber-400" size={18} />
             )}
             <div>
-              <strong className="block font-bold">Planning Result: "{planFeedback.title}"</strong>
+              <strong className="block font-bold">{t('planningResult', { title: planFeedback.title })}</strong>
               <p className="mt-0.5 text-xs">{planFeedback.message}</p>
             </div>
           </div>

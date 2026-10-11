@@ -184,7 +184,7 @@ export function TemplatesPage(): JSX.Element {
             {t('templates')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Ready-made planning architectures and custom blueprints you can apply anytime.
+            {t('templatesSubtitle')}
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export function TemplatesPage(): JSX.Element {
             className="inline-flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
           >
             <Plus size={16} />
-            <span>Save Current Setup as Template</span>
+            <span>{t('saveCurrentSetupAsTemplate')}</span>
           </button>
           <button
             id="templates-import-btn"
@@ -202,7 +202,7 @@ export function TemplatesPage(): JSX.Element {
             className="inline-flex items-center space-x-1.5 space-x-reverse rounded-lg bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             <Upload size={16} />
-            <span>Import JSON</span>
+            <span>{t('importJson')}</span>
           </button>
           <input
             ref={importFileRef}
@@ -231,14 +231,14 @@ export function TemplatesPage(): JSX.Element {
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         {[
-          ['all', 'All Templates'],
-          ['builtin', 'Built-in'],
-          ['study', 'Study'],
-          ['fitness', 'Fitness'],
-          ['review', 'Spaced Review'],
-          ['freelance', 'Freelance'],
-          ['custom', 'Custom']
-        ].map(([key, label]) => (
+          ['all', 'allTemplates'],
+          ['builtin', 'builtIn'],
+          ['study', 'filterStudy'],
+          ['fitness', 'filterFitness'],
+          ['review', 'filterSpacedReview'],
+          ['freelance', 'filterFreelance'],
+          ['custom', 'customType']
+        ].map(([key, labelKey]) => (
           <button
             key={key}
             onClick={() => setFilterCategory(key)}
@@ -248,7 +248,7 @@ export function TemplatesPage(): JSX.Element {
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
             }`}
           >
-            {label}
+            {t(labelKey)}
           </button>
         ))}
       </div>
@@ -271,11 +271,11 @@ export function TemplatesPage(): JSX.Element {
                       <span className="capitalize">{tpl.category}</span>
                       {tpl.builtin ? (
                         <Badge variant="outline" className="text-[10px] py-0 border-indigo-200 text-indigo-600 dark:border-indigo-800 dark:text-indigo-400">
-                          Built-in
+                          {t('builtIn')}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-[10px] py-0 border-purple-200 text-purple-600 dark:border-purple-800 dark:text-purple-400">
-                          Custom
+                          {t('customType')}
                         </Badge>
                       )}
                     </div>
@@ -286,7 +286,7 @@ export function TemplatesPage(): JSX.Element {
                   <button
                     onClick={() => handleExport(tpl)}
                     className="text-slate-400 hover:text-indigo-600 transition-colors"
-                    title="Export as JSON"
+                    title={t('exportAsJson')}
                     id={`template-export-${tpl.id}`}
                   >
                     <Download size={16} />
@@ -295,7 +295,7 @@ export function TemplatesPage(): JSX.Element {
                     <button
                       onClick={() => handleDelete(tpl.id, tpl.name)}
                       className="text-slate-400 hover:text-rose-600 transition-colors"
-                      title="Delete custom template"
+                      title={t('deleteCustomTemplate')}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -312,37 +312,37 @@ export function TemplatesPage(): JSX.Element {
               {/* Payload Contents Summary */}
               <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                  Includes
+                  {t('includes')}
                 </span>
                 <div className="flex flex-wrap gap-1 text-[11px]">
                   {tpl.payload.areas?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.areas.length} Areas
+                      {t('countAreas', { count: tpl.payload.areas.length })}
                     </span>
                   ) : null}
                   {tpl.payload.goals?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.goals.length} Goals
+                      {t('countGoals', { count: tpl.payload.goals.length })}
                     </span>
                   ) : null}
                   {tpl.payload.routines?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.routines.length} Routines
+                      {t('countRoutines', { count: tpl.payload.routines.length })}
                     </span>
                   ) : null}
                   {tpl.payload.timeBudgets?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.timeBudgets.length} Budgets
+                      {t('countBudgets', { count: tpl.payload.timeBudgets.length })}
                     </span>
                   ) : null}
                   {tpl.payload.reviewPolicies?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.reviewPolicies.length} Review Policy
+                      {t('countReviewPolicy', { count: tpl.payload.reviewPolicies.length })}
                     </span>
                   ) : null}
                   {tpl.payload.resources?.length ? (
                     <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
-                      {tpl.payload.resources.length} Resource Course
+                      {t('countResourceCourse', { count: tpl.payload.resources.length })}
                     </span>
                   ) : null}
                 </div>
@@ -360,7 +360,7 @@ export function TemplatesPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => handleExport(tpl)}
-                title="Export as JSON"
+                title={t('exportAsJson')}
                 className="flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <Download size={14} />
@@ -375,10 +375,10 @@ export function TemplatesPage(): JSX.Element {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Apply Template: {applyTarget.name}
+              {t('applyTemplateNamed', { name: applyTarget.name })}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Applying this template will create ordinary areas, goals, routines, and budgets in your workspace.
+              {t('applyTemplateDesc')}
             </p>
 
             <label className="flex items-center space-x-2 space-x-reverse text-xs text-slate-700 dark:text-slate-300 cursor-pointer pt-2">
@@ -388,7 +388,7 @@ export function TemplatesPage(): JSX.Element {
                 onChange={(e) => setSkipDuplicates(e.target.checked)}
                 className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <span>Skip entities that already exist (match by name)</span>
+              <span>{t('skipExistingEntities')}</span>
             </label>
 
             <div className="flex items-center justify-end space-x-2 space-x-reverse pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -404,7 +404,7 @@ export function TemplatesPage(): JSX.Element {
                 onClick={handleApply}
                 className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm disabled:opacity-50"
               >
-                {loading ? 'Applying...' : 'Apply Now'}
+                {loading ? t('applying') : t('applyNow')}
               </button>
             </div>
           </div>
@@ -417,21 +417,21 @@ export function TemplatesPage(): JSX.Element {
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Copy size={18} className="text-indigo-600" />
-              Save Current Setup as Template
+              {t('saveCurrentSetupAsTemplate')}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Capture your existing structure so you can apply or share it across projects.
+              {t('saveTemplateDesc')}
             </p>
 
             <form onSubmit={handleSaveCustom} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Template Name *
+                  {t('templateNameRequired')}
                 </label>
                 <input
                   required
                   type="text"
-                  placeholder="e.g. My Freelance Operating System"
+                  placeholder={t('templateNamePlaceholder')}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -440,11 +440,11 @@ export function TemplatesPage(): JSX.Element {
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Description
+                  {t('description')}
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="What is this template designed for?"
+                  placeholder={t('templateDescPlaceholder')}
                   value={customDesc}
                   onChange={(e) => setCustomDesc(e.target.value)}
                   className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -453,7 +453,7 @@ export function TemplatesPage(): JSX.Element {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  Select Modules to Include:
+                  {t('selectModulesToInclude')}
                 </label>
                 <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
@@ -463,7 +463,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeAreas(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Areas</span>
+                    <span>{t('areas')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -472,7 +472,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeGoals(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Goals</span>
+                    <span>{t('goals')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -481,7 +481,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeMilestones(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Milestones</span>
+                    <span>{t('milestones')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -490,7 +490,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeWorkItemTypes(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Work Item Types</span>
+                    <span>{t('workItemTypes')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -499,7 +499,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeRoutines(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Routines</span>
+                    <span>{t('routines')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -508,7 +508,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeTimeBudgets(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Time Budgets</span>
+                    <span>{t('timeBudgets')}</span>
                   </label>
                   <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
                     <input
@@ -517,7 +517,7 @@ export function TemplatesPage(): JSX.Element {
                       onChange={(e) => setIncludeReviewPolicies(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span>Review Policies</span>
+                    <span>{t('reviewPolicies')}</span>
                   </label>
                 </div>
               </div>
@@ -535,7 +535,7 @@ export function TemplatesPage(): JSX.Element {
                   type="submit"
                   className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm disabled:opacity-50"
                 >
-                  {loading ? 'Saving...' : 'Save Template'}
+                  {loading ? t('saving') : t('saveTemplate')}
                 </button>
               </div>
             </form>

@@ -10,14 +10,14 @@ import { Select } from '../components/ui/select'
 import { Dialog } from '../components/ui/dialog'
 import { Badge } from '../components/ui/badge'
 
-const DAYS_OF_WEEK = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
+const DAY_KEYS = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday'
 ]
 
 export function AvailabilityAndCapacityPage(): JSX.Element {
@@ -142,10 +142,10 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Availability & Capacity Model
+            {t('availabilityAndCapacityModel')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Configure your weekly schedule, date overrides, and fixed time commitments. Single source of truth for planning capacity.
+            {t('availabilitySubtitle')}
           </p>
         </div>
         <div className="flex items-center space-x-3 space-x-reverse">
@@ -156,7 +156,7 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
             className="w-44"
           />
           <Button variant="secondary" onClick={() => void loadData()}>
-            <RefreshCw size={14} className="me-1" /> Refresh
+            <RefreshCw size={14} className="me-1" /> {t('refresh')}
           </Button>
         </div>
       </div>
@@ -167,49 +167,49 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
           <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <div>
               <span className="text-xs uppercase font-bold text-indigo-600 dark:text-indigo-400">
-                Single Source of Truth Capacity
+                {t('singleSourceOfTruthCapacity')}
               </span>
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                Date: {selectedDate} ({DAYS_OF_WEEK[capacity.dayOfWeek]})
+                {t('date')}: {selectedDate} ({t(DAY_KEYS[capacity.dayOfWeek])})
               </h2>
             </div>
             {capacity.isOverloaded && (
               <Badge variant="critical" className="text-xs px-2 py-1 flex items-center">
-                <AlertTriangle size={14} className="me-1" /> Day Overloaded
+                <AlertTriangle size={14} className="me-1" /> {t('dayOverloaded')}
               </Badge>
             )}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-4 text-center">
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Available</span>
+              <span className="block text-xs text-slate-500">{t('available')}</span>
               <strong className="text-lg text-slate-900 dark:text-slate-100">{capacity.availableMinutes}m</strong>
               <span className="block text-[11px] text-slate-400">{(capacity.availableMinutes / 60).toFixed(1)}h</span>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Usable (Cap %)</span>
+              <span className="block text-xs text-slate-500">{t('usableCapPct')}</span>
               <strong className="text-lg text-slate-900 dark:text-slate-100">{capacity.usableMinutes}m</strong>
               <span className="block text-[11px] text-slate-400">{(capacity.usableMinutes / 60).toFixed(1)}h</span>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Buffer</span>
+              <span className="block text-xs text-slate-500">{t('buffer')}</span>
               <strong className="text-lg text-amber-600 dark:text-amber-400">{capacity.bufferMinutes}m</strong>
-              <span className="block text-[11px] text-slate-400">Protected gap</span>
+              <span className="block text-[11px] text-slate-400">{t('protectedGap')}</span>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Fixed Events</span>
+              <span className="block text-xs text-slate-500">{t('fixedEvents')}</span>
               <strong className="text-lg text-purple-600 dark:text-purple-400">{capacity.fixedEventMinutes}m</strong>
-              <span className="block text-[11px] text-slate-400">Non-negotiable</span>
+              <span className="block text-[11px] text-slate-400">{t('nonNegotiable')}</span>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Locked Budgets</span>
+              <span className="block text-xs text-slate-500">{t('lockedBudgets')}</span>
               <strong className="text-lg text-indigo-600 dark:text-indigo-400">{capacity.budgetSummary.lockedMinutes}m</strong>
-              <span className="block text-[11px] text-slate-400">Pre-allocated</span>
+              <span className="block text-[11px] text-slate-400">{t('preAllocated')}</span>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-              <span className="block text-xs text-slate-500">Flexible Work Left</span>
+              <span className="block text-xs text-slate-500">{t('flexibleWorkLeft')}</span>
               <strong className="text-lg text-emerald-600 dark:text-emerald-400">{capacity.remainingMinutesForFlexibleWork}m</strong>
-              <span className="block text-[11px] text-slate-400">{(capacity.remainingMinutesForFlexibleWork / 60).toFixed(1)}h free</span>
+              <span className="block text-[11px] text-slate-400">{(capacity.remainingMinutesForFlexibleWork / 60).toFixed(1)}h {t('freeHours')}</span>
             </div>
           </div>
 
@@ -230,10 +230,10 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              Weekly Availability Schedule
+              {t('weeklyAvailabilitySchedule')}
             </h2>
             <p className="text-xs text-slate-500">
-              Set your baseline working/availability window for each day of the week.
+              {t('weeklyAvailabilitySubtitle')}
             </p>
           </div>
         </div>
@@ -249,13 +249,13 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className={rule.isActive ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-400'}>
-                  {DAYS_OF_WEEK[rule.dayOfWeek]}
+                  {t(DAY_KEYS[rule.dayOfWeek])}
                 </span>
               </div>
 
               <div className="flex items-center space-x-4 space-x-reverse">
                 <div className="flex items-center space-x-2 space-x-reverse">
-                  <span className="text-xs text-slate-400">Start:</span>
+                  <span className="text-xs text-slate-400">{t('start')}:</span>
                   <Input
                     type="time"
                     disabled={!rule.isActive}
@@ -265,7 +265,7 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
                   />
                 </div>
                 <div className="flex items-center space-x-2 space-x-reverse">
-                  <span className="text-xs text-slate-400">End:</span>
+                  <span className="text-xs text-slate-400">{t('end')}:</span>
                   <Input
                     type="time"
                     disabled={!rule.isActive}
@@ -287,19 +287,19 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                Date Overrides
+                {t('dateOverrides')}
               </h2>
               <p className="text-xs text-slate-500">
-                Exceptions, holidays, and custom hours for specific days.
+                {t('dateOverridesSubtitle')}
               </p>
             </div>
             <Button size="sm" onClick={() => setOverrideModalOpen(true)}>
-              <Plus size={14} className="me-1" /> Add Override
+              <Plus size={14} className="me-1" /> {t('addOverride')}
             </Button>
           </div>
 
           {overrides.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">No overrides configured</p>
+            <p className="text-xs text-slate-400 py-4 text-center">{t('noOverridesConfigured')}</p>
           ) : (
             <div className="space-y-2">
               {overrides.map((ov) => (
@@ -312,7 +312,7 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
                       {ov.date}
                     </span>
                     <span className="text-slate-500">
-                      {ov.isUnavailable ? 'Off day (0h available)' : `${ov.startTime} - ${ov.endTime}`}
+                      {ov.isUnavailable ? t('offDay') : `${ov.startTime} - ${ov.endTime}`}
                       {ov.notes && ` • ${ov.notes}`}
                     </span>
                   </div>
@@ -335,19 +335,19 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                Fixed Events
+                {t('fixedEvents')}
               </h2>
               <p className="text-xs text-slate-500">
-                Appointments, meetings, classes, and immovable obligations.
+                {t('fixedEventsSubtitle')}
               </p>
             </div>
             <Button size="sm" onClick={() => setFixedEventModalOpen(true)}>
-              <Plus size={14} className="me-1" /> Add Fixed Event
+              <Plus size={14} className="me-1" /> {t('addFixedEvent')}
             </Button>
           </div>
 
           {fixedEvents.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">No fixed events scheduled</p>
+            <p className="text-xs text-slate-400 py-4 text-center">{t('noFixedEventsScheduled')}</p>
           ) : (
             <div className="space-y-2">
               {fixedEvents.map((fe) => (
@@ -361,7 +361,7 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
                     </strong>
                     <span className="text-slate-500">
                       {fe.startTime} - {fe.endTime}
-                      {fe.recurrenceRule && ` • Recurrence: ${fe.recurrenceRule}`}
+                      {fe.recurrenceRule && ` • ${t('recurrenceRRule')}: ${fe.recurrenceRule}`}
                     </span>
                   </div>
                   <Button
@@ -383,19 +383,19 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
       <Dialog
         isOpen={overrideModalOpen}
         onClose={() => setOverrideModalOpen(false)}
-        title="Add Date Availability Override"
+        title={t('addDateAvailabilityOverride')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setOverrideModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleCreateOverride()}>Save Override</Button>
+            <Button onClick={() => void handleCreateOverride()}>{t('saveOverride')}</Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Date"
+            label={t('date')}
             type="date"
             value={overrideForm.date}
             onChange={(e) => setOverrideForm({ ...overrideForm, date: e.target.value })}
@@ -409,19 +409,19 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
               className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
             <label htmlFor="isUnavailable" className="text-xs text-slate-700 dark:text-slate-300">
-              Mark as completely unavailable (Day Off)
+              {t('markAsUnavailable')}
             </label>
           </div>
           {!overrideForm.isUnavailable && (
             <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Start Time"
+                label={t('start')}
                 type="time"
                 value={overrideForm.startTime}
                 onChange={(e) => setOverrideForm({ ...overrideForm, startTime: e.target.value })}
               />
               <Input
-                label="End Time"
+                label={t('end')}
                 type="time"
                 value={overrideForm.endTime}
                 onChange={(e) => setOverrideForm({ ...overrideForm, endTime: e.target.value })}
@@ -429,8 +429,8 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
             </div>
           )}
           <Input
-            label="Reason / Notes"
-            placeholder="e.g. Doctor appointment, public holiday..."
+            label={t('reasonNotes')}
+            placeholder={t('reasonPlaceholder')}
             value={overrideForm.notes}
             onChange={(e) => setOverrideForm({ ...overrideForm, notes: e.target.value })}
           />
@@ -441,48 +441,48 @@ export function AvailabilityAndCapacityPage(): JSX.Element {
       <Dialog
         isOpen={fixedEventModalOpen}
         onClose={() => setFixedEventModalOpen(false)}
-        title="Add Fixed Event"
+        title={t('addFixedEvent')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setFixedEventModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleCreateFixedEvent()}>Create Event</Button>
+            <Button onClick={() => void handleCreateFixedEvent()}>{t('createEvent')}</Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Title"
-            placeholder="e.g. Client Demo, Lecture, Dentist"
+            label={t('eventTitle')}
+            placeholder={t('eventTitlePlaceholder')}
             value={fixedEventForm.title}
             onChange={(e) => setFixedEventForm({ ...fixedEventForm, title: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Start (YYYY-MM-DD HH:mm)"
+              label={t('startFormat')}
               value={fixedEventForm.startTime}
               onChange={(e) => setFixedEventForm({ ...fixedEventForm, startTime: e.target.value })}
             />
             <Input
-              label="End (YYYY-MM-DD HH:mm)"
+              label={t('endFormat')}
               value={fixedEventForm.endTime}
               onChange={(e) => setFixedEventForm({ ...fixedEventForm, endTime: e.target.value })}
             />
           </div>
           <Select
-            label="Flexibility"
+            label={t('flexibility')}
             value={fixedEventForm.flexibility}
             onChange={(e) => setFixedEventForm({ ...fixedEventForm, flexibility: e.target.value })}
             options={[
-              { value: 'fixed', label: 'Fixed (Cannot be shifted)' },
-              { value: 'semi_flexible', label: 'Semi-flexible' },
-              { value: 'flexible', label: 'Flexible' }
+              { value: 'fixed', label: t('fixedCannotBeShifted') },
+              { value: 'semi_flexible', label: t('semiFlexible') },
+              { value: 'flexible', label: t('flexible') }
             ]}
           />
           <Input
-            label="Recurrence Rule (Optional)"
-            placeholder="e.g. FREQ=WEEKLY;BYDAY=MO,WE or FREQ=DAILY"
+            label={t('recurrenceRuleOptional')}
+            placeholder={t('recurrenceRulePlaceholder')}
             value={fixedEventForm.recurrenceRule}
             onChange={(e) => setFixedEventForm({ ...fixedEventForm, recurrenceRule: e.target.value })}
           />

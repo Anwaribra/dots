@@ -35,16 +35,16 @@ export function BulkResourceModal({ isOpen, onClose, onSave }: BulkResourceModal
   }
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title="Bulk Resource Entry">
+    <Dialog isOpen={isOpen} onClose={onClose} title={t('bulkResourceEntry')}>
       <div className="space-y-4">
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Paste lines of content (e.g. <code>Video 1 | 35</code> or <code>Chapter 2 - 45 min</code>). The parser will extract titles and durations automatically.
+          {t('bulkResourceHint')}
         </p>
 
         <textarea
           value={rawText}
           onChange={(e) => setRawText(e.target.value)}
-          placeholder={`Video 1 | 35\nVideo 2 | 42m\nVideo 3 | 28`}
+          placeholder={t('bulkPlaceholder')}
           rows={6}
           className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm font-mono text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />
@@ -52,7 +52,7 @@ export function BulkResourceModal({ isOpen, onClose, onSave }: BulkResourceModal
         {parsedItems.length > 0 && (
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Preview & Edit ({parsedItems.length} items)
+              {t('previewAndEdit', { count: parsedItems.length })}
             </h4>
             <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/50">
               <table className="w-full text-start text-xs">
@@ -96,7 +96,7 @@ export function BulkResourceModal({ isOpen, onClose, onSave }: BulkResourceModal
             {t('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={parsedItems.length === 0}>
-            Save {parsedItems.length} Items
+            {t('saveNItems', { count: parsedItems.length })}
           </Button>
         </div>
       </div>

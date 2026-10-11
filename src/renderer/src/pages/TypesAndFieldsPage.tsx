@@ -143,7 +143,7 @@ export function TypesAndFieldsPage(): JSX.Element {
                         <span className="ms-2 text-xs font-mono text-indigo-600 dark:text-indigo-400">({def.fieldType})</span>
                       </div>
                       {def.options && (
-                        <span className="text-xs text-slate-500">Options: {def.options.join(', ')}</span>
+                        <span className="text-xs text-slate-500">{t('fieldOptionsLabel')} {def.options.join(', ')}</span>
                       )}
                     </div>
                   ))
@@ -151,22 +151,22 @@ export function TypesAndFieldsPage(): JSX.Element {
               </div>
             </Card>
           ) : (
-            <Card className="p-8 text-center text-slate-400">Select a work item type to manage custom fields.</Card>
+            <Card className="p-8 text-center text-slate-400">{t('selectWorkItemType')}</Card>
           )}
         </div>
       </div>
 
       {/* New Type Dialog */}
-      <Dialog isOpen={isTypeModalOpen} onClose={() => setIsTypeModalOpen(false)} title="Create Work Item Type">
+      <Dialog isOpen={isTypeModalOpen} onClose={() => setIsTypeModalOpen(false)} title={t('createWorkItemType')}>
         <div className="space-y-4">
           <Input
-            label="Type Name"
+            label={t('typeName')}
             value={typeName}
             onChange={(e) => setTypeName(e.target.value)}
-            placeholder="e.g. Workout, Client Deliverable, Course Lesson"
+            placeholder={t('typeNamePlaceholder')}
           />
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Color</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('color')}</label>
             <input
               type="color"
               value={typeColor}
@@ -182,32 +182,32 @@ export function TypesAndFieldsPage(): JSX.Element {
       </Dialog>
 
       {/* New Field Definition Dialog */}
-      <Dialog isOpen={isDefModalOpen} onClose={() => setIsDefModalOpen(false)} title={`Add Custom Field to ${selectedType?.name}`}>
+      <Dialog isOpen={isDefModalOpen} onClose={() => setIsDefModalOpen(false)} title={`${t('addCustomFieldTo')} ${selectedType?.name ?? ''}`}>
         <div className="space-y-4">
           <Input
-            label="Field Name"
+            label={t('fieldName')}
             value={fieldName}
             onChange={(e) => setFieldName(e.target.value)}
-            placeholder="e.g. Sets, Reps, Weight, Client, Revenue"
+            placeholder={t('fieldNamePlaceholder')}
           />
           <Select
-            label="Field Type"
+            label={t('fieldType')}
             value={fieldType}
             onChange={(e) => setFieldType(e.target.value as any)}
             options={[
-              { value: 'text', label: 'Text' },
-              { value: 'number', label: 'Number' },
-              { value: 'boolean', label: 'Boolean (Yes/No)' },
-              { value: 'date', label: 'Date' },
-              { value: 'select', label: 'Select Dropdown' }
+              { value: 'text', label: t('fieldTypeText') },
+              { value: 'number', label: t('fieldTypeNumber') },
+              { value: 'boolean', label: t('fieldTypeBoolean') },
+              { value: 'date', label: t('fieldTypeDate') },
+              { value: 'select', label: t('fieldTypeSelect') }
             ]}
           />
           {fieldType === 'select' && (
             <Input
-              label="Options (comma separated)"
+              label={t('fieldOptions')}
               value={fieldOptions}
               onChange={(e) => setFieldOptions(e.target.value)}
-              placeholder="e.g. High, Medium, Low"
+              placeholder={t('fieldOptionsPlaceholder')}
             />
           )}
           <div className="flex justify-end space-x-2 space-x-reverse pt-2">

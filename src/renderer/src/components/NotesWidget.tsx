@@ -45,7 +45,7 @@ export function NotesWidget({ entityType, entityId }: NotesWidgetProps): JSX.Ele
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Add a note..."
+          placeholder={t('addNotePlaceholder')}
           rows={2}
           className="w-full rounded-md border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />

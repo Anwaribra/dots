@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
-  AlertCircle,
-  BookOpen,
-  Calendar,
   CheckCircle2,
   Clock,
   History,
   Plus,
-  RotateCcw,
   Sliders,
   Sparkles,
   Trash2
@@ -17,6 +14,7 @@ import type { DueReviewsFilterResult, ReviewPolicyData, ReviewableItemState } fr
 type TabType = 'due' | 'policies' | 'history'
 
 export function ReviewPage(): JSX.Element {
+  const { t } = useTranslation()
   const planner = window.planner
 
   const [activeTab, setActiveTab] = useState<TabType>('due')
@@ -112,9 +110,9 @@ export function ReviewPage(): JSX.Element {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Review System</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('reviewSystem')}</h1>
           <p className="text-sm text-slate-500">
-            Spaced repetition and periodic review policies across all work items & resources.
+            {t('reviewSystemSubtitle')}
           </p>
         </div>
 
@@ -124,7 +122,7 @@ export function ReviewPage(): JSX.Element {
             className="flex items-center space-x-2 space-x-reverse rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <Sparkles size={16} className="text-indigo-500" />
-            <span>Feed Due Reviews to Planner</span>
+            <span>{t('feedDueReviewsToPlanner')}</span>
           </button>
         </div>
       </div>
@@ -141,7 +139,7 @@ export function ReviewPage(): JSX.Element {
             }`}
           >
             <Clock size={16} />
-            <span>Due Reviews ({dueData?.allDueOrOverdue.length || 0})</span>
+            <span>{t('dueReviews')} ({dueData?.allDueOrOverdue.length || 0})</span>
           </button>
           <button
             onClick={() => setActiveTab('policies')}
@@ -152,7 +150,7 @@ export function ReviewPage(): JSX.Element {
             }`}
           >
             <Sliders size={16} />
-            <span>Review Policies ({policies.length})</span>
+            <span>{t('reviewPolicies')} ({policies.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -163,7 +161,7 @@ export function ReviewPage(): JSX.Element {
             }`}
           >
             <History size={16} />
-            <span>Review History ({eventsHistory.length})</span>
+            <span>{t('reviewHistory')} ({eventsHistory.length})</span>
           </button>
         </nav>
       </div>
@@ -174,8 +172,8 @@ export function ReviewPage(): JSX.Element {
           {dueData?.allDueOrOverdue.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-800">
               <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">All caught up!</p>
-              <p className="text-xs text-slate-500">No items are due or overdue for review at this time.</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('allCaughtUp')}</p>
+              <p className="text-xs text-slate-500">{t('noDueReviews')}</p>
             </div>
           ) : (
             <div className="grid gap-3">
@@ -197,17 +195,17 @@ export function ReviewPage(): JSX.Element {
                             : 'bg-amber-500 text-white'
                         }`}
                       >
-                        {item.reviewStatus}
+                        {t(item.reviewStatus)}
                       </span>
                       <span className="text-xs font-semibold uppercase text-slate-400">
-                        {item.itemKind === 'workItem' ? 'Task' : 'Resource Item'}
+                        {item.itemKind === 'workItem' ? t('task') : t('resourceItem')}
                       </span>
                     </div>
                     <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
                       {item.title}
                     </h4>
                     <p className="text-xs text-slate-500">
-                      Completed reviews count: {item.reviewCount || 0}
+                      {t('completedReviewsCount')} {item.reviewCount || 0}
                     </p>
                   </div>
 
@@ -216,7 +214,7 @@ export function ReviewPage(): JSX.Element {
                     className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
                   >
                     <CheckCircle2 size={14} />
-                    <span>Mark Reviewed</span>
+                    <span>{t('markReviewed')}</span>
                   </button>
                 </div>
               ))}
@@ -240,7 +238,7 @@ export function ReviewPage(): JSX.Element {
               className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
             >
               <Plus size={14} />
-              <span>Create Policy</span>
+              <span>{t('createPolicy')}</span>
             </button>
           </div>
 
@@ -255,7 +253,7 @@ export function ReviewPage(): JSX.Element {
                   <button
                     onClick={() => handleDeletePolicy(p.id)}
                     className="text-slate-400 hover:text-red-500"
-                    title="Delete Policy"
+                    title={t('deletePolicy')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -263,10 +261,10 @@ export function ReviewPage(): JSX.Element {
 
                 <div className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
                   <p>
-                    <strong>Intervals (days):</strong> {p.intervalDays.join(' → ')}
+                    <strong>{t('intervalDays')}</strong> {p.intervalDays.join(' → ')}
                   </p>
                   <p>
-                    <strong>Shorten on Weak Recall:</strong> {p.shortenOnWeak ? 'Yes' : 'No'}
+                    <strong>{t('shortenOnWeakLabel')}</strong> {p.shortenOnWeak ? t('yes') : t('no')}
                   </p>
                 </div>
               </div>
@@ -279,10 +277,10 @@ export function ReviewPage(): JSX.Element {
       {activeTab === 'history' && (
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-            Review Event Logs
+            {t('reviewEventLogs')}
           </h3>
           {eventsHistory.length === 0 ? (
-            <p className="text-xs text-slate-400">No review events logged yet.</p>
+            <p className="text-xs text-slate-400">{t('noReviewEventsLogged')}</p>
           ) : (
             <div className="space-y-2">
               {eventsHistory.map((ev) => (
@@ -296,7 +294,7 @@ export function ReviewPage(): JSX.Element {
                       {new Date(ev.reviewedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      Duration: {ev.durationMinutes}m {ev.notes ? `• ${ev.notes}` : ''}
+                      {t('durationWithMinutes', { minutes: ev.durationMinutes })} {ev.notes ? `• ${ev.notes}` : ''}
                     </p>
                   </div>
                   {ev.result && (
@@ -309,7 +307,7 @@ export function ReviewPage(): JSX.Element {
                             : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
                       }`}
                     >
-                      {ev.result}
+                      {t(ev.result)}
                     </span>
                   )}
                 </div>
@@ -324,7 +322,7 @@ export function ReviewPage(): JSX.Element {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              Record Review Event
+              {t('recordReviewEvent')}
             </h3>
             <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
               {markModalItem.title}
@@ -332,7 +330,7 @@ export function ReviewPage(): JSX.Element {
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Result Quality
+                {t('resultQuality')}
               </label>
               <div className="flex gap-2">
                 {(['strong', 'good', 'weak'] as const).map((res) => (
@@ -346,7 +344,7 @@ export function ReviewPage(): JSX.Element {
                         : 'border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-900'
                     }`}
                   >
-                    {res}
+                    {t(res)}
                   </button>
                 ))}
               </div>
@@ -354,7 +352,7 @@ export function ReviewPage(): JSX.Element {
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Duration (minutes)
+                {t('durationMinutes')}
               </label>
               <input
                 type="number"
@@ -367,12 +365,12 @@ export function ReviewPage(): JSX.Element {
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Notes
+                {t('notes')}
               </label>
               <textarea
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                placeholder="Optional review observations..."
+                placeholder={t('reviewNotesPlaceholder')}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
                 rows={3}
               />
@@ -383,13 +381,13 @@ export function ReviewPage(): JSX.Element {
                 onClick={() => setMarkModalItem(null)}
                 className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleMarkReviewed}
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
               >
-                Save Review
+                {t('saveReview')}
               </button>
             </div>
           </div>
@@ -401,25 +399,25 @@ export function ReviewPage(): JSX.Element {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              {editingPolicy ? 'Edit Policy' : 'Create Review Policy'}
+              {editingPolicy ? t('editPolicy') : t('createReviewPolicy')}
             </h3>
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Policy Name
+                {t('policyName')}
               </label>
               <input
                 type="text"
                 value={policyName}
                 onChange={(e) => setPolicyName(e.target.value)}
-                placeholder="e.g. Standard Spaced Repetition"
+                placeholder={t('policyNamePlaceholder')}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Interval Progression (comma-separated days)
+                {t('intervalProgression')}
               </label>
               <input
                 type="text"
@@ -437,7 +435,7 @@ export function ReviewPage(): JSX.Element {
                 onChange={(e) => setShortenOnWeak(e.target.checked)}
                 className="rounded border-slate-300 text-indigo-600"
               />
-              <span>Shorten interval progression on weak recall</span>
+              <span>{t('shortenOnWeak')}</span>
             </label>
 
             <div className="flex justify-end space-x-2 space-x-reverse pt-2">
@@ -445,13 +443,13 @@ export function ReviewPage(): JSX.Element {
                 onClick={() => setPolicyModalOpen(false)}
                 className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSavePolicy}
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
               >
-                Save Policy
+                {t('savePolicy')}
               </button>
             </div>
           </div>

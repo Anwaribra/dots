@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   BarChart2,
@@ -63,15 +64,17 @@ function StatCard({ label, value, sub, icon: Icon, color = 'indigo' }: {
 }
 
 function PriorityBadge({ p }: { p: string }): JSX.Element {
+  const { t } = useTranslation()
   const cls = p === 'high' || p === 'critical'
     ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
     : p === 'medium'
     ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
     : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
-  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wide ${cls}`}>{p}</span>
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wide ${cls}`}>{t(p)}</span>
 }
 
 export function WeeklyReviewPage(): JSX.Element {
+  const { t } = useTranslation()
   const [weekOffset, setWeekOffset] = useState(-1) // default: last week
   const [review, setReview] = useState<WeeklyReviewResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -88,11 +91,11 @@ export function WeeklyReviewPage(): JSX.Element {
       const res = await (planner as any).weeklyReview.generate({ startDate: period.startDate, endDate: period.endDate })
       setReview(res)
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to generate review')
+      setError(e?.message ?? t('failedToGenerateReview'))
     } finally {
       setLoading(false)
     }
-  }, [planner, period])
+  }, [planner, period, t])
 
   useEffect(() => { load() }, [load])
 
@@ -110,7 +113,7 @@ export function WeeklyReviewPage(): JSX.Element {
           </button>
           <div className="text-center">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{period.label}</p>
-            <p className="text-xs text-slate-400">{weekOffset === -1 ? 'Last week' : weekOffset === 0 ? 'This week' : `${Math.abs(weekOffset)} weeks ago`}</p>
+            <p className="text-xs text-slate-400">{weekOffset === -1 ? t('lastWeek') : weekOffset === 0 ? t('thisWeek') : t('weeksAgoCount', { count: Math.abs(weekOffset) })}</p>
           </div>
           <button
             onClick={() => setWeekOffset((w) => Math.min(w + 1, 0))}
@@ -127,7 +130,7 @@ export function WeeklyReviewPage(): JSX.Element {
           className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-500 font-medium"
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Generating…' : 'Refresh'}
+          {loading ? t('generating') : t('refresh')}
         </button>
       </div>
 
@@ -138,13 +141,13 @@ export function WeeklyReviewPage(): JSX.Element {
       )}
 
       {!review && !loading && !error && (
-        <div className="py-16 text-center text-slate-400 text-sm">Select a period and click Refresh to generate the review.</div>
+        <div className="py-16 text-center text-slate-400 text-sm">{t('selectPeriodAndRefresh')}</div>
       )}
 
       {loading && (
         <div className="py-16 flex items-center justify-center gap-3 text-slate-400 text-sm">
           <RefreshCw size={16} className="animate-spin" />
-          Analyzing your week…
+          {t('analyzingWeek')}
         </div>
       )}
 
@@ -152,16 +155,16 @@ export function WeeklyReviewPage(): JSX.Element {
         <div className="space-y-6">
           {/* Key stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard icon={CheckCircle2} label="Tasks Completed" value={String(review.totalCompletedItems)} sub={`of ${review.totalScheduledItems} scheduled`} color="emerald" />
-            <StatCard icon={BarChart2} label="Completion Rate" value={pct(review.completionRate)} color={review.completionRate >= 70 ? 'emerald' : 'amber'} />
-            <StatCard icon={Clock} label="Time Worked" value={mins(review.totalActualMinutes)} sub={`${mins(review.totalPlannedMinutes)} planned`} color="indigo" />
-            <StatCard icon={Zap} label="Avg Per Active Day" value={mins(review.avgDailyActualMinutes)} color="indigo" />
+            <StatCard icon={CheckCircle2} label={t('tasksCompleted')} value={String(review.totalCompletedItems)} sub={t('ofScheduled', { count: review.totalScheduledItems })} color="emerald" />
+            <StatCard icon={BarChart2} label={t('completionRate')} value={pct(review.completionRate)} color={review.completionRate >= 70 ? 'emerald' : 'amber'} />
+            <StatCard icon={Clock} label={t('timeWorked')} value={mins(review.totalActualMinutes)} sub={t('plannedMinutesSub', { time: mins(review.totalPlannedMinutes) })} color="indigo" />
+            <StatCard icon={Zap} label={t('avgPerActiveDay')} value={mins(review.avgDailyActualMinutes)} color="indigo" />
           </div>
 
           {/* Observations */}
           {review.observations.length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Observations</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">{t('observations')}</h3>
               <ul className="space-y-2">
                 {review.observations.map((obs, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">
@@ -179,7 +182,7 @@ export function WeeklyReviewPage(): JSX.Element {
             {review.byArea.length > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
-                  <Layers size={13} /> Time by Area
+                  <Layers size={13} /> {t('timeByArea')}
                 </h3>
                 <div className="space-y-3">
                   {review.byArea.map((a) => {
@@ -191,7 +194,7 @@ export function WeeklyReviewPage(): JSX.Element {
                             {a.color && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: a.color }} />}
                             {a.name}
                           </span>
-                          <span className="text-slate-400">{mins(a.actualMinutes)} · {a.completedItems}/{a.totalItems} tasks</span>
+                          <span className="text-slate-400">{mins(a.actualMinutes)} · {a.completedItems}/{a.totalItems} {t('tasks')}</span>
                         </div>
                         <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
@@ -210,7 +213,7 @@ export function WeeklyReviewPage(): JSX.Element {
             {review.goalProgress.length > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
-                  <GoalIcon size={13} /> Goal Progress
+                  <GoalIcon size={13} /> {t('goalProgress')}
                 </h3>
                 <div className="space-y-3">
                   {review.goalProgress.map((g) => (
@@ -236,9 +239,9 @@ export function WeeklyReviewPage(): JSX.Element {
           {review.habitsSummary.totalHabits > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
               <div className="flex-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Habits</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{t('habits')}</p>
                 <p className="text-sm text-slate-700 dark:text-slate-300">
-                  {review.habitsSummary.totalHabits} active habits · avg completion <strong>{pct(review.habitsSummary.avgCompletionRate)}</strong>
+                  {t('habitsSummaryLine', { count: review.habitsSummary.totalHabits })} <strong>{pct(review.habitsSummary.avgCompletionRate)}</strong>
                 </p>
               </div>
               <div className="w-16 h-16 rounded-full border-4 border-emerald-500 flex items-center justify-center text-sm font-bold text-emerald-600 dark:text-emerald-400">
@@ -251,7 +254,7 @@ export function WeeklyReviewPage(): JSX.Element {
           {review.friction.length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3 flex items-center gap-1.5">
-                <AlertTriangle size={13} /> Friction Signals ({review.friction.length})
+                <AlertTriangle size={13} /> {t('frictionSignals')} ({review.friction.length})
               </h3>
               <div className="space-y-2">
                 {review.friction.map((f, i) => (
@@ -269,7 +272,7 @@ export function WeeklyReviewPage(): JSX.Element {
           {/* Missed deadlines */}
           {review.missedDeadlines.length > 0 && (
             <div className="bg-rose-50 dark:bg-rose-950/20 rounded-xl border border-rose-200 dark:border-rose-800 p-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-3">Missed Deadlines</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-3">{t('missedDeadlines')}</h3>
               <div className="space-y-2">
                 {review.missedDeadlines.map((d) => (
                   <div key={d.id} className="flex items-center justify-between text-sm">
@@ -285,7 +288,7 @@ export function WeeklyReviewPage(): JSX.Element {
           {review.completedThisWeek.length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-3 flex items-center gap-1.5">
-                <CheckCircle2 size={13} /> Completed This Week ({review.completedThisWeek.length})
+                <CheckCircle2 size={13} /> {t('completedThisWeek')} ({review.completedThisWeek.length})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {review.completedThisWeek.slice(0, 20).map((w) => (
@@ -295,7 +298,7 @@ export function WeeklyReviewPage(): JSX.Element {
                   </div>
                 ))}
                 {review.completedThisWeek.length > 20 && (
-                  <p className="text-xs text-slate-400 col-span-2">+{review.completedThisWeek.length - 20} more</p>
+                  <p className="text-xs text-slate-400 col-span-2">+{review.completedThisWeek.length - 20} {t('more')}</p>
                 )}
               </div>
             </div>
@@ -303,7 +306,7 @@ export function WeeklyReviewPage(): JSX.Element {
 
           {/* Generation time */}
           <p className="text-[10px] text-slate-400 text-right">
-            Generated at {new Date(review.generatedAt).toLocaleTimeString()} · <CalendarDays size={10} className="inline mb-0.5" /> {period.label}
+            {t('generatedAtPrefix')} {new Date(review.generatedAt).toLocaleTimeString()} · <CalendarDays size={10} className="inline mb-0.5" /> {period.label}
           </p>
         </div>
       )}

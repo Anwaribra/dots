@@ -158,7 +158,7 @@ export function WorkItemsPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('inbox')} / {t('workItems')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Executable activities. No mandatory hierarchy required.
+            {t('workItemsSubtitle')}
           </p>
         </div>
         <Button onClick={openCreateModal}>
@@ -192,8 +192,8 @@ export function WorkItemsPage(): JSX.Element {
                       {matchedProject.title}
                     </span>
                   )}
-                  <span>Est: {item.estimatedMinutes}m</span>
-                  {item.deadline && <span>Due: {item.deadline}</span>}
+                  <span>{t('estShort', { minutes: item.estimatedMinutes })}</span>
+                  {item.deadline && <span>{t('dueShort', { date: item.deadline })}</span>}
                 </div>
               </div>
 
@@ -228,13 +228,13 @@ export function WorkItemsPage(): JSX.Element {
             label={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Review pull request, Study Chapter 3, Workout"
+            placeholder={t('workItemPlaceholder')}
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional details..."
+            placeholder={t('optionalDetails')}
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -309,7 +309,7 @@ export function WorkItemsPage(): JSX.Element {
           {customDefs.length > 0 && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 dark:border-slate-800 dark:bg-slate-900/50">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Custom Fields ({workItemTypes.find((t) => t.id === typeId)?.name})
+                {t('customFieldsFor', { name: workItemTypes.find((wt) => wt.id === typeId)?.name })}
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 {customDefs.map((def) => (
@@ -320,7 +320,7 @@ export function WorkItemsPage(): JSX.Element {
                         value={customValues[def.id] || ''}
                         onChange={(e) => setCustomValues({ ...customValues, [def.id]: e.target.value })}
                         options={[
-                          { value: '', label: '-- Select --' },
+                          { value: '', label: t('selectOption') },
                           ...(def.options || []).map((o) => ({ value: o, label: o }))
                         ]}
                       />

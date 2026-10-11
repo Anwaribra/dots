@@ -122,7 +122,7 @@ export function DashboardPage({
     return (
       <div className="flex h-64 items-center justify-center text-slate-400">
         <Clock className="me-2 animate-spin" size={20} />
-        <span>Loading dashboard...</span>
+        <span>{t('loadingDashboard')}</span>
       </div>
     )
   }
@@ -568,7 +568,7 @@ export function DashboardPage({
                       disabled={index === 0}
                       onClick={() => moveWidget(index, 'up')}
                       className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20"
-                      title="Move up"
+                      title={t('moveUp')}
                     >
                       <ChevronUp size={16} />
                     </button>
@@ -576,7 +576,7 @@ export function DashboardPage({
                       disabled={index === widgets.length - 1}
                       onClick={() => moveWidget(index, 'down')}
                       className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20"
-                      title="Move down"
+                      title={t('moveDown')}
                     >
                       <ChevronDown size={16} />
                     </button>

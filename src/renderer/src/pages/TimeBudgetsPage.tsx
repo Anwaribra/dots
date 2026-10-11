@@ -105,21 +105,21 @@ export function TimeBudgetsPage(): JSX.Element {
   const getScopeName = (budget: TimeBudget): string => {
     if (budget.areaId) {
       const a = areas.find((x) => x.id === budget.areaId)
-      return `Area: ${a ? a.name : 'Unknown'}`
+      return `${t('area')}: ${a ? a.name : 'Unknown'}`
     }
     if (budget.goalId) {
       const g = goals.find((x) => x.id === budget.goalId)
-      return `Goal: ${g ? g.title : 'Unknown'}`
+      return `${t('goal')}: ${g ? g.title : 'Unknown'}`
     }
     if (budget.projectId) {
       const p = projects.find((x) => x.id === budget.projectId)
-      return `Project: ${p ? p.title : 'Unknown'}`
+      return `${t('project')}: ${p ? p.title : 'Unknown'}`
     }
     if (budget.workItemTypeId) {
-      const t = types.find((x) => x.id === budget.workItemTypeId)
-      return `Type: ${t ? t.name : 'Unknown'}`
+      const ty = types.find((x) => x.id === budget.workItemTypeId)
+      return `${t('type')}: ${ty ? ty.name : 'Unknown'}`
     }
-    return 'Custom'
+    return t('defaultLabel')
   }
 
   return (
@@ -127,14 +127,14 @@ export function TimeBudgetsPage(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Time Budgets
+            {t('timeBudgets')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Allocate and protect time for specific areas, goals, projects, or work item types.
+            {t('timeBudgetsSubtitle')}
           </p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
-          <Plus size={16} className="me-2" /> Add Time Budget
+          <Plus size={16} className="me-2" /> {t('addTimeBudget')}
         </Button>
       </div>
 
@@ -152,17 +152,17 @@ export function TimeBudgetsPage(): JSX.Element {
                 <div className="flex items-center space-x-1 space-x-reverse">
                   {b.protection === 'locked' && (
                     <Badge variant="critical" className="text-[10px] flex items-center">
-                      <Lock size={10} className="me-1" /> Locked
+                      <Lock size={10} className="me-1" /> {t('locked')}
                     </Badge>
                   )}
                   {b.protection === 'protected' && (
                     <Badge variant="high" className="text-[10px] flex items-center">
-                      <Shield size={10} className="me-1" /> Protected
+                      <Shield size={10} className="me-1" /> {t('protected')}
                     </Badge>
                   )}
                   {b.protection === 'flexible' && (
                     <Badge variant="secondary" className="text-[10px] flex items-center">
-                      <Unlock size={10} className="me-1" /> Flexible
+                      <Unlock size={10} className="me-1" /> {t('flexible')}
                     </Badge>
                   )}
                 </div>
@@ -170,22 +170,22 @@ export function TimeBudgetsPage(): JSX.Element {
 
               <div className="mt-4 grid grid-cols-3 gap-2 text-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg text-xs">
                 <div>
-                  <span className="block text-slate-400">Min</span>
+                  <span className="block text-slate-400">{t('minShort')}</span>
                   <strong>{b.minimumMinutes}m</strong>
                 </div>
                 <div>
-                  <span className="block text-slate-400">Target</span>
+                  <span className="block text-slate-400">{t('target')}</span>
                   <strong>{b.targetMinutes}m</strong>
                 </div>
                 <div>
-                  <span className="block text-slate-400">Max</span>
+                  <span className="block text-slate-400">{t('maxShort')}</span>
                   <strong>{b.maximumMinutes}m</strong>
                 </div>
               </div>
 
               <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                <span>Mode: <strong className="capitalize">{b.allocationMode}</strong></span>
-                <span>Days: {b.daysOfWeek.map((d) => DAYS[d]).join(', ')}</span>
+                <span>{t('mode')}: <strong className="capitalize">{b.allocationMode}</strong></span>
+                <span>{t('days')}: {b.daysOfWeek.map((d) => DAYS[d]).join(', ')}</span>
               </div>
             </div>
 
@@ -204,7 +204,7 @@ export function TimeBudgetsPage(): JSX.Element {
 
         {budgets.length === 0 && (
           <div className="col-span-full py-12 text-center text-slate-400">
-            No time budgets created yet. Click "Add Time Budget" to protect time for your priorities.
+            {t('noTimeBudgetsCreated')}
           </div>
         )}
       </div>
@@ -213,27 +213,27 @@ export function TimeBudgetsPage(): JSX.Element {
       <Dialog
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create Time Budget"
+        title={t('createTimeBudget')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleCreateBudget()}>Create Budget</Button>
+            <Button onClick={() => void handleCreateBudget()}>{t('createBudget')}</Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Budget Name"
-            placeholder="e.g. Deep Work, Learning Spanish, Client Project"
+            label={t('budgetName')}
+            placeholder={t('budgetNamePlaceholder')}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
 
           <div className="grid grid-cols-2 gap-3">
             <Select
-              label="Scope Target"
+              label={t('scopeTarget')}
               value={scopeType}
               onChange={(e) => {
                 const newScope = e.target.value as any
@@ -244,15 +244,15 @@ export function TimeBudgetsPage(): JSX.Element {
                 if (newScope === 'workItemType') setForm({ ...form, selectedScopeId: types[0]?.id || '' })
               }}
               options={[
-                { value: 'area', label: 'Area' },
-                { value: 'goal', label: 'Goal' },
-                { value: 'project', label: 'Project' },
-                { value: 'workItemType', label: 'Work Item Type' }
+                { value: 'area', label: t('area') },
+                { value: 'goal', label: t('goal') },
+                { value: 'project', label: t('project') },
+                { value: 'workItemType', label: t('type') }
               ]}
             />
 
             <Select
-              label="Choose Entity"
+              label={t('chooseEntity')}
               value={form.selectedScopeId}
               onChange={(e) => setForm({ ...form, selectedScopeId: e.target.value })}
               options={
@@ -269,44 +269,44 @@ export function TimeBudgetsPage(): JSX.Element {
 
           <div className="grid grid-cols-2 gap-3">
             <Select
-              label="Allocation Mode"
+              label={t('allocationMode')}
               value={form.allocationMode}
               onChange={(e) => setForm({ ...form, allocationMode: e.target.value as any })}
               options={[
-                { value: 'minimum', label: 'Minimum' },
-                { value: 'target', label: 'Target' },
-                { value: 'maximum', label: 'Maximum' },
-                { value: 'range', label: 'Range' }
+                { value: 'minimum', label: t('modeMinimum') },
+                { value: 'target', label: t('modeTarget') },
+                { value: 'maximum', label: t('modeMaximum') },
+                { value: 'range', label: t('modeRange') }
               ]}
             />
 
             <Select
-              label="Protection Level"
+              label={t('protectionLevel')}
               value={form.protection}
               onChange={(e) => setForm({ ...form, protection: e.target.value as any })}
               options={[
-                { value: 'flexible', label: 'Flexible (Can be borrowed)' },
-                { value: 'protected', label: 'Protected (Warning on violation)' },
-                { value: 'locked', label: 'Locked (Cannot be displaced)' }
+                { value: 'flexible', label: t('protectionFlexible') },
+                { value: 'protected', label: t('protectionProtected') },
+                { value: 'locked', label: t('protectionLocked') }
               ]}
             />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <Input
-              label="Min (minutes)"
+              label={t('minMinutes')}
               type="number"
               value={form.minimumMinutes}
               onChange={(e) => setForm({ ...form, minimumMinutes: Number(e.target.value) })}
             />
             <Input
-              label="Target (minutes)"
+              label={t('targetMinutes')}
               type="number"
               value={form.targetMinutes}
               onChange={(e) => setForm({ ...form, targetMinutes: Number(e.target.value) })}
             />
             <Input
-              label="Max (minutes)"
+              label={t('maxMinutes')}
               type="number"
               value={form.maximumMinutes}
               onChange={(e) => setForm({ ...form, maximumMinutes: Number(e.target.value) })}

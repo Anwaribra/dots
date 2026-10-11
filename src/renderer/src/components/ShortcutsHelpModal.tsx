@@ -40,7 +40,7 @@ export function ShortcutsHelpModal({ isOpen, onClose }: Props): JSX.Element | nu
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="dialog"
       aria-modal="true"
-      aria-label="Keyboard Shortcuts"
+      aria-label={t('keyboardShortcuts')}
     >
       <div className="w-full max-w-lg mx-4 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Header */}

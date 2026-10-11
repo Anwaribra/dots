@@ -96,7 +96,7 @@ export function OnboardingWizard({
   const handleLoadDemo = async (): Promise<void> => {
     if (!planner) return
     setLoading(true)
-    setStatusMsg('Loading sample demo data...')
+    setStatusMsg(t('onboardingDemoHint'))
     try {
       await planner.demo.load()
       await planner.settings.update({ onboardingDone: true })
@@ -109,7 +109,7 @@ export function OnboardingWizard({
   const handleApplyTemplate = async (templateId: string): Promise<void> => {
     if (!planner) return
     setLoading(true)
-    setStatusMsg('Applying template...')
+    setStatusMsg(t('applying'))
     try {
       await planner.templates.apply(templateId, true)
       await planner.settings.update({ onboardingDone: true })
@@ -150,13 +150,13 @@ export function OnboardingWizard({
               C
             </div>
             <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-              {t('appName')} · Onboarding
+              {t('appName')} · {t('onboardingLabel')}
             </span>
           </div>
           <button
             onClick={handleSkip}
             className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            title="Skip onboarding"
+            title={t('skipOnboardingTitle')}
           >
             {t('skipOnboarding')}
           </button>
@@ -198,11 +198,11 @@ export function OnboardingWizard({
                       {t('pickTemplate')}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Start with preconfigured areas, routines, and budgets for study, fitness, or freelance.
+                      {t('onboardingTemplateHint')}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
-                    <span>Choose</span>
+                    <span>{t('choose')}</span>
                     <ArrowRight size={14} className="ms-1 rtl:rotate-180" />
                   </div>
                 </button>
@@ -221,11 +221,11 @@ export function OnboardingWizard({
                       {t('exploreDemo')}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Instant playground with sample goals, schedule, and tasks. Safe to clear anytime.
+                      {t('onboardingDemoHint')}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
-                    <span>Load Demo</span>
+                    <span>{t('loadDemo')}</span>
                     <ArrowRight size={14} className="ms-1 rtl:rotate-180" />
                   </div>
                 </button>
@@ -243,11 +243,11 @@ export function OnboardingWizard({
                       {t('startFromScratch')}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Quick step-by-step setup to define your primary spheres, hours, and preferences.
+                      {t('onboardingGuidedHint')}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center text-xs font-semibold text-violet-600 dark:text-violet-400 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
-                    <span>Guided</span>
+                    <span>{t('guided')}</span>
                     <ArrowRight size={14} className="ms-1 rtl:rotate-180" />
                   </div>
                 </button>
@@ -260,10 +260,10 @@ export function OnboardingWizard({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    Ready-Made Templates
+                    {t('readyMadeTemplates')}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Select a starter system. You can customize or delete anything created.
+                    {t('readyMadeTemplatesDesc')}
                   </p>
                 </div>
                 <button
@@ -271,7 +271,7 @@ export function OnboardingWizard({
                   className="flex items-center text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
                   <ArrowLeft size={14} className="me-1 rtl:rotate-180" />
-                  Back
+                  {t('back')}
                 </button>
               </div>
 
@@ -303,10 +303,10 @@ export function OnboardingWizard({
                           {tpl.description}
                         </p>
                         <div className="flex flex-wrap gap-1.5 pt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                          {tpl.payload.areas?.length ? <span>• {tpl.payload.areas.length} Area</span> : null}
-                          {tpl.payload.goals?.length ? <span>• {tpl.payload.goals.length} Goal</span> : null}
-                          {tpl.payload.routines?.length ? <span>• {tpl.payload.routines.length} Routines</span> : null}
-                          {tpl.payload.timeBudgets?.length ? <span>• {tpl.payload.timeBudgets.length} Budget</span> : null}
+                          {tpl.payload.areas?.length ? <span>• {t('countAreas', { count: tpl.payload.areas.length })}</span> : null}
+                          {tpl.payload.goals?.length ? <span>• {t('countGoals', { count: tpl.payload.goals.length })}</span> : null}
+                          {tpl.payload.routines?.length ? <span>• {t('countRoutines', { count: tpl.payload.routines.length })}</span> : null}
+                          {tpl.payload.timeBudgets?.length ? <span>• {t('countBudgets', { count: tpl.payload.timeBudgets.length })}</span> : null}
                         </div>
                       </div>
                     </div>
@@ -319,14 +319,14 @@ export function OnboardingWizard({
                   onClick={() => setStep('welcome')}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  Back
+                  {t('back')}
                 </button>
                 <button
                   disabled={!selectedTemplateId || loading}
                   onClick={() => selectedTemplateId && handleApplyTemplate(selectedTemplateId)}
                   className="flex items-center space-x-1.5 space-x-reverse px-5 py-2 rounded-lg bg-indigo-600 font-semibold text-white text-xs hover:bg-indigo-500 disabled:opacity-50 shadow-sm"
                 >
-                  <span>Apply & Start</span>
+                  <span>{t('applyAndStart')}</span>
                   <ArrowRight size={14} className="rtl:rotate-180" />
                 </button>
               </div>
@@ -337,17 +337,17 @@ export function OnboardingWizard({
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Language & Regional Settings
+                  {t('languageAndRegional')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Clarity fully adapts to Arabic (RTL) and English (LTR).
+                  {t('languageAndRegionalDesc')}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Interface Language
+                    {t('interfaceLanguage')}
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
@@ -359,7 +359,7 @@ export function OnboardingWizard({
                           : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                       }`}
                     >
-                      English (LTR)
+                      {t('englishLtr')}
                     </button>
                     <button
                       type="button"
@@ -370,7 +370,7 @@ export function OnboardingWizard({
                           : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                       }`}
                     >
-                      العربية (RTL)
+                      {t('arabicRtl')}
                     </button>
                   </div>
                 </div>
@@ -378,30 +378,30 @@ export function OnboardingWizard({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Time Format
+                      {t('timeFormat')}
                     </label>
                     <select
                       value={use24Hour ? '24' : '12'}
                       onChange={(e) => setUse24Hour(e.target.value === '24')}
                       className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                     >
-                      <option value="24">24-hour (14:00)</option>
-                      <option value="12">12-hour (2:00 PM)</option>
+                      <option value="24">{t('hour24')}</option>
+                      <option value="12">{t('hour12')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Week Starts On
+                      {t('weekStartsOn')}
                     </label>
                     <select
                       value={String(weekStartsOn)}
                       onChange={(e) => setWeekStartsOn(Number(e.target.value))}
                       className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                     >
-                      <option value="6">Saturday (Default)</option>
-                      <option value="0">Sunday</option>
-                      <option value="1">Monday</option>
+                      <option value="6">{t('saturdayDefault')}</option>
+                      <option value="0">{t('sunday')}</option>
+                      <option value="1">{t('monday')}</option>
                     </select>
                   </div>
                 </div>
@@ -412,13 +412,13 @@ export function OnboardingWizard({
                   onClick={() => setStep('welcome')}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  Back
+                  {t('back')}
                 </button>
                 <button
                   onClick={() => setStep('guided_areas')}
                   className="flex items-center space-x-1.5 space-x-reverse px-5 py-2 rounded-lg bg-indigo-600 font-semibold text-white text-xs hover:bg-indigo-500 shadow-sm"
                 >
-                  <span>Next: Life Areas</span>
+                  <span>{t('nextLifeAreas')}</span>
                   <ArrowRight size={14} className="rtl:rotate-180" />
                 </button>
               </div>
@@ -429,16 +429,24 @@ export function OnboardingWizard({
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Select Your Primary Areas
+                  {t('selectPrimaryAreas')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Areas are broad spheres of responsibility. Choose which ones to create now:
+                  {t('selectPrimaryAreasDesc')}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {['Work', 'Learning', 'Health & Fitness', 'Personal', 'Finance', 'Creative'].map((areaName) => {
+                {(['Work', 'Learning', 'Health & Fitness', 'Personal', 'Finance', 'Creative'] as const).map((areaName) => {
                   const isChecked = selectedAreas.includes(areaName)
+                  const areaLabelKey = {
+                    Work: 'areaPresetWork',
+                    Learning: 'areaPresetLearning',
+                    'Health & Fitness': 'areaPresetHealth',
+                    Personal: 'areaPresetPersonal',
+                    Finance: 'areaPresetFinance',
+                    Creative: 'areaPresetCreative'
+                  }[areaName]
                   return (
                     <button
                       key={areaName}
@@ -454,7 +462,7 @@ export function OnboardingWizard({
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
                       }`}
                     >
-                      <span>{areaName}</span>
+                      <span>{t(areaLabelKey)}</span>
                       {isChecked && <Check size={14} />}
                     </button>
                   )
@@ -466,21 +474,21 @@ export function OnboardingWizard({
                   onClick={() => setStep('guided_lang')}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  Back
+                  {t('back')}
                 </button>
                 <div className="space-x-2 space-x-reverse">
                   <button
                     onClick={() => setStep('guided_capacity')}
                     className="px-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400"
                   >
-                    Skip
+                    {t('skip')}
                   </button>
                   <button
                     disabled={loading}
                     onClick={handleGuidedAreaSubmit}
                     className="inline-flex items-center space-x-1.5 space-x-reverse px-5 py-2 rounded-lg bg-indigo-600 font-semibold text-white text-xs hover:bg-indigo-500 shadow-sm"
                   >
-                    <span>Create & Continue</span>
+                    <span>{t('createAndContinue')}</span>
                     <ArrowRight size={14} className="rtl:rotate-180" />
                   </button>
                 </div>
@@ -492,18 +500,18 @@ export function OnboardingWizard({
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Planning Capacity & Reality Buffer
+                  {t('planningCapacityBuffer')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Real life has interruptions. The system protects room for unforeseen demands.
+                  {t('planningCapacityBufferDesc')}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    <span>Planning Capacity: {capacity}%</span>
-                    <span className="text-slate-400">Recommended: 70–80%</span>
+                    <span>{t('planningCapacityLabel', { value: capacity })}</span>
+                    <span className="text-slate-400">{t('recommendedCapacity')}</span>
                   </div>
                   <input
                     type="range"
@@ -514,14 +522,14 @@ export function OnboardingWizard({
                     className="w-full accent-indigo-600"
                   />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    The fraction of free working hours that the automated scheduler will assign tasks to.
+                    {t('planningCapacityHint')}
                   </p>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    <span>Reality Buffer: {buffer}%</span>
-                    <span className="text-slate-400">Recommended: 15–25%</span>
+                    <span>{t('realityBufferLabel', { value: buffer })}</span>
+                    <span className="text-slate-400">{t('recommendedBuffer')}</span>
                   </div>
                   <input
                     type="range"
@@ -532,7 +540,7 @@ export function OnboardingWizard({
                     className="w-full accent-indigo-600"
                   />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    Dedicated safety buffer reserved daily to prevent overruns when tasks take longer.
+                    {t('realityBufferHint')}
                   </p>
                 </div>
               </div>
@@ -542,14 +550,14 @@ export function OnboardingWizard({
                   onClick={() => setStep('guided_areas')}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  Back
+                  {t('back')}
                 </button>
                 <button
                   disabled={loading}
                   onClick={handleFinish}
                   className="flex items-center space-x-1.5 space-x-reverse px-6 py-2 rounded-lg bg-indigo-600 font-semibold text-white text-xs hover:bg-indigo-500 shadow-sm"
                 >
-                  <span>Finish & Launch</span>
+                  <span>{t('finishAndLaunch')}</span>
                   <Check size={14} />
                 </button>
               </div>

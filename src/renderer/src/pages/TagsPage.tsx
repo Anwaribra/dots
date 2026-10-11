@@ -46,7 +46,7 @@ export function TagsPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('tags')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Fully user-defined tags for flexible filtering across entities.
+            {t('tagsSubtitle')}
           </p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
@@ -78,10 +78,10 @@ export function TagsPage(): JSX.Element {
             label={t('name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. client, urgent, deep-work, study"
+            placeholder={t('tagPlaceholder')}
           />
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Color</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('color')}</label>
             <input
               type="color"
               value={color}

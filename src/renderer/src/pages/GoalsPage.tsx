@@ -339,12 +339,12 @@ export function GoalsPage(): JSX.Element {
                       {detailGoal.title}
                     </h2>
                     <p className="mt-0.5 text-xs text-slate-400">
-                      Calculation: {goalProgress?.details || 'Evaluating progress...'}
+                      {t('calculationPrefix')} {goalProgress?.details || t('evaluatingProgress')}
                     </p>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => void handleRecordSnapshot()}>
                     <Camera size={14} className="me-1 text-indigo-600" />
-                    Record Snapshot
+                    {t('recordSnapshot')}
                   </Button>
                 </div>
 
@@ -355,8 +355,10 @@ export function GoalsPage(): JSX.Element {
                       {goalProgress?.progressPercentage ?? 0}%
                     </span>
                     <span className="text-xs text-slate-500">
-                      Invested: {goalProgress?.completedWorkloadMinutes ?? 0}m / Total:{' '}
-                      {goalProgress?.totalWorkloadMinutes ?? 0}m
+                      {t('investedVsTotal', {
+                        invested: goalProgress?.completedWorkloadMinutes ?? 0,
+                        total: goalProgress?.totalWorkloadMinutes ?? 0
+                      })}
                     </span>
                   </div>
                   <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
@@ -372,7 +374,7 @@ export function GoalsPage(): JSX.Element {
                   <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
                     <div className="flex items-center space-x-1.5 space-x-reverse text-xs font-semibold text-slate-700 dark:text-slate-300">
                       <TrendingUp size={14} className="text-emerald-500" />
-                      <span>Progress Snapshots ({history.length} recorded)</span>
+                      <span>{t('progressSnapshots', { count: history.length })}</span>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
                       {history.slice(-4).map((h) => (
@@ -392,35 +394,38 @@ export function GoalsPage(): JSX.Element {
               <Card className="p-5">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Milestones & Component Weights
+                    {t('milestonesAndWeights')}
                   </h3>
                   <span className="text-xs text-slate-400">
-                    {milestones.filter((m) => m.status === 'completed').length}/{milestones.length} completed
+                    {t('completedCountOf', {
+                      done: milestones.filter((m) => m.status === 'completed').length,
+                      total: milestones.length
+                    })}
                   </span>
                 </div>
 
                 <div className="mt-3 flex space-x-2 space-x-reverse">
                   <Input
-                    placeholder="Add milestone (e.g. Validation, MVP, Marketing)"
+                    placeholder={t('milestonePlaceholder')}
                     value={newMilestoneTitle}
                     onChange={(e) => setNewMilestoneTitle(e.target.value)}
                     className="flex-1"
                   />
                   <Input
                     type="number"
-                    placeholder="Weight %"
+                    placeholder={t('weightPercent')}
                     value={newMilestoneWeight}
                     onChange={(e) => setNewMilestoneWeight(Number(e.target.value))}
                     className="w-24"
-                    title="Weight percentage for weighted mode"
+                    title={t('weightTitle')}
                   />
-                  <Button onClick={() => void handleAddMilestone()}>Add</Button>
+                  <Button onClick={() => void handleAddMilestone()}>{t('add')}</Button>
                 </div>
 
                 <div className="mt-3 space-y-1">
                   {milestones.length === 0 ? (
                     <div className="py-4 text-center text-xs text-slate-400">
-                      No milestones created yet.
+                      {t('noMilestonesYet')}
                     </div>
                   ) : (
                     milestones.map((m) => (
@@ -447,7 +452,7 @@ export function GoalsPage(): JSX.Element {
                           </span>
                         </div>
                         <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-slate-800">
-                          Weight: {(m as any).weight ?? 1}%
+                          {t('weightLabel', { weight: (m as any).weight ?? 1 })}
                         </span>
                       </div>
                     ))
@@ -461,19 +466,19 @@ export function GoalsPage(): JSX.Element {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Target size={16} className="text-indigo-600" />
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                      Custom Numeric Metrics
+                      {t('customNumericMetrics')}
                     </h3>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setIsMetricModalOpen(true)}>
                     <Plus size={14} className="me-1" />
-                    Add Metric
+                    {t('addMetric')}
                   </Button>
                 </div>
 
                 <div className="mt-3 space-y-2">
                   {metrics.length === 0 ? (
                     <div className="py-4 text-center text-xs text-slate-400">
-                      No custom metrics tracked. (e.g. pages, kilometers, hours, money)
+                      {t('noCustomMetrics')}
                     </div>
                   ) : (
                     metrics.map((met) => {
@@ -518,11 +523,11 @@ export function GoalsPage(): JSX.Element {
               {/* Linked Projects */}
               <Card className="p-5">
                 <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
-                  Linked Projects ({linkedProjects.length})
+                  {t('linkedProjectsCount', { count: linkedProjects.length })}
                 </h3>
                 {linkedProjects.length === 0 ? (
                   <div className="py-4 text-center text-xs text-slate-400">
-                    No projects linked to this goal.
+                    {t('noProjectsLinked')}
                   </div>
                 ) : (
                   <div className="space-y-1.5">
@@ -650,7 +655,7 @@ export function GoalsPage(): JSX.Element {
           </div>
           <Input
             label={t('unit')}
-            placeholder="e.g. km, pages, USD, reps"
+            placeholder={t('metricUnitPlaceholder')}
             value={metricUnit}
             onChange={(e) => setMetricUnit(e.target.value)}
           />

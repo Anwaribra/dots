@@ -130,10 +130,10 @@ export function RoutinesAndHabitsPage(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Routines & Habits
+            {t('routinesAndHabits')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Manage your daily recurring patterns, routines, and habit trackers.
+            {t('routinesAndHabitsSubtitle')}
           </p>
         </div>
         <div className="flex items-center space-x-3 space-x-reverse">
@@ -151,19 +151,19 @@ export function RoutinesAndHabitsPage(): JSX.Element {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center">
-              <Flame size={18} className="me-2 text-amber-500" /> Daily Habits
+              <Flame size={18} className="me-2 text-amber-500" /> {t('dailyHabits')}
             </h2>
             <p className="text-xs text-slate-500">
-              Check off your habits for {selectedDate}.
+              {t('checkOffHabitsFor')} {selectedDate}.
             </p>
           </div>
           <Button size="sm" onClick={() => setHabitModalOpen(true)}>
-            <Plus size={14} className="me-1" /> Add Habit
+            <Plus size={14} className="me-1" /> {t('addHabit')}
           </Button>
         </div>
 
         {habits.length === 0 ? (
-          <p className="text-xs text-slate-400 py-6 text-center">No habits configured yet</p>
+          <p className="text-xs text-slate-400 py-6 text-center">{t('noHabitsConfigured')}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {habits.map((h) => {
@@ -195,7 +195,7 @@ export function RoutinesAndHabitsPage(): JSX.Element {
                         {h.name}
                       </strong>
                       <span className="text-xs text-slate-400">
-                        Target: {h.targetValue} {h.unit || 'times'} / {h.targetFrequencyDays}d
+                        {t('target')}: {h.targetValue} {h.unit || t('times')} / {h.targetFrequencyDays}d
                       </span>
                     </div>
                   </div>
@@ -220,19 +220,19 @@ export function RoutinesAndHabitsPage(): JSX.Element {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center">
-              <Repeat size={18} className="me-2 text-indigo-500" /> Recurring Routines
+              <Repeat size={18} className="me-2 text-indigo-500" /> {t('recurringRoutines')}
             </h2>
             <p className="text-xs text-slate-500">
-              Blocks of recurring activities that consume planning capacity.
+              {t('recurringRoutinesSubtitle')}
             </p>
           </div>
           <Button size="sm" onClick={() => setRoutineModalOpen(true)}>
-            <Plus size={14} className="me-1" /> Add Routine
+            <Plus size={14} className="me-1" /> {t('addRoutine')}
           </Button>
         </div>
 
         {routines.length === 0 ? (
-          <p className="text-xs text-slate-400 py-6 text-center">No routines configured yet</p>
+          <p className="text-xs text-slate-400 py-6 text-center">{t('noRoutinesConfigured')}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {routines.map((r) => (
@@ -249,7 +249,7 @@ export function RoutinesAndHabitsPage(): JSX.Element {
                   </div>
                   {r.description && <p className="text-xs text-slate-500 mt-1">{r.description}</p>}
                   <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Preferred: {r.preferredTime || 'Anytime'}</span>
+                    <span>{t('preferredTime')}: {r.preferredTime || t('preferredTimeAnytime')}</span>
                     <span className="capitalize">{r.flexibility.replace('_', ' ')}</span>
                   </div>
                 </div>
@@ -274,37 +274,37 @@ export function RoutinesAndHabitsPage(): JSX.Element {
       <Dialog
         isOpen={routineModalOpen}
         onClose={() => setRoutineModalOpen(false)}
-        title="Add Recurring Routine"
+        title={t('addRecurringRoutine')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setRoutineModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleCreateRoutine()}>Create Routine</Button>
+            <Button onClick={() => void handleCreateRoutine()}>{t('createRoutine')}</Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Routine Name"
-            placeholder="e.g. Morning Workout, Evening Review, Reading Hour"
+            label={t('routineName')}
+            placeholder={t('routineNamePlaceholder')}
             value={routineForm.name}
             onChange={(e) => setRoutineForm({ ...routineForm, name: e.target.value })}
           />
           <Input
-            label="Description (Optional)"
+            label={t('description')}
             value={routineForm.description}
             onChange={(e) => setRoutineForm({ ...routineForm, description: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Duration (minutes)"
+              label={t('estimatedMinutes')}
               type="number"
               value={routineForm.targetDuration}
               onChange={(e) => setRoutineForm({ ...routineForm, targetDuration: Number(e.target.value) })}
             />
             <Input
-              label="Preferred Time (HH:mm)"
+              label={t('preferredTimeLabel')}
               type="time"
               value={routineForm.preferredTime}
               onChange={(e) => setRoutineForm({ ...routineForm, preferredTime: e.target.value })}
@@ -312,17 +312,17 @@ export function RoutinesAndHabitsPage(): JSX.Element {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Select
-              label="Flexibility"
+              label={t('flexibility')}
               value={routineForm.flexibility}
               onChange={(e) => setRoutineForm({ ...routineForm, flexibility: e.target.value as any })}
               options={[
-                { value: 'semi_flexible', label: 'Semi-flexible' },
-                { value: 'fixed', label: 'Fixed' },
-                { value: 'flexible', label: 'Flexible' }
+                { value: 'semi_flexible', label: t('semiFlexible') },
+                { value: 'fixed', label: t('fixed') },
+                { value: 'flexible', label: t('flexible') }
               ]}
             />
             <Input
-              label="Recurrence (RRule)"
+              label={t('recurrenceRRule')}
               value={routineForm.recurrenceRule}
               onChange={(e) => setRoutineForm({ ...routineForm, recurrenceRule: e.target.value })}
             />
@@ -334,31 +334,31 @@ export function RoutinesAndHabitsPage(): JSX.Element {
       <Dialog
         isOpen={habitModalOpen}
         onClose={() => setHabitModalOpen(false)}
-        title="Add Habit Tracker"
+        title={t('addHabitTracker')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setHabitModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleCreateHabit()}>Create Habit</Button>
+            <Button onClick={() => void handleCreateHabit()}>{t('createHabit')}</Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Habit Name"
-            placeholder="e.g. Drink 2L Water, Meditate, 10k Steps"
+            label={t('habitName')}
+            placeholder={t('habitNamePlaceholder')}
             value={habitForm.name}
             onChange={(e) => setHabitForm({ ...habitForm, name: e.target.value })}
           />
           <Input
-            label="Description (Optional)"
+            label={t('description')}
             value={habitForm.description}
             onChange={(e) => setHabitForm({ ...habitForm, description: e.target.value })}
           />
           <div className="grid grid-cols-3 gap-3">
             <Select
-              label="Type"
+              label={t('type')}
               value={habitForm.targetType}
               onChange={(e) => setHabitForm({ ...habitForm, targetType: e.target.value as any })}
               options={[
@@ -369,14 +369,14 @@ export function RoutinesAndHabitsPage(): JSX.Element {
               ]}
             />
             <Input
-              label="Target Value"
+              label={t('targetValue')}
               type="number"
               value={habitForm.targetValue}
               onChange={(e) => setHabitForm({ ...habitForm, targetValue: Number(e.target.value) })}
             />
             <Input
-              label="Unit (Optional)"
-              placeholder="e.g. ml, pages, steps"
+              label={t('unitOptional')}
+              placeholder={t('unitPlaceholder')}
               value={habitForm.unit}
               onChange={(e) => setHabitForm({ ...habitForm, unit: e.target.value })}
             />

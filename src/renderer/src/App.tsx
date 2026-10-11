@@ -202,9 +202,9 @@ export function App(): JSX.Element {
   if (!planner) {
     return (
       <main className="fatal min-h-screen p-8 text-center" role="alert">
-        <h1 className="text-2xl font-bold text-red-600">Application bridge unavailable</h1>
+        <h1 className="text-2xl font-bold text-red-600">{t('appBridgeUnavailable')}</h1>
         <p className="mt-2 text-sm text-slate-600">
-          The secure desktop bridge did not load. Restart the application.
+          {t('appBridgeRestart')}
         </p>
       </main>
     )
@@ -238,7 +238,7 @@ export function App(): JSX.Element {
           <button
             onClick={() => setQuickAddOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-indigo-500 active:bg-indigo-700 transition-colors"
-            title="Quick Capture (Ctrl+K or Alt+N)"
+            title={t('quickCaptureTitle')}
           >
             <Plus size={13} />
             <span className="hidden md:inline">{t('quickAdd')}</span>
@@ -251,7 +251,7 @@ export function App(): JSX.Element {
           <button
             onClick={() => setSearchOpen(true)}
             className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200 transition-colors"
-            title="Search Everywhere (Ctrl+F)"
+            title={t('searchEverywhereTitle')}
           >
             <Search size={13} />
             <span className="hidden md:inline text-[11px]">{t('search')}</span>
@@ -293,7 +293,7 @@ export function App(): JSX.Element {
                   ? 'bg-white shadow-xs text-amber-500 dark:bg-slate-700'
                   : 'hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Light theme"
+              title={t('lightTheme')}
             >
               <Sun size={13} />
             </button>
@@ -304,7 +304,7 @@ export function App(): JSX.Element {
                   ? 'bg-white shadow-xs text-indigo-400 dark:bg-slate-700'
                   : 'hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Dark theme"
+              title={t('darkTheme')}
             >
               <Moon size={13} />
             </button>
@@ -315,7 +315,7 @@ export function App(): JSX.Element {
                   ? 'bg-white shadow-xs text-indigo-500 dark:bg-slate-700 dark:text-indigo-300'
                   : 'hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="System theme"
+              title={t('systemTheme')}
             >
               <Laptop size={13} />
             </button>
@@ -326,21 +326,21 @@ export function App(): JSX.Element {
             <button
               onClick={handleMinimize}
               className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
-              title="Minimize"
+              title={t('minimize')}
             >
               <Minus size={14} />
             </button>
             <button
               onClick={handleMaximize}
               className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
-              title={isMaximized ? 'Restore' : 'Maximize'}
+              title={isMaximized ? t('restoreWindow') : t('maximize')}
             >
               {isMaximized ? <Copy size={12} className="rotate-180" /> : <Square size={12} />}
             </button>
             <button
               onClick={handleClose}
               className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-rose-600 hover:text-white dark:text-slate-400 dark:hover:bg-rose-600 dark:hover:text-white transition-colors"
-              title="Close Application"
+              title={t('closeApplication')}
             >
               <X size={14} />
             </button>
@@ -360,7 +360,7 @@ export function App(): JSX.Element {
               className="flex w-full items-center gap-2 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs text-slate-500 hover:border-indigo-300 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-indigo-600 dark:hover:text-slate-200 transition-colors"
             >
               <Search size={14} />
-              <span className="flex-1 text-start">Search workspace…</span>
+              <span className="flex-1 text-start">{t('searchWorkspace')}</span>
               <kbd className="rounded bg-slate-200/80 px-1 text-[9px] font-mono dark:bg-slate-700">
                 Ctrl+F
               </kbd>
@@ -395,7 +395,7 @@ export function App(): JSX.Element {
               id="shortcuts-help-btn"
               onClick={() => setShortcutsOpen(true)}
               className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-200 transition-colors"
-              title="Keyboard Shortcuts (Ctrl+/)"
+              title={t('keyboardShortcutsTitle')}
             >
               <Keyboard size={15} />
               <span>{t('shortcuts')}</span>
@@ -425,7 +425,7 @@ export function App(): JSX.Element {
             <div className="mb-6 flex items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 shadow-sm dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200">
               <div className="flex items-center gap-2 font-semibold">
                 <Sparkles size={16} className="text-amber-600 dark:text-amber-400" />
-                <span>{t('demoModeActive')} — You are exploring sample data. Real tasks are unaffected.</span>
+                <span>{t('demoModeActive')} — {t('demoModeExploring')}</span>
               </div>
               <button
                 onClick={async () => {

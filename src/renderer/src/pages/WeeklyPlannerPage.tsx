@@ -285,7 +285,7 @@ export function WeeklyPlannerPage(): JSX.Element {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
           <div className="flex items-center space-x-2 space-x-reverse font-bold text-sm">
             <AlertTriangle size={18} />
-            <span>Engine Warnings & Overload Recommendations</span>
+            <span>{t('engineWarnings')}</span>
           </div>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
             {planningResult.warnings.map((w, idx) => (

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
   ChevronRight,
@@ -24,12 +25,12 @@ interface FlowNode {
   parentId?: string | null
 }
 
-const KIND_META: Record<NodeKind, { label: string; Icon: React.ElementType; color: string }> = {
-  area: { label: 'Area', Icon: Layers, color: '#6366f1' },
-  goal: { label: 'Goal', Icon: GoalIcon, color: '#8b5cf6' },
-  milestone: { label: 'Milestone', Icon: Target, color: '#06b6d4' },
-  project: { label: 'Project', Icon: FolderKanban, color: '#10b981' },
-  workItem: { label: 'Task', Icon: Activity, color: '#f59e0b' }
+const KIND_META: Record<NodeKind, { labelKey: string; Icon: React.ElementType; color: string }> = {
+  area: { labelKey: 'area', Icon: Layers, color: '#6366f1' },
+  goal: { labelKey: 'goal', Icon: GoalIcon, color: '#8b5cf6' },
+  milestone: { labelKey: 'milestone', Icon: Target, color: '#06b6d4' },
+  project: { labelKey: 'project', Icon: FolderKanban, color: '#10b981' },
+  workItem: { labelKey: 'task', Icon: Activity, color: '#f59e0b' }
 }
 
 function NodeCard({
@@ -41,8 +42,10 @@ function NodeCard({
   isSelected: boolean
   onSelect: () => void
 }): JSX.Element {
+  const { t } = useTranslation()
   const meta = KIND_META[node.kind]
   const Icon = meta.Icon
+  const statusKey = node.status === 'in_progress' ? 'inProgress' : node.status
 
   return (
     <button
@@ -62,7 +65,7 @@ function NodeCard({
           <Icon size={12} style={{ color: meta.color }} />
         </div>
         <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: meta.color }}>
-          {meta.label}
+          {t(meta.labelKey)}
         </span>
       </div>
       <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-snug line-clamp-2 mb-1.5">
@@ -77,11 +80,11 @@ function NodeCard({
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400'
               : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
           }`}>
-            {node.status}
+            {statusKey ? t(statusKey) : node.status}
           </span>
         )}
         {node.childCount !== undefined && node.childCount > 0 && (
-          <span className="text-[9px] text-slate-400">{node.childCount} items</span>
+          <span className="text-[9px] text-slate-400">{t('childItemsCount', { count: node.childCount })}</span>
         )}
       </div>
       {node.progress !== undefined && (
@@ -111,6 +114,7 @@ function Column({
   selectedId: string | null
   onSelect: (id: string) => void
 }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col min-w-[200px]">
       <div className="flex items-center gap-2 mb-3 px-1">
@@ -131,7 +135,7 @@ function Column({
         ))}
         {nodes.length === 0 && (
           <div className="w-48 h-16 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] text-slate-400">
-            No items
+            {t('flowNoItems')}
           </div>
         )}
       </div>
@@ -140,6 +144,7 @@ function Column({
 }
 
 export function FlowViewPage(): JSX.Element {
+  const { t } = useTranslation()
   const [areas, setAreas] = useState<Area[]>([])
   const [goals, setGoals] = useState<Goal[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
@@ -240,7 +245,7 @@ export function FlowViewPage(): JSX.Element {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-slate-400">
         <Loader2 size={18} className="animate-spin" />
-        <span className="text-sm">Loading hierarchy…</span>
+        <span className="text-sm">{t('loadingHierarchy')}</span>
       </div>
     )
   }
@@ -249,7 +254,7 @@ export function FlowViewPage(): JSX.Element {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
         <Network size={14} />
-        <span>Click a node to filter connected items. Columns show Area → Goal → Milestone → Project → Task.</span>
+        <span>{t('flowViewHint')}</span>
       </div>
 
       {/* Legend */}
@@ -259,7 +264,7 @@ export function FlowViewPage(): JSX.Element {
           return (
             <div key={kind} className="flex items-center gap-1.5 text-xs text-slate-500">
               <Icon size={12} style={{ color: meta.color }} />
-              <span>{meta.label}</span>
+              <span>{t(meta.labelKey)}</span>
             </div>
           )
         })}
@@ -268,7 +273,7 @@ export function FlowViewPage(): JSX.Element {
             onClick={() => { setSelectedId(null); setSelectedKind(null) }}
             className="ml-auto text-xs text-indigo-500 hover:text-indigo-400"
           >
-            Clear filter
+            {t('flowClearFilter')}
           </button>
         )}
       </div>
@@ -276,7 +281,7 @@ export function FlowViewPage(): JSX.Element {
       {/* Flow columns */}
       <div className="flex gap-4 overflow-x-auto pb-4">
         <Column
-          title="Areas"
+          title={t('areas')}
           icon={KIND_META.area.Icon}
           color={KIND_META.area.color}
           nodes={areaNodes}
@@ -289,7 +294,7 @@ export function FlowViewPage(): JSX.Element {
         </div>
 
         <Column
-          title="Goals"
+          title={t('goals')}
           icon={KIND_META.goal.Icon}
           color={KIND_META.goal.color}
           nodes={goalNodes}
@@ -302,7 +307,7 @@ export function FlowViewPage(): JSX.Element {
         </div>
 
         <Column
-          title="Milestones"
+          title={t('milestones')}
           icon={KIND_META.milestone.Icon}
           color={KIND_META.milestone.color}
           nodes={milestoneNodes}
@@ -315,7 +320,7 @@ export function FlowViewPage(): JSX.Element {
         </div>
 
         <Column
-          title="Projects"
+          title={t('projects')}
           icon={KIND_META.project.Icon}
           color={KIND_META.project.color}
           nodes={projectNodes}
@@ -329,7 +334,7 @@ export function FlowViewPage(): JSX.Element {
               <ChevronRight size={20} />
             </div>
             <Column
-              title="Tasks"
+              title={t('task')}
               icon={KIND_META.workItem.Icon}
               color={KIND_META.workItem.color}
               nodes={workItemNodes}
@@ -342,7 +347,7 @@ export function FlowViewPage(): JSX.Element {
 
       {areaNodes.length === 0 && goalNodes.length === 0 && projectNodes.length === 0 && (
         <div className="py-16 text-center text-sm text-slate-400">
-          No data yet. Add areas, goals, and projects to see the hierarchy here.
+          {t('flowNoData')}
         </div>
       )}
     </div>

@@ -272,7 +272,7 @@ export function ProjectsPage(): JSX.Element {
                       {detailProject.title}
                     </h2>
                     <p className="mt-0.5 text-xs text-slate-400">
-                      {detailProject.description || 'No description provided.'}
+                      {detailProject.description || t('noDescriptionProvided')}
                     </p>
                   </div>
                   <Badge variant={detailProject.priority}>{detailProject.priority}</Badge>
@@ -285,7 +285,10 @@ export function ProjectsPage(): JSX.Element {
                       {progressStats.progressPercentage}%
                     </span>
                     <span className="text-xs text-slate-500">
-                      Duration-weighted progress ({progressStats.completedMinutes}m / {progressStats.totalMinutes}m)
+                      {t('durationWeightedProgress', {
+                        completed: progressStats.completedMinutes,
+                        total: progressStats.totalMinutes
+                      })}
                     </span>
                   </div>
                   <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
@@ -299,21 +302,21 @@ export function ProjectsPage(): JSX.Element {
                 {/* KPI summary */}
                 <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-3 text-center dark:border-slate-800">
                   <div className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-900/50">
-                    <div className="text-[11px] text-slate-400">Completed Tasks</div>
+                    <div className="text-[11px] text-slate-400">{t('completedTasksLabel')}</div>
                     <div className="mt-0.5 text-base font-bold text-slate-800 dark:text-slate-200">
                       {progressStats.completedTasks} / {progressStats.totalTasks}
                     </div>
                   </div>
                   <div className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-900/50">
-                    <div className="text-[11px] text-slate-400">Time Tracked</div>
+                    <div className="text-[11px] text-slate-400">{t('timeTracked')}</div>
                     <div className="mt-0.5 text-base font-bold text-emerald-600 dark:text-emerald-400">
                       {actualTimeTracked}m
                     </div>
                   </div>
                   <div className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-900/50">
-                    <div className="text-[11px] text-slate-400">Target Deadline</div>
+                    <div className="text-[11px] text-slate-400">{t('targetDeadline')}</div>
                     <div className="mt-0.5 text-base font-bold text-slate-800 dark:text-slate-200">
-                      {detailProject.deadline || 'None'}
+                      {detailProject.deadline || t('none')}
                     </div>
                   </div>
                 </div>
@@ -323,14 +326,14 @@ export function ProjectsPage(): JSX.Element {
               <Card className="p-5">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Work Items ({projectTasks.length})
+                    {t('workItems')} ({projectTasks.length})
                   </h3>
                 </div>
 
                 <div className="mt-3 space-y-2">
                   {projectTasks.length === 0 ? (
                     <div className="py-6 text-center text-xs text-slate-400">
-                      No tasks assigned to this project yet. Use Quick Add or Work Items page to link tasks.
+                      {t('noTasksAssignedToProject')}
                     </div>
                   ) : (
                     projectTasks.map((task) => {
@@ -354,7 +357,10 @@ export function ProjectsPage(): JSX.Element {
                                 {task.title}
                               </span>
                               <div className="text-[11px] text-slate-400">
-                                {task.estimatedMinutes || 0}m planned • {task.actualMinutes || 0}m actual
+                                {t('plannedVsActualMins', {
+                                  planned: task.estimatedMinutes || 0,
+                                  actual: task.actualMinutes || 0
+                                })}
                               </div>
                             </div>
                           </div>
@@ -372,7 +378,7 @@ export function ProjectsPage(): JSX.Element {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Clock size={16} className="text-emerald-500" />
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                      Recent Time Sessions ({projectSessions.length})
+                      {t('recentTimeSessions', { count: projectSessions.length })}
                     </h3>
                   </div>
                 </div>
@@ -380,7 +386,7 @@ export function ProjectsPage(): JSX.Element {
                 <div className="mt-3 space-y-2">
                   {projectSessions.length === 0 ? (
                     <div className="py-4 text-center text-xs text-slate-400">
-                      No time logged for this project yet.
+                      {t('noTimeLoggedForProject')}
                     </div>
                   ) : (
                     projectSessions.slice(0, 5).map((s) => (
@@ -389,7 +395,7 @@ export function ProjectsPage(): JSX.Element {
                         className="flex items-center justify-between rounded-md bg-slate-50 p-2 text-xs dark:bg-slate-900/40"
                       >
                         <span className="font-medium text-slate-800 dark:text-slate-200">
-                          {s.durationMinutes} min session
+                          {t('minSession', { minutes: s.durationMinutes })}
                         </span>
                         <span className="text-slate-400">
                           {new Date(s.startTime).toLocaleDateString()}

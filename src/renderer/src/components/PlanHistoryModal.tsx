@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Clock, History, RotateCcw, X, Layers, AlertCircle } from 'lucide-react'
 import type { PlanVersionItem, ReplanningHistoryItem } from '../../../main/scheduler/types'
 
@@ -15,6 +16,7 @@ export function PlanHistoryModal({
   targetDate,
   onRestored
 }: PlanHistoryModalProps): JSX.Element | null {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<'history' | 'versions'>('history')
   const [historyList, setHistoryList] = useState<ReplanningHistoryItem[]>([])
   const [versionList, setVersionList] = useState<PlanVersionItem[]>([])
@@ -70,10 +72,10 @@ export function PlanHistoryModal({
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                Plan History & Versions ({targetDate})
+                {t('planHistory')} ({targetDate})
               </h2>
               <p className="text-xs text-slate-500">
-                Transparent change history and snapshot versioning for this day.
+                {t('planHistorySubtitle')}
               </p>
             </div>
           </div>
@@ -95,7 +97,7 @@ export function PlanHistoryModal({
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            Replanning Log ({historyList.length})
+            {t('replanningLog')} ({historyList.length})
           </button>
           <button
             onClick={() => setActiveTab('versions')}
@@ -105,18 +107,18 @@ export function PlanHistoryModal({
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            Snapshots & Versions ({versionList.length})
+            {t('snapshotsAndVersions')} ({versionList.length})
           </button>
         </div>
 
         {/* Content Body */}
         <div className="flex-1 space-y-4 overflow-y-auto p-6">
           {loading ? (
-            <div className="py-8 text-center text-sm text-slate-400">Loading history...</div>
+            <div className="py-8 text-center text-sm text-slate-400">{t('loadingHistory')}</div>
           ) : activeTab === 'history' ? (
             historyList.length === 0 ? (
               <div className="py-12 text-center text-xs text-slate-400">
-                No replanning operations recorded for {targetDate} yet.
+                {t('noReplanningOps', { date: targetDate })}
               </div>
             ) : (
               <div className="space-y-3">
@@ -154,7 +156,7 @@ export function PlanHistoryModal({
             )
           ) : versionList.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400">
-              No plan versions saved yet.
+              {t('noPlanVersions')}
             </div>
           ) : (
             <div className="space-y-3">
@@ -171,12 +173,12 @@ export function PlanHistoryModal({
                         <span>{ver.versionName}</span>
                         {isLatest && (
                           <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
-                            CURRENT
+                            {t('currentLabel')}
                           </span>
                         )}
                       </div>
                       <p className="mt-1 text-slate-500">
-                        {ver.scheduleSnapshot.length} scheduled item(s) • Trigger: {ver.trigger || 'manual'}
+                        {t('scheduledItemsTrigger', { count: ver.scheduleSnapshot.length, trigger: ver.trigger || 'manual' })}
                       </p>
                     </div>
 
@@ -186,7 +188,7 @@ export function PlanHistoryModal({
                         className="flex items-center space-x-1.5 space-x-reverse rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
                       >
                         <RotateCcw size={13} />
-                        <span>Revert to this</span>
+                        <span>{t('revertToThis')}</span>
                       </button>
                     )}
                   </div>
@@ -200,13 +202,13 @@ export function PlanHistoryModal({
         <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4 dark:border-slate-800">
           <div className="flex items-center space-x-1.5 space-x-reverse text-xs text-slate-500">
             <AlertCircle size={14} />
-            <span>Undoing a replan restores the exact previous plan version snapshot.</span>
+            <span>{t('undoReplanHelp')}</span>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
-            Close
+            {t('close')}
           </button>
         </div>
       </div>

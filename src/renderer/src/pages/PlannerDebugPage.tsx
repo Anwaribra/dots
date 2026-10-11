@@ -35,13 +35,13 @@ export function PlannerDebugPage(): JSX.Element {
       <div className="flex items-center justify-between p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center">
-            <Cpu size={16} className="me-1" /> [Developer Debug View]
+            <Cpu size={16} className="me-1" />             {t('debugView')}
           </span>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-            Planning Engine Raw Output Inspector
+            {t('planningEngineInspector')}
           </h1>
           <p className="text-xs text-slate-500">
-            Deterministic scheduling algorithm debugger. Pure engine test & execution environment.
+            {t('planningEngineInspectorDesc')}
           </p>
         </div>
         <div className="flex items-center space-x-3 space-x-reverse">
@@ -52,14 +52,14 @@ export function PlannerDebugPage(): JSX.Element {
             className="w-40 text-xs"
           />
           <Button onClick={() => void handleRunScheduler()} disabled={loading}>
-            <Play size={14} className="me-1" /> {loading ? 'Running...' : 'Generate Plan'}
+            <Play size={14} className="me-1" /> {loading ? t('runningPlan') : t('generatePlan')}
           </Button>
         </div>
       </div>
 
       {!result ? (
         <Card className="py-12 text-center text-slate-400">
-          Click "Generate Plan" to execute the pure deterministic scheduler engine for the selected week.
+          {t('clickGeneratePlan')}
         </Card>
       ) : (
         <div className="space-y-6">
@@ -67,7 +67,7 @@ export function PlannerDebugPage(): JSX.Element {
           {result.warnings.length > 0 && (
             <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/20 space-y-2">
               <h3 className="font-bold text-amber-800 dark:text-amber-300 text-sm flex items-center">
-                <AlertTriangle size={16} className="me-2" /> Warnings & Overload Reports ({result.warnings.length})
+                <AlertTriangle size={16} className="me-2" /> {t('warningsOverloadReports')} ({result.warnings.length})
               </h3>
               <div className="space-y-1">
                 {result.warnings.map((w, i) => (
@@ -82,22 +82,22 @@ export function PlannerDebugPage(): JSX.Element {
           {/* Scheduled Items */}
           <Card className="space-y-3">
             <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center">
-              <CheckCircle size={16} className="me-2 text-emerald-500" /> Scheduled Items ({result.scheduledItems.length})
+              <CheckCircle size={16} className="me-2 text-emerald-500" /> {t('scheduledItems')} ({result.scheduledItems.length})
             </h3>
 
             {result.scheduledItems.length === 0 ? (
-              <p className="text-xs text-slate-400">No items scheduled</p>
+              <p className="text-xs text-slate-400">{t('noItemsScheduled')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-start">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400">
-                      <th className="p-2 text-start">Date</th>
-                      <th className="p-2 text-start">Time</th>
-                      <th className="p-2 text-start">Item Title</th>
-                      <th className="p-2 text-start">Duration</th>
-                      <th className="p-2 text-start">Session</th>
-                      <th className="p-2 text-start">Reason / Explanation</th>
+                      <th className="p-2 text-start">{t('date')}</th>
+                      <th className="p-2 text-start">{t('startTime')}</th>
+                      <th className="p-2 text-start">{t('itemTitle')}</th>
+                      <th className="p-2 text-start">{t('duration')}</th>
+                      <th className="p-2 text-start">{t('session')}</th>
+                      <th className="p-2 text-start">{t('reasonExplanation')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -110,10 +110,10 @@ export function PlannerDebugPage(): JSX.Element {
                         <td className="p-2">
                           {item.isSplit ? (
                             <Badge variant="secondary" className="text-[10px]">
-                              Split ({item.sessionIndex}/{item.totalSessions})
+                              {t('splitSessionOf', { index: item.sessionIndex, total: item.totalSessions })}
                             </Badge>
                           ) : (
-                            <span className="text-slate-400">Full</span>
+                            <span className="text-slate-400">{t('fullSession')}</span>
                           )}
                         </td>
                         <td className="p-2 text-slate-500 max-w-xs truncate">{item.reason}</td>
@@ -129,10 +129,10 @@ export function PlannerDebugPage(): JSX.Element {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="space-y-3">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center">
-                <ShieldAlert size={16} className="me-2 text-rose-500" /> Unscheduled Items ({result.unscheduledItems.length})
+                <ShieldAlert size={16} className="me-2 text-rose-500" /> {t('unscheduledItems')} ({result.unscheduledItems.length})
               </h3>
               {result.unscheduledItems.length === 0 ? (
-                <p className="text-xs text-slate-400">All candidate items were scheduled</p>
+                <p className="text-xs text-slate-400">{t('allCandidatesScheduled')}</p>
               ) : (
                 <div className="space-y-2">
                   {result.unscheduledItems.map((u) => (
@@ -147,10 +147,10 @@ export function PlannerDebugPage(): JSX.Element {
 
             <Card className="space-y-3">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center">
-                <ArrowRight size={16} className="me-2 text-indigo-500" /> Moved Items ({result.movedItems.length})
+                <ArrowRight size={16} className="me-2 text-indigo-500" /> {t('movedItems')} ({result.movedItems.length})
               </h3>
               {result.movedItems.length === 0 ? (
-                <p className="text-xs text-slate-400">No items required rescheduling</p>
+                <p className="text-xs text-slate-400">{t('noItemsRescheduled')}</p>
               ) : (
                 <div className="space-y-2">
                   {result.movedItems.map((m) => (
@@ -167,7 +167,7 @@ export function PlannerDebugPage(): JSX.Element {
           {/* Structured Explanations Log */}
           <Card className="space-y-3">
             <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-              Structured Engine Decision Explanations ({result.explanations.length})
+              {t('engineExplanations')} ({result.explanations.length})
             </h3>
             <div className="space-y-1.5 max-h-80 overflow-y-auto font-mono text-xs">
               {result.explanations.map((e, idx) => (
