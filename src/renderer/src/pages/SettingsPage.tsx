@@ -30,14 +30,14 @@ export function SettingsPage(): JSX.Element {
     applySettings(updated)
   }
 
-  if (!settings) return <div className="p-4">Loading settings...</div>
+  if (!settings) return <div className="p-4">{t('generating')}</div>
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('settings')}</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Personal preferences persisted locally in your SQLite database.
+          {t('settingsSubtitle')}
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export function SettingsPage(): JSX.Element {
           value={String(settings.weekStartsOn)}
           onChange={(e) => void updateSetting({ weekStartsOn: Number(e.target.value) })}
           options={[
-            { value: '6', label: `${t('saturday')} (Default)` },
+            { value: '6', label: `${t('saturday')} (${t('defaultLabel')})` },
             { value: '0', label: t('sunday') },
             { value: '1', label: t('monday') }
           ]}
@@ -77,7 +77,7 @@ export function SettingsPage(): JSX.Element {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Planning Capacity % (e.g. 75%)
+              {t('planningCapacityPercentage')}
             </label>
             <input
               type="number"
@@ -90,7 +90,7 @@ export function SettingsPage(): JSX.Element {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Buffer % of Usable (e.g. 20%)
+              {t('bufferPercentage')}
             </label>
             <input
               type="number"
@@ -107,10 +107,10 @@ export function SettingsPage(): JSX.Element {
       {/* Stage 11: Demo Data & Onboarding Wizard */}
       <Card className="space-y-4">
         <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Demo Data & Onboarding
+          {t('demoDataAndOnboarding')}
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Populate your system with sample data to experiment safely, or re-run the initial onboarding flow.
+          {t('demoDataDesc')}
         </p>
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -146,7 +146,7 @@ export function SettingsPage(): JSX.Element {
             onClick={() => updateSetting({ onboardingDone: false })}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            Re-run Onboarding Wizard
+            {t('rerunOnboarding')}
           </button>
         </div>
       </Card>

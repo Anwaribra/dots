@@ -215,7 +215,7 @@ export function WeeklyPlannerPage(): JSX.Element {
             onClick={() => setShowDebugView(false)}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300"
           >
-            Back to Planner Grid
+            {t('backToPlanner')}
           </button>
         </div>
         <PlannerDebugPage />
@@ -231,10 +231,10 @@ export function WeeklyPlannerPage(): JSX.Element {
           <Calendar className="text-indigo-600 dark:text-indigo-400" size={24} />
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              Weekly Planner ({weekDates[0].dateStr} - {weekDates[6].dateStr})
+              {t('weeklyPlanner')} ({weekDates[0].dateStr} - {weekDates[6].dateStr})
             </h1>
             <p className="text-xs text-slate-500">
-              Interactive 7-day adaptive timeline grid with manual override control.
+              {t('weeklyPlannerDesc')}
             </p>
           </div>
         </div>
@@ -251,7 +251,7 @@ export function WeeklyPlannerPage(): JSX.Element {
               onClick={() => setStartDateStr(formatDate(new Date()))}
               className="px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300"
             >
-              Current Week
+              {t('currentWeek')}
             </button>
             <button
               onClick={() => navigateWeek(1)}
@@ -267,7 +267,7 @@ export function WeeklyPlannerPage(): JSX.Element {
             className="flex items-center space-x-2 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
           >
             <RefreshCw className={loading ? 'animate-spin' : ''} size={16} />
-            <span>{loading ? 'Planning...' : 'Generate Week'}</span>
+            <span>{loading ? t('generating') : t('generateWeek')}</span>
           </button>
 
           <button
@@ -275,7 +275,7 @@ export function WeeklyPlannerPage(): JSX.Element {
             className="flex items-center space-x-1.5 space-x-reverse rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             <Bug size={14} />
-            <span>Debug Log</span>
+            <span>{t('debugLog')}</span>
           </button>
         </div>
       </div>
@@ -333,7 +333,7 @@ export function WeeklyPlannerPage(): JSX.Element {
 
                 <div className="mt-2 flex items-center justify-between">
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${capBg}`}>
-                    {capStatus}
+                    {t(capStatus.toLowerCase())}
                   </span>
                   <span className="font-mono text-[10px] text-slate-500">
                     {scheduledMins}m / {usableMins}m
@@ -376,7 +376,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                       <button
                         onClick={() => handleToggleLock(item)}
                         className="text-slate-400 hover:text-indigo-600"
-                        title={item.locked ? 'Locked (Will not move during replanning)' : 'Lock item'}
+                        title={item.locked ? 'Locked' : 'Lock'}
                       >
                         {item.locked ? <Lock size={12} className="text-amber-500" /> : <Unlock size={12} />}
                       </button>
@@ -396,7 +396,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                           <button
                             onClick={() => handleMoveItemDay(item, weekDates[dIdx - 1].dateStr)}
                             className="rounded p-0.5 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
-                            title="Move to previous day"
+                            title={t('moveToPrevDay')}
                           >
                             <MoveLeft size={12} />
                           </button>
@@ -405,7 +405,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                           <button
                             onClick={() => handleMoveItemDay(item, weekDates[dIdx + 1].dateStr)}
                             className="rounded p-0.5 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
-                            title="Move to next day"
+                            title={t('moveToNextDay')}
                           >
                             <MoveRight size={12} />
                           </button>
@@ -417,7 +417,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                           <button
                             onClick={() => handleSplitItem(item)}
                             className="rounded p-0.5 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
-                            title="Split session"
+                            title={t('splitSession')}
                           >
                             <Split size={12} />
                           </button>
@@ -425,7 +425,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                         <button
                           onClick={() => handleDeleteItem(item.id)}
                           className="rounded p-0.5 text-slate-400 hover:text-red-500"
-                          title="Remove from schedule"
+                          title={t('removeFromSchedule')}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -440,7 +440,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                   className="flex w-full items-center justify-center space-x-1 space-x-reverse rounded-lg border border-dashed border-slate-300 py-1.5 text-[11px] font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-800 dark:hover:border-indigo-600"
                 >
                   <Plus size={12} />
-                  <span>Add Item</span>
+                  <span>{t('addItem')}</span>
                 </button>
               </div>
             </div>
@@ -453,7 +453,7 @@ export function WeeklyPlannerPage(): JSX.Element {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Add Schedule Block ({addModalDate})
+              {t('addScheduleBlock')} ({addModalDate})
             </h3>
 
             <form onSubmit={handleAddManualItem} className="mt-4 space-y-4">
@@ -466,7 +466,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Task title"
+                  placeholder={t('taskTitle')}
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
                   autoFocus
                 />
@@ -475,7 +475,7 @@ export function WeeklyPlannerPage(): JSX.Element {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Start Time
+                    {t('startTime')}
                   </label>
                   <input
                     type="time"
@@ -487,7 +487,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    End Time
+                    {t('endTime')}
                   </label>
                   <input
                     type="time"
@@ -511,7 +511,7 @@ export function WeeklyPlannerPage(): JSX.Element {
                   type="submit"
                   className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
                 >
-                  Add Block
+                  {t('addBlock')}
                 </button>
               </div>
             </form>

@@ -142,15 +142,15 @@ export function InboxPage(): JSX.Element {
           <Inbox className="text-indigo-600 dark:text-indigo-400" size={24} />
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {t('inbox')} Queue
+              {t('inboxQueue')}
             </h1>
             <p className="text-xs text-slate-500">
-              Capture tasks quickly, then run them through the planning engine when ready.
+              {t('inboxDesc')}
             </p>
           </div>
         </div>
         <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
-          {items.length} Pending
+          {items.length} {t('pending')}
         </span>
       </div>
 
@@ -180,7 +180,7 @@ export function InboxPage(): JSX.Element {
       {/* Quick Capture Card */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-          Quick Capture Form
+          {t('quickCaptureForm')}
         </h3>
 
         <form onSubmit={handleCapture} className="space-y-4">
@@ -190,7 +190,7 @@ export function InboxPage(): JSX.Element {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What needs to be done?"
+              placeholder={t('whatNeedsToBeDone')}
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950"
             />
           </div>
@@ -299,7 +299,7 @@ export function InboxPage(): JSX.Element {
               className="flex items-center space-x-2 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
             >
               <Plus size={16} />
-              <span>Capture to Inbox</span>
+              <span>{t('addToInbox')}</span>
             </button>
           </div>
         </form>
@@ -308,12 +308,12 @@ export function InboxPage(): JSX.Element {
       {/* Inbox List */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-          Captured Tasks Queue
+          {t('capturedTasksQueue')}
         </h3>
 
         {items.length === 0 ? (
           <div className="p-8 text-center text-slate-400 text-sm">
-            Your Inbox is empty! Use the form above to add new tasks.
+            {t('inboxEmpty')}
           </div>
         ) : (
           <div className="space-y-3">
@@ -333,7 +333,7 @@ export function InboxPage(): JSX.Element {
                         {item.title}
                       </strong>
                       <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        {tp ? tp.name : 'Task'}
+                        {tp ? tp.name : t('type')}
                       </span>
                       <span
                         className={`rounded px-2 py-0.5 text-[10px] font-bold ${
@@ -344,7 +344,7 @@ export function InboxPage(): JSX.Element {
                               : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                         }`}
                       >
-                        {item.priority}
+                        {t(item.priority)}
                       </span>
                     </div>
 
@@ -353,9 +353,9 @@ export function InboxPage(): JSX.Element {
                         <Clock size={12} />
                         <span>{item.estimatedMinutes}m</span>
                       </span>
-                      {item.deadline && <span>Deadline: {item.deadline}</span>}
-                      {pr && <span>Project: {pr.title}</span>}
-                      {ar && <span>Area: {ar.name}</span>}
+                      {item.deadline && <span>{t('deadline')}: {item.deadline}</span>}
+                      {pr && <span>{t('project')}: {pr.title}</span>}
+                      {ar && <span>{t('area')}: {ar.name}</span>}
                     </div>
                   </div>
 
@@ -365,7 +365,7 @@ export function InboxPage(): JSX.Element {
                       className="flex items-center space-x-1 space-x-reverse rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
                     >
                       <Play size={14} />
-                      <span>Plan Item</span>
+                      <span>{t('planItem')}</span>
                     </button>
                     <button
                       onClick={() => handleDeleteItem(item.id)}

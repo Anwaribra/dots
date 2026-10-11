@@ -329,35 +329,35 @@ export function TodayPage(): JSX.Element {
       {/* Today Progress Overview Widgets */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="block text-xs font-semibold text-slate-500">Planned</span>
+          <span className="block text-xs font-semibold text-slate-500">{t('planned')}</span>
           <strong className="mt-1 block text-xl font-bold text-slate-900 dark:text-slate-100">
             {formatMinutes(plannedMinutes)}
           </strong>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="block text-xs font-semibold text-slate-500">Actual</span>
+          <span className="block text-xs font-semibold text-slate-500">{t('actual')}</span>
           <strong className="mt-1 block text-xl font-bold text-emerald-600 dark:text-emerald-400">
             {formatMinutes(actualMinutes)}
           </strong>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="block text-xs font-semibold text-slate-500">Remaining</span>
+          <span className="block text-xs font-semibold text-slate-500">{t('remaining')}</span>
           <strong className="mt-1 block text-xl font-bold text-amber-600 dark:text-amber-400">
             {formatMinutes(remainingMinutes)}
           </strong>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="block text-xs font-semibold text-slate-500">Completion %</span>
+          <span className="block text-xs font-semibold text-slate-500">{t('completion')} %</span>
           <strong className="mt-1 block text-xl font-bold text-indigo-600 dark:text-indigo-400">
             {completionPercentage}%
           </strong>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="block text-xs font-semibold text-slate-500">Usable Capacity</span>
+          <span className="block text-xs font-semibold text-slate-500">{t('usableCapacity')}</span>
           <strong className="mt-1 block text-xl font-bold text-slate-900 dark:text-slate-100">
             {formatMinutes(capacity?.usableMinutes || 0)}
           </strong>
@@ -369,7 +369,7 @@ export function TodayPage(): JSX.Element {
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-6 shadow-sm dark:border-indigo-900/50 dark:bg-indigo-950/20">
           <div className="flex items-center justify-between">
             <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
-              CURRENT ITEM
+              {t('currentItem')}
             </span>
             <span className="flex items-center space-x-1 space-x-reverse text-xs font-medium text-slate-500">
               <Clock size={14} />
@@ -386,12 +386,12 @@ export function TodayPage(): JSX.Element {
           <div className="mt-2 flex items-center space-x-4 space-x-reverse text-xs text-slate-600 dark:text-slate-400">
             {currentProject && (
               <span>
-                Project: <strong>{currentProject.title}</strong>
+                {t('project')}: <strong>{currentProject.title}</strong>
               </span>
             )}
             {currentArea && (
               <span>
-                Area: <strong>{currentArea.name}</strong>
+                {t('area')}: <strong>{currentArea.name}</strong>
               </span>
             )}
           </div>
@@ -406,7 +406,7 @@ export function TodayPage(): JSX.Element {
               className="flex items-center space-x-2 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
             >
               <Play size={16} />
-              <span>Start Focus</span>
+              <span>{t('startFocus')}</span>
             </button>
 
             <button
@@ -414,7 +414,7 @@ export function TodayPage(): JSX.Element {
               className="flex items-center space-x-2 space-x-reverse rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
             >
               <CheckCircle2 size={16} />
-              <span>Complete</span>
+              <span>{t('completed')}</span>
             </button>
 
             <button
@@ -422,7 +422,7 @@ export function TodayPage(): JSX.Element {
               className="flex items-center space-x-2 space-x-reverse rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               {currentItem.locked ? <Lock size={16} /> : <Unlock size={16} />}
-              <span>{currentItem.locked ? 'Locked' : 'Lock'}</span>
+              <span>{currentItem.locked ? t('locked') : t('lock')}</span>
             </button>
 
             <button
@@ -430,24 +430,24 @@ export function TodayPage(): JSX.Element {
               className="flex items-center space-x-2 space-x-reverse rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <SkipForward size={16} />
-              <span>Skip / Remove</span>
+              <span>{t('skipOrRemove')}</span>
             </button>
           </div>
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-800">
-          <p className="text-sm font-medium text-slate-500">No scheduled items for this day.</p>
+          <p className="text-sm font-medium text-slate-500">{t('noScheduledItems')}</p>
         </div>
       )}
 
       {/* Timeline Section */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-          Today's Timeline
+          {t('todaysTimeline')}
         </h3>
 
         {scheduledItems.length === 0 ? (
-          <p className="text-xs text-slate-400">No tasks scheduled on this timeline.</p>
+          <p className="text-xs text-slate-400">{t('noTasksScheduled')}</p>
         ) : (
           <div className="space-y-3">
             {scheduledItems.map((item) => {
@@ -516,10 +516,10 @@ export function TodayPage(): JSX.Element {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              Focus Timer
+              {t('focusTimer')}
             </h3>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {activeItemForTimer?.title ?? 'Focus Session'}
+              {activeItemForTimer?.title ?? t('focusSession')}
             </p>
 
             {/* Clock display */}
@@ -532,12 +532,12 @@ export function TodayPage(): JSX.Element {
               {timerStatus !== 'idle' && (
                 <span className="mt-2 block text-sm text-slate-500 dark:text-slate-400">
                   {isOverTarget
-                    ? `Over target by ${formatSeconds(elapsedSeconds - ((activeItemForTimer?.durationMinutes ?? 30) * 60))}`
-                    : `${formatSeconds(remainingSeconds)} remaining`}
+                    ? `${t('overTargetBy')} ${formatSeconds(elapsedSeconds - ((activeItemForTimer?.durationMinutes ?? 30) * 60))}`
+                    : `${formatSeconds(remainingSeconds)} ${t('remainingTimer')}`}
                 </span>
               )}
               <span className="mt-1 block text-xs font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">
-                {timerStatus === 'idle' ? 'Ready' : timerStatus === 'running' ? 'Running' : 'Paused'}
+                {timerStatus === 'idle' ? t('ready') : timerStatus === 'running' ? t('running') : t('paused')}
               </span>
             </div>
 
@@ -557,7 +557,7 @@ export function TodayPage(): JSX.Element {
                   }}
                   className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
                 >
-                  <Play size={16} /> Start
+                  <Play size={16} /> {t('startTimer')}
                 </button>
               )}
 
@@ -567,7 +567,7 @@ export function TodayPage(): JSX.Element {
                     onClick={async () => { await planner.timer.pause(); await refreshTimerState() }}
                     className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-400"
                   >
-                    <Pause size={16} /> Pause
+                    <Pause size={16} /> {t('pauseTimer')}
                   </button>
                   <button
                     onClick={async () => { await planner.timer.addTime(5); await refreshTimerState() }}
@@ -583,7 +583,7 @@ export function TodayPage(): JSX.Element {
                   onClick={async () => { await planner.timer.resume(); await refreshTimerState() }}
                   className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
                 >
-                  <Play size={16} /> Resume
+                  <Play size={16} /> {t('resumeTimer')}
                 </button>
               )}
 
@@ -598,13 +598,13 @@ export function TodayPage(): JSX.Element {
                     }}
                     className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
                   >
-                    <CheckCircle2 size={16} /> Complete
+                    <CheckCircle2 size={16} /> {t('completeSession')}
                   </button>
                   <button
                     onClick={async () => { await planner.timer.stop(); await refreshTimerState() }}
                     className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
                   >
-                    <Square size={16} /> Stop
+                    <Square size={16} /> {t('cancel')}
                   </button>
                 </>
               )}
@@ -615,7 +615,7 @@ export function TodayPage(): JSX.Element {
                 onClick={() => setTimerModalOpen(false)}
                 className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                Close
+                {t('cancel')}
               </button>
             </div>
           </div>

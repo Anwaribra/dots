@@ -241,7 +241,7 @@ export function App(): JSX.Element {
             title="Quick Capture (Ctrl+K or Alt+N)"
           >
             <Plus size={13} />
-            <span className="hidden md:inline">Quick Add</span>
+            <span className="hidden md:inline">{t('quickAdd')}</span>
             <kbd className="hidden lg:inline-block rounded bg-indigo-700/80 px-1 py-0.2 text-[9px] font-mono">
               Ctrl+K
             </kbd>
@@ -254,7 +254,7 @@ export function App(): JSX.Element {
             title="Search Everywhere (Ctrl+F)"
           >
             <Search size={13} />
-            <span className="hidden md:inline text-[11px]">Search</span>
+            <span className="hidden md:inline text-[11px]">{t('search')}</span>
             <kbd className="hidden lg:inline-block rounded bg-slate-200/80 dark:bg-slate-700 px-1 text-[9px] font-mono">
               Ctrl+F
             </kbd>
@@ -398,7 +398,7 @@ export function App(): JSX.Element {
               title="Keyboard Shortcuts (Ctrl+/)"
             >
               <Keyboard size={15} />
-              <span>Shortcuts</span>
+              <span>{t('shortcuts')}</span>
               <kbd className="ms-auto rounded bg-slate-100 dark:bg-slate-800 px-1 text-[9px] font-mono text-slate-400">
                 ?
               </kbd>

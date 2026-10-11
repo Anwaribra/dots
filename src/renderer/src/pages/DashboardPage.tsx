@@ -157,7 +157,7 @@ export function DashboardPage({
             {t('dashboard', 'Dashboard')}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Customizable workspace overview: focus, goal velocity, and time allocation.
+            {t('dashboardDesc', 'Customizable workspace overview: focus, goal velocity, and time allocation.')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -168,10 +168,10 @@ export function DashboardPage({
             className="flex items-center gap-1.5"
           >
             <Sliders size={14} />
-            <span>Customize</span>
+            <span>{t('customize', 'Customize')}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => void loadData()}>
-            Refresh
+            {t('refresh', 'Refresh')}
           </Button>
         </div>
       </div>
@@ -182,14 +182,14 @@ export function DashboardPage({
           {/* Today's Tasks */}
           <Card className="p-4">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Today's Execution</span>
+              <span>{t('todaysExecution', "Today's Execution")}</span>
               <CheckCircle2 size={16} className="text-emerald-500" />
             </div>
             <div className="mt-2 flex items-baseline space-x-2 space-x-reverse">
               <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {today.completedCount}
               </span>
-              <span className="text-xs text-slate-500">of {today.totalCount} completed</span>
+              <span className="text-xs text-slate-500">{t('completedOf', 'completed of')} {today.totalCount}</span>
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
@@ -204,14 +204,14 @@ export function DashboardPage({
           {/* Goal Progress Average */}
           <Card className="p-4">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Goal Progress Avg</span>
+              <span>{t('goalProgressAvg', 'Goal Progress Avg')}</span>
               <Compass size={16} className="text-indigo-500" />
             </div>
             <div className="mt-2 flex items-baseline space-x-2 space-x-reverse">
               <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {avgGoalProgress}%
               </span>
-              <span className="text-xs text-slate-500">across {goalProgresses.length} goals</span>
+              <span className="text-xs text-slate-500">{t('acrossGoals', 'across goals')}: {goalProgresses.length}</span>
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
@@ -224,7 +224,7 @@ export function DashboardPage({
           {/* Planned vs Actual Today */}
           <Card className="p-4">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Time Tracked</span>
+              <span>{t('timeTracked', 'Time Tracked')}</span>
               <Clock size={16} className="text-amber-500" />
             </div>
             <div className="mt-2 flex items-baseline space-x-2 space-x-reverse">
@@ -232,7 +232,7 @@ export function DashboardPage({
                 {plannedVsActual.actualMinutes}m
               </span>
               <span className="text-xs text-slate-500">
-                / {plannedVsActual.scheduledMinutes || plannedVsActual.plannedMinutes}m planned
+                / {plannedVsActual.scheduledMinutes || plannedVsActual.plannedMinutes}m {t('planned', 'planned')}
               </span>
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
@@ -252,17 +252,17 @@ export function DashboardPage({
           {/* Upcoming Deadlines */}
           <Card className="p-4">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Pending Deadlines</span>
+              <span>{t('pendingDeadlines', 'Pending Deadlines')}</span>
               <AlertTriangle size={16} className="text-rose-500" />
             </div>
             <div className="mt-2 flex items-baseline space-x-2 space-x-reverse">
               <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {upcomingDeadlines.length}
               </span>
-              <span className="text-xs text-slate-500">upcoming or due</span>
+              <span className="text-xs text-slate-500">{t('upcomingOrDue', 'upcoming or due')}</span>
             </div>
             <p className="mt-2 text-[11px] text-slate-400">
-              {upcomingDeadlines.length === 0 ? 'All caught up' : 'Needs attention'}
+              {upcomingDeadlines.length === 0 ? t('allCaughtUp', 'All caught up') : t('needsAttention', 'Needs attention')}
             </p>
           </Card>
         </div>
@@ -279,7 +279,7 @@ export function DashboardPage({
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Compass size={18} className="text-indigo-600" />
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Goal Progress Engine
+                    {t('goalProgressEngine', 'Goal Progress Engine')}
                   </h3>
                 </div>
                 {onNavigate && (
@@ -287,7 +287,7 @@ export function DashboardPage({
                     onClick={() => onNavigate('goals')}
                     className="flex items-center text-xs text-indigo-600 hover:underline dark:text-indigo-400"
                   >
-                    <span>View Goals</span>
+                    <span>{t('viewGoals', 'View Goals')}</span>
                     <ArrowUpRight size={14} className="ms-1" />
                   </button>
                 )}
@@ -296,7 +296,7 @@ export function DashboardPage({
               <div className="mt-4 space-y-4">
                 {goalProgresses.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-400">
-                    No active goals created yet. Create a goal to begin tracking progress.
+                    {t('noActiveGoals', 'No active goals created yet. Create a goal to begin tracking progress.')}
                   </div>
                 ) : (
                   goalProgresses.map((item: any) => {
@@ -313,8 +313,8 @@ export function DashboardPage({
                               {g.title}
                             </h4>
                             <div className="mt-1 flex items-center space-x-2 space-x-reverse text-xs text-slate-400">
-                              <span className="capitalize">Mode: {g.measurementType || 'duration'}</span>
-                              {g.targetDate && <span>• Due {g.targetDate}</span>}
+                              <span className="capitalize">{t('type')}: {g.measurementType || 'duration'}</span>
+                              {g.targetDate && <span>• {t('deadline')}: {g.targetDate}</span>}
                             </div>
                           </div>
                           <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
@@ -333,7 +333,7 @@ export function DashboardPage({
                         <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
                           <span>{p.details}</span>
                           <span>
-                            Workload: {p.completedWorkloadMinutes}m / {p.totalWorkloadMinutes}m
+                            {p.completedWorkloadMinutes}m / {p.totalWorkloadMinutes}m
                           </span>
                         </div>
                       </div>
@@ -351,7 +351,7 @@ export function DashboardPage({
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Clock size={18} className="text-amber-500" />
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Planned vs Scheduled vs Actual Time
+                    {t('plannedVsScheduledVsActual', 'Planned vs Scheduled vs Actual Time')}
                   </h3>
                 </div>
                 {onNavigate && (
@@ -359,7 +359,7 @@ export function DashboardPage({
                     onClick={() => onNavigate('analytics')}
                     className="flex items-center text-xs text-indigo-600 hover:underline dark:text-indigo-400"
                   >
-                    <span>Analytics Page</span>
+                    <span>{t('analyticsPage', 'Analytics Page')}</span>
                     <ArrowUpRight size={14} className="ms-1" />
                   </button>
                 )}
@@ -367,25 +367,25 @@ export function DashboardPage({
 
               <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                 <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900/60">
-                  <div className="text-xs text-slate-500">Planned</div>
+                  <div className="text-xs text-slate-500">{t('planned', 'Planned')}</div>
                   <div className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-200">
                     {plannedVsActual.plannedMinutes}m
                   </div>
-                  <div className="mt-1 text-[10px] text-slate-400">Total estimated</div>
+                  <div className="mt-1 text-[10px] text-slate-400">{t('totalEstimated', 'Total estimated')}</div>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900/60">
-                  <div className="text-xs text-slate-500">Scheduled</div>
+                  <div className="text-xs text-slate-500">{t('scheduled', 'Scheduled')}</div>
                   <div className="mt-1 text-xl font-bold text-indigo-600 dark:text-indigo-400">
                     {plannedVsActual.scheduledMinutes}m
                   </div>
-                  <div className="mt-1 text-[10px] text-slate-400">Placed on calendar</div>
+                  <div className="mt-1 text-[10px] text-slate-400">{t('placedOnCalendar', 'Placed on calendar')}</div>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900/60">
-                  <div className="text-xs text-slate-500">Actual</div>
+                  <div className="text-xs text-slate-500">{t('actual', 'Actual')}</div>
                   <div className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     {plannedVsActual.actualMinutes}m
                   </div>
-                  <div className="mt-1 text-[10px] text-slate-400">Executed timer/sessions</div>
+                  <div className="mt-1 text-[10px] text-slate-400">{t('executedSessions', 'Executed timer/sessions')}</div>
                 </div>
               </div>
             </Card>
@@ -400,14 +400,14 @@ export function DashboardPage({
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Layers size={18} className="text-indigo-500" />
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Time by Area</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t('timeByArea', 'Time by Area')}</h3>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3">
                 {timeByArea.length === 0 ? (
                   <div className="py-6 text-center text-xs text-slate-400">
-                    No time recorded for any area yet.
+                    {t('noTimeRecorded', 'No time recorded for any area yet.')}
                   </div>
                 ) : (
                   timeByArea.map((a: any) => (
@@ -443,7 +443,7 @@ export function DashboardPage({
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <AlertTriangle size={18} className="text-rose-500" />
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Upcoming Deadlines
+                    {t('upcomingDeadlines', 'Upcoming Deadlines')}
                   </h3>
                 </div>
               </div>
@@ -451,7 +451,7 @@ export function DashboardPage({
               <div className="mt-4 space-y-2">
                 {upcomingDeadlines.length === 0 ? (
                   <div className="py-6 text-center text-xs text-slate-400">
-                    No pending tasks with upcoming deadlines.
+                    {t('noPendingDeadlines', 'No pending tasks with upcoming deadlines.')}
                   </div>
                 ) : (
                   upcomingDeadlines.slice(0, 5).map((item: any) => (
@@ -479,7 +479,7 @@ export function DashboardPage({
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Clock size={18} className="text-emerald-500" />
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    Recent Sessions
+                    {t('recentSessions', 'Recent Sessions')}
                   </h3>
                 </div>
               </div>
@@ -487,7 +487,7 @@ export function DashboardPage({
               <div className="mt-4 space-y-2">
                 {recentSessions.length === 0 ? (
                   <div className="py-6 text-center text-xs text-slate-400">
-                    No sessions recorded yet. Start a timer to log time.
+                    {t('noRecentSessions', 'No sessions recorded yet. Start a timer to log time.')}
                   </div>
                 ) : (
                   recentSessions.slice(0, 4).map((s: any) => (
@@ -497,13 +497,13 @@ export function DashboardPage({
                     >
                       <div>
                         <div className="font-medium text-slate-800 dark:text-slate-200">
-                          {s.durationMinutes} min session
+                          {s.durationMinutes} min
                         </div>
                         <div className="text-[10px] text-slate-400">
                           {new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                      <Badge variant="secondary">Logged</Badge>
+                      <Badge variant="secondary">{t('done', 'Logged')}</Badge>
                     </div>
                   ))
                 )}
@@ -521,7 +521,7 @@ export function DashboardPage({
               <div className="flex items-center gap-2">
                 <Sliders size={18} className="text-indigo-600" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  Customize Dashboard
+                  {t('customizeDashboard', 'Customize Dashboard')}
                 </h3>
               </div>
               <button
@@ -533,7 +533,7 @@ export function DashboardPage({
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Toggle widget visibility and rearrange display order. Changes are saved automatically.
+              {t('customizeModalDesc', 'Toggle widget visibility and rearrange display order. Changes are saved automatically.')}
             </p>
 
             <div className="space-y-2">
@@ -559,7 +559,7 @@ export function DashboardPage({
                         w.visible ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'
                       }`}
                     >
-                      {w.title}
+                      {t(w.id, w.title)}
                     </span>
                   </div>
 
@@ -592,10 +592,10 @@ export function DashboardPage({
                 className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400"
               >
                 <RotateCcw size={13} />
-                <span>Reset to Default</span>
+                <span>{t('resetToDefault', 'Reset to Default')}</span>
               </button>
               <Button size="sm" onClick={() => setCustomizeOpen(false)}>
-                Done
+                {t('done', 'Done')}
               </Button>
             </div>
           </div>

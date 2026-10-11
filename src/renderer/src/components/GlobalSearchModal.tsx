@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
   Bookmark,
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export function GlobalSearchModal({ isOpen, onClose, onNavigate }: Props): JSX.Element | null {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -109,7 +111,7 @@ export function GlobalSearchModal({ isOpen, onClose, onNavigate }: Props): JSX.E
             id="global-search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search anything…"
+            placeholder={t('searchAnything')}
             className="flex-1 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm outline-none"
           />
           {loading && (
@@ -123,11 +125,11 @@ export function GlobalSearchModal({ isOpen, onClose, onNavigate }: Props): JSX.E
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {results.length === 0 && query.trim() && !loading && (
-            <div className="py-10 text-center text-sm text-slate-400">No results for &ldquo;{query}&rdquo;</div>
+            <div className="py-10 text-center text-sm text-slate-400">{t('noResultsFor')} &ldquo;{query}&rdquo;</div>
           )}
           {results.length === 0 && !query.trim() && (
             <div className="py-8 text-center text-xs text-slate-400">
-              Type to search areas, goals, projects, tasks, resources…
+              {t('typeToSearch')}
             </div>
           )}
           {results.map((r, i) => {
@@ -165,9 +167,9 @@ export function GlobalSearchModal({ isOpen, onClose, onNavigate }: Props): JSX.E
 
         {/* Footer */}
         <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4 text-[10px] text-slate-400">
-          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">↑↓</kbd> navigate</span>
-          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">↵</kbd> open</span>
-          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">Esc</kbd> close</span>
+          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">↑↓</kbd> {t('navigateHelp')}</span>
+          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">↵</kbd> {t('openHelp')}</span>
+          <span><kbd className="bg-slate-100 dark:bg-slate-800 px-1 rounded">Esc</kbd> {t('closeHelp')}</span>
         </div>
       </div>
     </div>

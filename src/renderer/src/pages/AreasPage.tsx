@@ -93,7 +93,7 @@ export function AreasPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('areas')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Broad life domains defined entirely by you.
+            {t('areasSubtitle')}
           </p>
         </div>
         <Button onClick={openCreateModal}>
@@ -159,17 +159,17 @@ export function AreasPage(): JSX.Element {
             label={t('name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Work, Health, Personal, Learning"
+            placeholder={t('areaNamePlaceholder')}
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={t('optionalDescription')}
           />
           <div>
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Color
+              {t('color')}
             </label>
             <input
               type="color"

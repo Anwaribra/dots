@@ -82,18 +82,18 @@ export function TypesAndFieldsPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('workItemTypes')} & {t('customFields')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Define custom activity types and attach domain-specific fields without source-code changes.
+            {t('customFieldsSubtitle')}
           </p>
         </div>
         <Button onClick={() => setIsTypeModalOpen(true)}>
           <Plus size={18} className="me-1" />
-          {t('create')} Type
+          {t('create')} {t('type')}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Types</h3>
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('types')}</h3>
           <div className="space-y-1">
             {types.map((type) => (
               <div
@@ -109,7 +109,7 @@ export function TypesAndFieldsPage(): JSX.Element {
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: type.color || '#3b82f6' }} />
                   <span>{type.name}</span>
                 </div>
-                {type.builtIn && <span className="text-xs text-slate-400">Built-in</span>}
+                {type.builtIn && <span className="text-xs text-slate-400">{t('builtIn')}</span>}
               </div>
             ))}
           </div>
@@ -121,17 +121,17 @@ export function TypesAndFieldsPage(): JSX.Element {
               <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-800">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{selectedType.name}</h3>
-                  <p className="text-xs text-slate-500">Custom field definitions for this work item type</p>
+                  <p className="text-xs text-slate-500">{t('customFields')} — {selectedType.name}</p>
                 </div>
                 <Button size="sm" onClick={() => setIsDefModalOpen(true)}>
                   <Plus size={16} className="me-1" />
-                  Add Custom Field
+                  {t('add')} {t('customFields')}
                 </Button>
               </div>
 
               <div className="space-y-2">
                 {customDefs.length === 0 ? (
-                  <p className="py-4 text-center text-sm text-slate-400">No custom fields defined for this type yet.</p>
+                  <p className="py-4 text-center text-sm text-slate-400">{t('noCustomFieldsYet')}</p>
                 ) : (
                   customDefs.map((def) => (
                     <div

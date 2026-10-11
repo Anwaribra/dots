@@ -1,28 +1,29 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, Keyboard } from 'lucide-react'
 
 interface ShortcutEntry {
   keys: string[]
-  description: string
-  category: string
+  descriptionKey: string
+  categoryKey: string
 }
 
 const SHORTCUTS: ShortcutEntry[] = [
   // Navigation
-  { category: 'Navigation', keys: ['Ctrl', 'F'], description: 'Open global search' },
-  { category: 'Navigation', keys: ['Ctrl', 'K'], description: 'Quick add item' },
-  { category: 'Navigation', keys: ['Alt', 'N'], description: 'Quick add item (alternative)' },
-  { category: 'Navigation', keys: ['Ctrl', '/'], description: 'Show keyboard shortcuts' },
-  { category: 'Navigation', keys: ['Esc'], description: 'Close modal / dismiss' },
+  { categoryKey: 'navigation', keys: ['Ctrl', 'F'], descriptionKey: 'openGlobalSearch' },
+  { categoryKey: 'navigation', keys: ['Ctrl', 'K'], descriptionKey: 'quickAddItem' },
+  { categoryKey: 'navigation', keys: ['Alt', 'N'], descriptionKey: 'quickAddItemAlt' },
+  { categoryKey: 'navigation', keys: ['Ctrl', '/'], descriptionKey: 'showKeyboardShortcuts' },
+  { categoryKey: 'navigation', keys: ['Esc'], descriptionKey: 'closeModal' },
   // Search
-  { category: 'Search', keys: ['↑', '↓'], description: 'Navigate search results' },
-  { category: 'Search', keys: ['↵'], description: 'Open selected search result' },
+  { categoryKey: 'search', keys: ['↑', '↓'], descriptionKey: 'navigateSearchResults' },
+  { categoryKey: 'search', keys: ['↵'], descriptionKey: 'openSelectedResult' },
   // Quick Add
-  { category: 'Quick Add', keys: ['↵'], description: 'Save new item (in quick add)' },
-  { category: 'Quick Add', keys: ['Esc'], description: 'Cancel quick add' }
+  { categoryKey: 'quickAdd', keys: ['↵'], descriptionKey: 'saveNewItem' },
+  { categoryKey: 'quickAdd', keys: ['Esc'], descriptionKey: 'cancel' }
 ]
 
-const CATEGORIES = [...new Set(SHORTCUTS.map((s) => s.category))]
+const CATEGORY_KEYS = [...new Set(SHORTCUTS.map((s) => s.categoryKey))]
 
 interface Props {
   isOpen: boolean
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export function ShortcutsHelpModal({ isOpen, onClose }: Props): JSX.Element | null {
+  const { t } = useTranslation()
   if (!isOpen) return null
 
   return (
@@ -45,7 +47,7 @@ export function ShortcutsHelpModal({ isOpen, onClose }: Props): JSX.Element | nu
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2.5">
             <Keyboard size={18} className="text-indigo-500" />
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Keyboard Shortcuts</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('keyboardShortcuts')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -58,13 +60,13 @@ export function ShortcutsHelpModal({ isOpen, onClose }: Props): JSX.Element | nu
 
         {/* Content */}
         <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-          {CATEGORIES.map((cat) => (
-            <div key={cat}>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">{cat}</h3>
+          {CATEGORY_KEYS.map((catKey) => (
+            <div key={catKey}>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">{t(catKey)}</h3>
               <div className="space-y-2">
-                {SHORTCUTS.filter((s) => s.category === cat).map((s, i) => (
+                {SHORTCUTS.filter((s) => s.categoryKey === catKey).map((s, i) => (
                   <div key={i} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-slate-600 dark:text-slate-300">{s.description}</span>
+                    <span className="text-sm text-slate-600 dark:text-slate-300">{t(s.descriptionKey)}</span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {s.keys.map((k, ki) => (
                         <React.Fragment key={ki}>
@@ -85,7 +87,7 @@ export function ShortcutsHelpModal({ isOpen, onClose }: Props): JSX.Element | nu
         </div>
 
         <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-          Press <kbd className="px-1 bg-slate-100 dark:bg-slate-800 rounded">Esc</kbd> to close
+          {t('pressEscToClose')}
         </div>
       </div>
     </div>

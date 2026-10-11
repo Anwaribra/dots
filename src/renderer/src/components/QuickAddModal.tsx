@@ -80,7 +80,7 @@ export function QuickAddModal({ isOpen, onClose, onCreated }: QuickAddModalProps
           <div className="flex items-center space-x-2 space-x-reverse">
             <Plus className="text-indigo-600 dark:text-indigo-400" size={20} />
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              Quick Capture Task
+              {t('quickCaptureTask')}
             </h3>
           </div>
           <button
@@ -101,7 +101,7 @@ export function QuickAddModal({ isOpen, onClose, onCreated }: QuickAddModalProps
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Review Q3 strategy draft"
+              placeholder={t('taskTitlePlaceholder')}
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950"
               autoFocus
             />
@@ -222,7 +222,7 @@ export function QuickAddModal({ isOpen, onClose, onCreated }: QuickAddModalProps
               disabled={submitting}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : 'Add to Inbox'}
+              {submitting ? t('saving') : t('addToInbox')}
             </button>
           </div>
         </form>

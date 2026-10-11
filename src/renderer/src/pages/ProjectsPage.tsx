@@ -178,7 +178,7 @@ export function ProjectsPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('projects')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Containers of executable work. Progress is duration-weighted (10m vs 3h contribute accurately).
+            {t('projectsSubtitle')}
           </p>
         </div>
         <Button onClick={openCreateModal}>
@@ -227,9 +227,9 @@ export function ProjectsPage(): JSX.Element {
                     </span>
                   )}
                   <span className="rounded bg-slate-100 px-2 py-0.5 dark:bg-slate-800">
-                    {tasksCount} tasks
+                    {tasksCount} {t('tasks')}
                   </span>
-                  {project.deadline && <span>Due: {project.deadline}</span>}
+                  {project.deadline && <span>{t('due')}: {project.deadline}</span>}
                 </div>
 
                 <div className="mt-3 flex justify-end space-x-2 space-x-reverse border-t border-slate-100 pt-2 dark:border-slate-800">
@@ -406,7 +406,7 @@ export function ProjectsPage(): JSX.Element {
           ) : (
             <Card className="p-12 text-center text-slate-400">
               <FolderKanban size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-700" />
-              Select a project to view duration-weighted progress, workload, tasks and sessions.
+              {t('selectProjectToView')}
             </Card>
           )}
         </div>
@@ -423,13 +423,13 @@ export function ProjectsPage(): JSX.Element {
             label={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Website Redesign, Q3 Report"
+            placeholder={t('projectNamePlaceholder')}
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={t('optionalDescription')}
           />
           <div className="grid grid-cols-2 gap-4">
             <Select

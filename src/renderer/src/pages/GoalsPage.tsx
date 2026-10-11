@@ -252,7 +252,7 @@ export function GoalsPage(): JSX.Element {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('goals')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            High-level outcomes powered by the multi-model Progress Engine.
+            {t('goalsSubtitle')}
           </p>
         </div>
         <Button onClick={openCreateModal}>
@@ -296,7 +296,7 @@ export function GoalsPage(): JSX.Element {
                       {matchedArea.name}
                     </span>
                   )}
-                  {goal.targetDate && <span>Due: {goal.targetDate}</span>}
+                  {goal.targetDate && <span>{t('due')}: {goal.targetDate}</span>}
                 </div>
 
                 <div className="mt-3 flex justify-end space-x-2 space-x-reverse border-t border-slate-100 pt-2 dark:border-slate-800">
@@ -545,7 +545,7 @@ export function GoalsPage(): JSX.Element {
           ) : (
             <Card className="p-12 text-center text-slate-400">
               <Compass size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-700" />
-              Select a goal to view progress breakdown, milestones, metrics and history.
+              {t('selectGoalToView')}
             </Card>
           )}
         </div>
@@ -562,25 +562,25 @@ export function GoalsPage(): JSX.Element {
             label={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Launch Business, Master TypeScript"
+            placeholder={t('goalNamePlaceholder')}
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={t('optionalDescription')}
           />
           <Select
-            label="Progress Calculation Mode"
+            label={t('progressCalculationMode')}
             value={measurementType}
             onChange={(e) => setMeasurementType(e.target.value)}
             options={[
-              { value: 'duration', label: 'Duration Weighted (Completed vs Total Time)' },
-              { value: 'weighted', label: 'Weighted Components (Milestone Component %)' },
-              { value: 'count', label: 'Task Count (Completed / Total Tasks)' },
-              { value: 'milestone', label: 'Milestone Average (Completed Milestones)' },
-              { value: 'numeric', label: 'Numeric Target (Current / Target Value)' },
-              { value: 'percentage', label: 'Manual Percentage (0 - 100%)' }
+              { value: 'duration', label: t('modeDuration') },
+              { value: 'weighted', label: t('modeWeighted') },
+              { value: 'count', label: t('modeCount') },
+              { value: 'milestone', label: t('modeMilestone') },
+              { value: 'numeric', label: t('modeNumeric') },
+              { value: 'percentage', label: t('modePercentage') }
             ]}
           />
           <Select
@@ -625,40 +625,40 @@ export function GoalsPage(): JSX.Element {
       <Dialog
         isOpen={isMetricModalOpen}
         onClose={() => setIsMetricModalOpen(false)}
-        title="Add Custom Metric"
+        title={t('addCustomMetric')}
       >
         <div className="space-y-4">
           <Input
-            label="Metric Name"
-            placeholder="e.g. Pages Read, Kilometers, Money Saved"
+            label={t('metricName')}
+            placeholder={t('metricNamePlaceholder')}
             value={metricName}
             onChange={(e) => setMetricName(e.target.value)}
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Current Value"
+              label={t('currentValue')}
               type="number"
               value={metricCurrent}
               onChange={(e) => setMetricCurrent(Number(e.target.value))}
             />
             <Input
-              label="Target Value"
+              label={t('targetValue')}
               type="number"
               value={metricTarget}
               onChange={(e) => setMetricTarget(Number(e.target.value))}
             />
           </div>
           <Input
-            label="Unit (Optional)"
+            label={t('unit')}
             placeholder="e.g. km, pages, USD, reps"
             value={metricUnit}
             onChange={(e) => setMetricUnit(e.target.value)}
           />
           <div className="flex justify-end space-x-2 space-x-reverse pt-2">
             <Button variant="ghost" onClick={() => setIsMetricModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={() => void handleSaveMetric()}>Save Metric</Button>
+            <Button onClick={() => void handleSaveMetric()}>{t('save')}</Button>
           </div>
         </div>
       </Dialog>

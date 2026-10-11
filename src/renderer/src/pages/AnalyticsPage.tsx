@@ -159,16 +159,16 @@ export function AnalyticsPage(): JSX.Element {
             {t('analytics', 'Analytics & Performance')}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Track planned vs actual execution, capacity utilization, deadline performance, and time allocation.
+            {t('analyticsSubtitle')}
           </p>
         </div>
         <div className="flex items-center space-x-2 space-x-reverse">
           <Button variant="outline" size="sm" onClick={handleResetFilters}>
             <RotateCcw size={14} className="me-1" />
-            Reset Filters
+            {t('resetFilters')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => void loadAnalytics()}>
-            Refresh
+            {t('refresh')}
           </Button>
         </div>
       </div>
@@ -177,47 +177,47 @@ export function AnalyticsPage(): JSX.Element {
       <Card className="p-4">
         <div className="flex items-center space-x-2 space-x-reverse pb-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
           <Filter size={14} className="text-indigo-600" />
-          <span>Filters</span>
+          <span>{t('filters')}</span>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
           <Select
-            label="Date Range"
+            label={t('dateRange')}
             value={dateRangePreset}
             onChange={(e) => setDateRangePreset(e.target.value as any)}
             options={[
-              { value: 'all', label: 'All Time' },
-              { value: '7d', label: 'Last 7 Days' },
-              { value: '30d', label: 'Last 30 Days' },
-              { value: 'month', label: 'This Month' }
+              { value: 'all', label: t('allTime') },
+              { value: '7d', label: t('last7Days') },
+              { value: '30d', label: t('last30Days') },
+              { value: 'month', label: t('thisMonth') }
             ]}
           />
           <Select
-            label="Area"
+            label={t('area')}
             value={areaId}
             onChange={(e) => setAreaId(e.target.value)}
-            options={[{ value: '', label: 'All Areas' }, ...areas.map((a) => ({ value: a.id, label: a.name }))]}
+            options={[{ value: '', label: t('allAreas') }, ...areas.map((a) => ({ value: a.id, label: a.name }))]}
           />
           <Select
-            label="Goal"
+            label={t('goal')}
             value={goalId}
             onChange={(e) => setGoalId(e.target.value)}
-            options={[{ value: '', label: 'All Goals' }, ...goals.map((g) => ({ value: g.id, label: g.title }))]}
+            options={[{ value: '', label: t('allGoals') }, ...goals.map((g) => ({ value: g.id, label: g.title }))]}
           />
           <Select
-            label="Project"
+            label={t('project')}
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            options={[{ value: '', label: 'All Projects' }, ...projects.map((p) => ({ value: p.id, label: p.title }))]}
+            options={[{ value: '', label: t('allProjects') }, ...projects.map((p) => ({ value: p.id, label: p.title }))]}
           />
           <Select
-            label="Item Type"
+            label={t('type')}
             value={itemType}
             onChange={(e) => setItemType(e.target.value)}
             options={[
-              { value: '', label: 'All Types' },
-              { value: 'task', label: 'Task' },
-              { value: 'habit', label: 'Habit' },
-              { value: 'routine', label: 'Routine' }
+              { value: '', label: t('allTypes') },
+              { value: 'task', label: t('task') },
+              { value: 'habit', label: t('habit') },
+              { value: 'routine', label: t('routine') }
             ]}
           />
         </div>
@@ -226,16 +226,16 @@ export function AnalyticsPage(): JSX.Element {
       {loading ? (
         <div className="flex h-64 items-center justify-center text-slate-400">
           <Clock className="me-2 animate-spin" size={20} />
-          <span>Aggregating analytics data...</span>
+          <span>{t('generating')}</span>
         </div>
       ) : !hasData ? (
         <Card className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
           <BarChart3 size={40} className="mb-3 text-slate-300 dark:text-slate-700" />
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            No analytics data available
+            {t('noAnalyticsData')}
           </h3>
           <p className="mt-1 max-w-sm text-xs text-slate-500">
-            There are no work items or logged time sessions matching your selected filters. Try broadening the filters or start logging work items.
+            {t('noAnalyticsDataDesc')}
           </p>
         </Card>
       ) : (
@@ -243,53 +243,53 @@ export function AnalyticsPage(): JSX.Element {
           {/* Key Metric KPI Cards */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Completion Rate</span>
+              <span className="text-[11px] text-slate-500">{t('completionRate')}</span>
               <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {data.completionRate}%
               </div>
               <span className="text-[10px] text-slate-400">
-                {data.completedTasks} / {data.totalTasks} tasks
+                {data.completedTasks} / {data.totalTasks} {t('tasks')}
               </span>
             </Card>
 
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Deadline Accuracy</span>
+              <span className="text-[11px] text-slate-500">{t('deadlineAccuracy')}</span>
               <div className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 {data.deadlinePerformanceRate}%
               </div>
-              <span className="text-[10px] text-slate-400">On-time completions</span>
+              <span className="text-[10px] text-slate-400">{t('onTimeCompletions')}</span>
             </Card>
 
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Overdue Tasks</span>
+              <span className="text-[11px] text-slate-500">{t('overdueTasks')}</span>
               <div className="mt-1 text-2xl font-bold text-rose-600 dark:text-rose-400">
                 {data.overdueTasks}
               </div>
-              <span className="text-[10px] text-slate-400">Past due date</span>
+              <span className="text-[10px] text-slate-400">{t('pastDueDate')}</span>
             </Card>
 
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Capacity Used</span>
+              <span className="text-[11px] text-slate-500">{t('capacityUsed')}</span>
               <div className="mt-1 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                 {data.capacityUtilization}%
               </div>
-              <span className="text-[10px] text-slate-400">Usable capacity</span>
+              <span className="text-[10px] text-slate-400">{t('usableCapacity')}</span>
             </Card>
 
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Actual Logged</span>
+              <span className="text-[11px] text-slate-500">{t('actualLogged')}</span>
               <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {data.actualMinutes}m
               </div>
-              <span className="text-[10px] text-slate-400">Timer & sessions</span>
+              <span className="text-[10px] text-slate-400">{t('timerAndSessions')}</span>
             </Card>
 
             <Card className="p-3.5">
-              <span className="text-[11px] text-slate-500">Total Planned</span>
+              <span className="text-[11px] text-slate-500">{t('totalPlanned')}</span>
               <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {data.plannedMinutes}m
               </div>
-              <span className="text-[10px] text-slate-400">Estimated duration</span>
+              <span className="text-[10px] text-slate-400">{t('estimatedDuration')}</span>
             </Card>
           </div>
 
@@ -298,7 +298,7 @@ export function AnalyticsPage(): JSX.Element {
             {/* Planned vs Scheduled vs Actual */}
             <Card className="p-5">
               <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Planned vs Scheduled vs Actual (Minutes)
+                {t('plannedVsScheduledVsActualMin')}
               </h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -331,11 +331,11 @@ export function AnalyticsPage(): JSX.Element {
             {/* Time by Area */}
             <Card className="p-5">
               <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Time Distribution by Area
+                {t('timeDistributionByArea')}
               </h3>
               {data.timeByArea.length === 0 ? (
                 <div className="flex h-64 items-center justify-center text-xs text-slate-400">
-                  No area time recorded
+                  {t('noAreaTimeRecorded')}
                 </div>
               ) : (
                 <div className="h-64 w-full">
@@ -377,11 +377,11 @@ export function AnalyticsPage(): JSX.Element {
           {/* Charts Row 2: Daily Trends (Scheduled vs Actual) */}
           <Card className="p-5">
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Daily Trends (Scheduled vs Actual Execution)
+              {t('dailyTrends')}
             </h3>
             {data.dailyTrends.length === 0 ? (
               <div className="flex h-56 items-center justify-center text-xs text-slate-400">
-                No daily historical data available
+                {t('noDailyTrends')}
               </div>
             ) : (
               <div className="h-64 w-full">
@@ -428,10 +428,10 @@ export function AnalyticsPage(): JSX.Element {
             {/* Time by Project */}
             <Card className="p-5">
               <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Time by Project
+                {t('timeByProject')}
               </h3>
               {data.timeByProject.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400">No project time recorded</div>
+                <div className="py-8 text-center text-xs text-slate-400">{t('noProjectTimeRecorded')}</div>
               ) : (
                 <div className="space-y-2">
                   {data.timeByProject.map((p) => (
@@ -452,10 +452,10 @@ export function AnalyticsPage(): JSX.Element {
             {/* Time by Goal */}
             <Card className="p-5">
               <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Time by Goal
+                {t('timeByGoal')}
               </h3>
               {data.timeByGoal.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400">No goal time recorded</div>
+                <div className="py-8 text-center text-xs text-slate-400">{t('noGoalTimeRecorded')}</div>
               ) : (
                 <div className="space-y-2">
                   {data.timeByGoal.map((g) => (
