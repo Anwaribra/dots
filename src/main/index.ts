@@ -126,6 +126,20 @@ import {
   listReplanningHistory,
   listPlanVersions
 } from './services/replanning-service'
+import {
+  getGoalProgress,
+  recordProgressSnapshot,
+  getProgressHistory,
+  listGoalMetrics,
+  createGoalMetric,
+  updateGoalMetric,
+  deleteGoalMetric
+} from './services/progress-service'
+import {
+  getAnalyticsOverview,
+  getDashboardWidgetsData
+} from './services/analytics-service'
+
 
 
 let mainWindow: BrowserWindow | undefined
@@ -519,6 +533,42 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.replanningGetVersions, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.replanningGetVersions].parse(input)
     return listPlanVersions(parsed.targetDate)
+  })
+
+  // Stage 10: Progress Engine, Goal Metrics, Analytics & Dashboard
+  ipcMain.handle(ipcChannels.progressGetGoal, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.progressGetGoal].parse(input)
+    return getGoalProgress(parsed.goalId)
+  })
+  ipcMain.handle(ipcChannels.progressRecordSnapshot, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.progressRecordSnapshot].parse(input)
+    return recordProgressSnapshot(parsed.entityType as any, parsed.entityId)
+  })
+  ipcMain.handle(ipcChannels.progressGetHistory, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.progressGetHistory].parse(input)
+    return getProgressHistory(parsed.entityType, parsed.entityId)
+  })
+  ipcMain.handle(ipcChannels.goalMetricsList, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.goalMetricsList].parse(input)
+    return listGoalMetrics(parsed.goalId)
+  })
+  ipcMain.handle(ipcChannels.goalMetricsCreate, (_event, input: unknown) => {
+    return createGoalMetric(ipcSchemas[ipcChannels.goalMetricsCreate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.goalMetricsUpdate, (_event, input: unknown) => {
+    return updateGoalMetric(ipcSchemas[ipcChannels.goalMetricsUpdate].parse(input) as any)
+  })
+  ipcMain.handle(ipcChannels.goalMetricsDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.goalMetricsDelete].parse(input)
+    deleteGoalMetric(parsed.id)
+  })
+  ipcMain.handle(ipcChannels.analyticsGetOverview, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.analyticsGetOverview].parse(input)
+    return getAnalyticsOverview(parsed || {})
+  })
+  ipcMain.handle(ipcChannels.dashboardGetData, (_event, input: unknown) => {
+    ipcSchemas[ipcChannels.dashboardGetData].parse(input)
+    return getDashboardWidgetsData()
   })
 }
 

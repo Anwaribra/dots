@@ -115,6 +115,89 @@ Migrations `0000_foundation` through `0008_replanning` create `settings`, `profi
 - Reviews: `review-policies:list/create/update/delete`, `review:attach/detach`, `review-events:record/list`, `review:get-due`, `review:sync-to-planner`
 - Replanning: `replanning:preview`, `replanning:apply`, `replanning:undo`, `replanning:get-history`, `replanning:get-versions`
 
+- **Stage 10 — Progress engine, analytics & dashboard**: Fully completed.
+  - **Pure Progress Engine** (`src/shared/progress-engine.ts`): Multi-mode goal progress calculation — `percentage` (current vs target), `count` (completed items / total), `duration` (completed minutes / total minutes — never raw count alone), `numeric` (custom value vs target), `milestone` (milestones checked / total), `weighted` (component sub-goals with weights summing to 100). Project progress weighted by item estimated duration. Composable and capped 0–100. Velocity and trend computed across progress history snapshots.
+  - **Pure Analytics Engine** (`src/shared/analytics-engine.ts`): Aggregates time by area, goal, project; planned vs scheduled vs actual breakdown; completion rate; deadline performance; reschedule/skip rates; overdue work count; capacity utilization; estimation accuracy distribution. Filters by date range, area, goal, project, tag, and item type. Handles empty datasets cleanly (no NaN, no crash).
+  - **Progress Service** (`src/main/services/progress-service.ts`): DB integration for progress snapshots (`progress_history` table in migration `0009_progress_analytics.sql`). `getGoalProgress()`, `recordProgressSnapshot()`, `getProgressHistory()`.
+  - **Goal Metrics Service** (`src/main/services/progress-service.ts`): CRUD for `goal_metrics` table — custom numeric metrics linked to goals (`name`, `unit`, `currentValue`, `targetValue`).
+  - **Analytics Service** (`src/main/services/analytics-service.ts`): Loads raw sessions, work items, scheduled items, areas, goals, projects from DB and feeds them to the analytics engine. `getAnalyticsOverview(filter?)` and `getDashboardWidgetsData()`.
+  - **Database Migration `0009_progress_analytics.sql`**: `progress_history` table (entityType, entityId, progress, notes, recordedAt) and `goal_metrics` table (goalId, name, unit, currentValue, targetValue).
+  - **IPC Channels**: `progress:get-goal`, `progress:record-snapshot`, `progress:get-history`, `goal-metrics:list/create/update/delete`, `analytics:get-overview`, `dashboard:get-data`.
+  - **Dashboard UI** (`src/renderer/src/pages/DashboardPage.tsx`): Fixed-layout widgets — Today's plan summary (completed / remaining / capacity %), Goal Progress cards with multi-mode progress bars, Planned vs Scheduled vs Actual (bar chart via recharts), Time by Area and Time by Project (pie charts), Upcoming Deadlines list.
+  - **Analytics UI** (`src/renderer/src/pages/AnalyticsPage.tsx`): Date-range, area, goal, project, tag, item-type filters. Overview cards (completion rate, deadline performance, estimation accuracy, utilisation). Planned/Scheduled/Actual area chart. Time breakdown charts. Completion rate trend. Full RTL support.
+  - **GoalsPage upgrade** (`src/renderer/src/pages/GoalsPage.tsx`): Progress widget per goal (mode indicator, progress bar, history chart, manual snapshot recording), goal metrics editor, inline milestone progress.
+  - **ProjectsPage upgrade** (`src/renderer/src/pages/ProjectsPage.tsx`): Workload and progress widgets per project (weighted progress, velocity indicator, capacity utilisation bar).
+  - **Localisation**: Dashboard and analytics keys added to `en/common.json` and `ar/common.json`.
+  - **Tests**: `tests/progress-analytics.test.ts` — 15/15 passing. Covers all 6 progress modes, weighted calculation, edge cases (empty data, over-100 caps), project progress, velocity/trend, analytics breakdowns, filters, and empty-dataset safety.
+  - **0 TypeScript errors** (`npm run typecheck` exit code 0).
+
+## How to run
+
+```powershell
+cmd /c npm run typecheck
+cmd /c npx vitest run tests/replanning.test.ts tests/scheduler.test.ts tests/capacity.test.ts tests/time-math.test.ts tests/bulk-parser.test.ts tests/dependency-cycle.test.ts tests/recurrence.test.ts tests/entity-schemas.test.ts tests/settings-schema.test.ts tests/progress-analytics.test.ts
+cmd /c npm run dev
+```
+
+## Folder tree
+
+```text
+src/
+├── main/
+│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0009)
+│   ├── scheduler/   # pure deterministic planning & replanning engines (constraints, scoring, allocation, capacity, dependencies, scheduling, replanning, explanations, types)
+│   ├── services/    # domain services (settings-service, entity-service, planning-service, replanning-service, session-service, timer-service, notification-service, backup-service, review-service, progress-service, analytics-service)
+│   └── index.ts     # main process & IPC handler registration
+├── preload/
+│   └── index.ts     # contextBridge API exposing typed planner IPC bridge
+├── renderer/
+│   ├── src/
+│   │   ├── components/  # UI primitives, ReplanPreviewModal, PlanHistoryModal, BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
+│   │   ├── locales/     # en/common.json, ar/common.json
+│   │   ├── pages/       # TodayPage, InboxPage, WeeklyPlannerPage, ReviewPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, DashboardPage, AnalyticsPage
+│   │   ├── App.tsx      # Main application shell with sidebar & topbar
+│   │   ├── i18n.ts
+│   │   └── main.tsx
+│   └── index.html
+└── shared/          # Zod schemas, bulk-parser.ts, dependency-utils.ts, capacity.ts, recurrence.ts, time-math.ts, review-engine.ts, progress-engine.ts, analytics-engine.ts & IPC contract (ipc.ts)
+```
+
+## Database
+
+Migrations `0000_foundation` through `0009_progress_analytics` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, `scheduled_items`, `time_sessions`, `review_policies`, `review_events`, `replanning_history`, `plan_versions`, `progress_history`, and `goal_metrics`.
+
+## IPC channels
+
+- Settings: `settings:get`, `settings:update`
+- Areas: `areas:list`, `areas:create`, `areas:update`
+- Goals: `goals:list`, `goals:create`, `goals:update`
+- Milestones: `milestones:list`, `milestones:create`, `milestones:update`
+- Projects: `projects:list`, `projects:create`, `projects:update`
+- Work Item Types: `work-item-types:list`, `work-item-types:create`, `work-item-types:update`
+- Custom Field Defs: `custom-field-defs:list`, `custom-field-defs:create`, `custom-field-defs:update`
+- Custom Field Values: `custom-field-values:get`, `custom-field-values:set`
+- Work Items: `work-items:list`, `work-items:create`, `work-items:update`
+- Tags: `tags:list`, `tags:create`, `tags:attach`, `tags:detach`, `tags:get-for-entity`
+- Notes: `notes:list`, `notes:create`, `notes:delete`
+- Resources: `resources:list`, `resources:get`, `resources:create`, `resources:update`, `resources:duplicate`
+- Resource Items: `resource-items:list`, `resource-items:create`, `resource-items:update`, `resource-items:bulk-add`, `resource-items:reorder`, `resource-items:link-work-item`
+- Dependencies: `dependencies:list`, `dependencies:create`, `dependencies:delete`
+- Availability & Capacity: `availability-rules:list`, `availability-rules:update`, `availability-overrides:list`, `availability-overrides:create`, `availability-overrides:delete`, `capacity:calculate`
+- Fixed Events: `fixed-events:list`, `fixed-events:create`, `fixed-events:update`
+- Time Budgets: `time-budgets:list`, `time-budgets:create`, `time-budgets:update`
+- Routines & Habits: `routines:list`, `routines:create`, `routines:update`, `habits:list`, `habits:create`, `habits:update`, `habits:log`, `habits:list-logs`
+- Entity Management: `entities:archive`, `entities:restore`, `entities:delete`
+- Planning Engine: `planning:generate-week`, `planning:get-schedule`, `planning:clear-schedule`, `planning:update-schedule-item`, `planning:create-schedule-item`, `planning:delete-schedule-item`
+- Sessions: `sessions:list`, `sessions:create`, `sessions:update`, `sessions:delete`
+- Timer: `timer:get-state`, `timer:start`, `timer:pause`, `timer:resume`, `timer:stop`, `timer:complete`, `timer:add-time`
+- Backup: `backup:export-json`, `backup:restore`, `backup:create-db`
+- Reviews: `review-policies:list/create/update/delete`, `review:attach/detach`, `review-events:record/list`, `review:get-due`, `review:sync-to-planner`
+- Replanning: `replanning:preview`, `replanning:apply`, `replanning:undo`, `replanning:get-history`, `replanning:get-versions`
+- Progress: `progress:get-goal`, `progress:record-snapshot`, `progress:get-history`
+- Goal Metrics: `goal-metrics:list`, `goal-metrics:create`, `goal-metrics:update`, `goal-metrics:delete`
+- Analytics: `analytics:get-overview`
+- Dashboard: `dashboard:get-data`
+
 ## Next stage
 
-- Stage 10 — Progress and basic analytics: Progress engine, history, goal metrics, analytics, goal and project pages, a fixed-layout dashboard.
+- Stage 11 — Notifications, reminders, and smart suggestions.

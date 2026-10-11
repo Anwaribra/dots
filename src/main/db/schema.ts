@@ -27,7 +27,7 @@ const audit = { createdAt: integer('created_at').notNull(), updatedAt: integer('
 
 export const areas = sqliteTable('areas', { id: text('id').primaryKey(), name: text('name').notNull(), description: text('description'), icon: text('icon'), color: text('color'), sortOrder: integer('sort_order').notNull().default(0), ...audit })
 export const goals = sqliteTable('goals', { id: text('id').primaryKey(), areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }), title: text('title').notNull(), description: text('description'), priority: text('priority').notNull().default('medium'), status: text('status').notNull().default('active'), startDate: text('start_date'), targetDate: text('target_date'), measurementType: text('measurement_type').notNull().default('percentage'), progressMode: text('progress_mode').notNull().default('manual'), targetValue: integer('target_value'), currentValue: integer('current_value').notNull().default(0), unit: text('unit'), ...audit })
-export const milestones = sqliteTable('milestones', { id: text('id').primaryKey(), goalId: text('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }), title: text('title').notNull(), description: text('description'), orderIndex: integer('order_index').notNull().default(0), targetDate: text('target_date'), status: text('status').notNull().default('active'), progress: integer('progress').notNull().default(0), ...audit })
+export const milestones = sqliteTable('milestones', { id: text('id').primaryKey(), goalId: text('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }), title: text('title').notNull(), description: text('description'), orderIndex: integer('order_index').notNull().default(0), targetDate: text('target_date'), status: text('status').notNull().default('active'), progress: integer('progress').notNull().default(0), weight: integer('weight').notNull().default(1), ...audit })
 export const projects = sqliteTable('projects', { id: text('id').primaryKey(), areaId: text('area_id').references(() => areas.id, { onDelete: 'set null' }), goalId: text('goal_id').references(() => goals.id, { onDelete: 'set null' }), milestoneId: text('milestone_id').references(() => milestones.id, { onDelete: 'set null' }), parentProjectId: text('parent_project_id'), title: text('title').notNull(), description: text('description'), priority: text('priority').notNull().default('medium'), status: text('status').notNull().default('active'), startDate: text('start_date'), deadline: text('deadline'), estimatedMinutes: integer('estimated_minutes').notNull().default(0), completedMinutes: integer('completed_minutes').notNull().default(0), progress: integer('progress').notNull().default(0), ...audit })
 export const workItemTypes = sqliteTable('work_item_types', { id: text('id').primaryKey(), name: text('name').notNull(), builtIn: integer('built_in', { mode: 'boolean' }).notNull().default(false), color: text('color'), icon: text('icon'), sortOrder: integer('sort_order').notNull().default(0), ...audit })
 export const customFieldDefinitions = sqliteTable('custom_field_definitions', { id: text('id').primaryKey(), workItemTypeId: text('work_item_type_id').notNull().references(() => workItemTypes.id, { onDelete: 'cascade' }), name: text('name').notNull(), fieldType: text('field_type').notNull(), options: text('options'), required: integer('required', { mode: 'boolean' }).notNull().default(false), sortOrder: integer('sort_order').notNull().default(0), createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull() })
@@ -263,4 +263,30 @@ export const planVersions = sqliteTable('plan_versions', {
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
+
+// Stage 10 Tables: Progress Engine, Goal Metrics & Progress History
+
+export const goalMetrics = sqliteTable('goal_metrics', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  unit: text('unit'),
+  currentValue: integer('current_value').notNull().default(0),
+  targetValue: integer('target_value').notNull().default(100),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
+export const progressHistory = sqliteTable('progress_history', {
+  id: text('id').primaryKey(),
+  entityType: text('entity_type').notNull(), // 'goal' | 'project' | 'milestone'
+  entityId: text('entity_id').notNull(),
+  progress: integer('progress').notNull(),
+  recordedDate: text('recorded_date').notNull(), // YYYY-MM-DD
+  timestamp: integer('timestamp').notNull(),
+  notes: text('notes'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})
+
 

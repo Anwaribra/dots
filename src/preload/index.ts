@@ -176,6 +176,23 @@ const api = {
     undo: (targetDate: string) => ipcRenderer.invoke('replanning:undo', { targetDate }),
     getHistory: (targetDate?: string) => ipcRenderer.invoke('replanning:get-history', targetDate ? { targetDate } : undefined),
     getVersions: (targetDate: string) => ipcRenderer.invoke('replanning:get-versions', { targetDate })
+  },
+  progress: {
+    getGoal: (goalId: string) => ipcRenderer.invoke('progress:get-goal', { goalId }),
+    recordSnapshot: (input: unknown) => ipcRenderer.invoke('progress:record-snapshot', input),
+    getHistory: (entityType: string, entityId: string) => ipcRenderer.invoke('progress:get-history', { entityType, entityId })
+  },
+  goalMetrics: {
+    list: (goalId: string) => ipcRenderer.invoke('goal-metrics:list', { goalId }),
+    create: (input: unknown) => ipcRenderer.invoke('goal-metrics:create', input),
+    update: (input: unknown) => ipcRenderer.invoke('goal-metrics:update', input),
+    delete: (id: string) => ipcRenderer.invoke('goal-metrics:delete', { id })
+  },
+  analytics: {
+    getOverview: (filter?: unknown) => ipcRenderer.invoke('analytics:get-overview', filter)
+  },
+  dashboard: {
+    getData: (nowDate?: string) => ipcRenderer.invoke('dashboard:get-data', nowDate ? { nowDate } : undefined)
   }
 }
 

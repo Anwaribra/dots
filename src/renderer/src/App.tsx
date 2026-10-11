@@ -33,13 +33,18 @@ import { TodayPage } from './pages/TodayPage'
 import { InboxPage } from './pages/InboxPage'
 import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage'
 import { ReviewPage } from './pages/ReviewPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { AnalyticsPage } from './pages/AnalyticsPage'
 import { QuickAddModal } from './components/QuickAddModal'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { LayoutDashboard, BarChart2 } from 'lucide-react'
 
 const navigation = [
+  ['dashboard', LayoutDashboard],
   ['today', CalendarDays],
   ['inbox', Inbox],
   ['planner', ClipboardList],
+  ['analytics', BarChart2],
   ['goals', GoalIcon],
   ['projects', FolderKanban],
   ['areas', Layers],
@@ -189,7 +194,11 @@ export function App(): JSX.Element {
           </div>
         </header>
 
-        {active === 'areas' ? (
+        {active === 'dashboard' ? (
+          <DashboardPage onNavigate={setActive} />
+        ) : active === 'analytics' ? (
+          <AnalyticsPage />
+        ) : active === 'areas' ? (
           <AreasPage />
         ) : active === 'goals' ? (
           <GoalsPage />

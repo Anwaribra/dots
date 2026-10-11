@@ -8,6 +8,9 @@ import type {
   ReplanningHistoryItem,
   PlanVersionItem
 } from '../main/scheduler/types'
+import type { GoalProgressResult } from './progress-engine'
+import type { AnalyticsFilter, AnalyticsOverview } from './analytics-engine'
+import type { DashboardData } from '../main/services/analytics-service'
 import {
   archiveEntitySchema,
   attachTagSchema,
@@ -219,6 +222,17 @@ export const ipcChannels = {
   replanningUndo: 'replanning:undo',
   replanningGetHistory: 'replanning:get-history',
   replanningGetVersions: 'replanning:get-versions',
+
+  // Stage 10 Channels: Progress Engine, Metrics, Analytics & Dashboard
+  progressGetGoal: 'progress:get-goal',
+  progressRecordSnapshot: 'progress:record-snapshot',
+  progressGetHistory: 'progress:get-history',
+  goalMetricsList: 'goal-metrics:list',
+  goalMetricsCreate: 'goal-metrics:create',
+  goalMetricsUpdate: 'goal-metrics:update',
+  goalMetricsDelete: 'goal-metrics:delete',
+  analyticsGetOverview: 'analytics:get-overview',
+  dashboardGetData: 'dashboard:get-data',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -458,6 +472,47 @@ export const ipcSchemas = {
     targetDate: z.string()
   }),
 
+  // Stage 10: Progress, Metrics, Analytics & Dashboard
+  [ipcChannels.progressGetGoal]: z.object({ goalId: z.string().uuid() }),
+  [ipcChannels.progressRecordSnapshot]: z.object({
+    entityType: z.enum(['goal', 'project', 'milestone']),
+    entityId: z.string().uuid(),
+    progress: z.number().optional(),
+    notes: z.string().optional()
+  }),
+  [ipcChannels.progressGetHistory]: z.object({
+    entityType: z.string(),
+    entityId: z.string().uuid()
+  }),
+  [ipcChannels.goalMetricsList]: z.object({ goalId: z.string().uuid() }),
+  [ipcChannels.goalMetricsCreate]: z.object({
+    goalId: z.string().uuid(),
+    name: z.string().trim().min(1),
+    unit: z.string().optional(),
+    currentValue: z.number().optional(),
+    targetValue: z.number().optional()
+  }),
+  [ipcChannels.goalMetricsUpdate]: z.object({
+    id: z.string().uuid(),
+    name: z.string().trim().min(1).optional(),
+    unit: z.string().optional(),
+    currentValue: z.number().optional(),
+    targetValue: z.number().optional()
+  }),
+  [ipcChannels.goalMetricsDelete]: z.object({ id: z.string().uuid() }),
+  [ipcChannels.analyticsGetOverview]: z.object({
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    areaId: z.string().optional(),
+    goalId: z.string().optional(),
+    projectId: z.string().optional(),
+    tagId: z.string().optional(),
+    itemType: z.string().optional()
+  }).optional(),
+  [ipcChannels.dashboardGetData]: z.object({
+    nowDate: z.string().optional()
+  }).optional(),
+
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
   [ipcChannels.entityDelete]: deleteEntitySchema
@@ -666,5 +721,22 @@ export type PlannerApi = {
     undo: (targetDate: string) => Promise<{ success: boolean; restoredSchedule: SchedulerScheduleItem[] }>
     getHistory: (targetDate?: string) => Promise<ReplanningHistoryItem[]>
     getVersions: (targetDate: string) => Promise<PlanVersionItem[]>
+  }
+  progress: {
+    getGoal: (goalId: string) => Promise<GoalProgressResult>
+    recordSnapshot: (input: { entityType: 'goal' | 'project' | 'milestone'; entityId: string; progress?: number; notes?: string }) => Promise<void>
+    getHistory: (entityType: string, entityId: string) => Promise<any[]>
+  }
+  goalMetrics: {
+    list: (goalId: string) => Promise<any[]>
+    create: (input: { goalId: string; name: string; unit?: string; currentValue?: number; targetValue?: number }) => Promise<any>
+    update: (input: { id: string; name?: string; unit?: string; currentValue?: number; targetValue?: number }) => Promise<any>
+    delete: (id: string) => Promise<void>
+  }
+  analytics: {
+    getOverview: (filter?: AnalyticsFilter) => Promise<AnalyticsOverview>
+  }
+  dashboard: {
+    getData: (nowDate?: string) => Promise<DashboardData>
   }
 }

@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Archive, CheckCircle2, Plus, Trash2 } from 'lucide-react'
-import type { Area, Goal, Milestone } from '../../../shared/entities'
+import {
+  Archive,
+  CheckCircle2,
+  Plus,
+  Trash2,
+  Camera,
+  TrendingUp,
+  Target,
+  Clock,
+  Compass,
+  FolderKanban,
+  Edit2
+} from 'lucide-react'
+import type { Area, Goal, Milestone, Project } from '../../../shared/entities'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
@@ -10,47 +22,91 @@ import { Badge } from '../components/ui/badge'
 import { Dialog } from '../components/ui/dialog'
 import { NotesWidget } from '../components/NotesWidget'
 import { DeleteDialog } from '../components/DeleteDialog'
+import type { GoalProgressResult } from '../../../shared/progress-engine'
 
 export function GoalsPage(): JSX.Element {
   const { t } = useTranslation()
   const [goals, setGoals] = useState<Goal[]>([])
   const [areas, setAreas] = useState<Area[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [areaId, setAreaId] = useState<string>('')
   const [priority, setPriority] = useState<'critical' | 'high' | 'medium' | 'low'>('medium')
   const [targetDate, setTargetDate] = useState('')
-  const [measurementType, setMeasurementType] = useState('percentage')
+  const [measurementType, setMeasurementType] = useState('duration')
   const [targetValue, setTargetValue] = useState<number | ''>('')
   const [unit, setUnit] = useState('')
+
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null)
+
+  // Goal Progress & History
+  const [goalProgress, setGoalProgress] = useState<GoalProgressResult | null>(null)
+  const [history, setHistory] = useState<any[]>([])
+
+  // Milestones
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('')
+  const [newMilestoneWeight, setNewMilestoneWeight] = useState<number>(20)
+
+  // Custom Metrics
+  const [metrics, setMetrics] = useState<any[]>([])
+  const [isMetricModalOpen, setIsMetricModalOpen] = useState(false)
+  const [metricName, setMetricName] = useState('')
+  const [metricCurrent, setMetricCurrent] = useState<number>(0)
+  const [metricTarget, setMetricTarget] = useState<number>(100)
+  const [metricUnit, setMetricUnit] = useState('')
+
   const [deleteTarget, setDeleteTarget] = useState<Goal | null>(null)
 
   const planner = window.planner
 
   const refreshGoals = async (): Promise<void> => {
     if (!planner) return
-    const [gList, aList] = await Promise.all([planner.goals.list(), planner.areas.list()])
+    const [gList, aList, pList] = await Promise.all([
+      planner.goals.list(),
+      planner.areas.list(),
+      planner.projects.list()
+    ])
     setGoals(gList)
     setAreas(aList)
+    setProjects(pList)
   }
 
   useEffect(() => {
     void refreshGoals()
   }, [])
 
-  const refreshMilestones = async (gId: string): Promise<void> => {
+  const refreshDetailGoalData = async (g: Goal): Promise<void> => {
     if (!planner) return
-    const list = await planner.milestones.list(gId)
-    setMilestones(list)
+    try {
+      const [mList, pRes, hList, metList] = await Promise.all([
+        planner.milestones.list(g.id),
+        planner.progress ? planner.progress.getGoal(g.id) : null,
+        planner.progress ? planner.progress.getHistory('goal', g.id) : [],
+        planner.goalMetrics ? planner.goalMetrics.list(g.id) : []
+      ])
+      setMilestones(mList)
+      setGoalProgress(pRes)
+      setHistory(hList)
+      setMetrics(metList)
+    } catch (err) {
+      console.error('Failed to load goal detail data:', err)
+    }
   }
 
   useEffect(() => {
-    if (detailGoal) void refreshMilestones(detailGoal.id)
+    if (detailGoal) {
+      void refreshDetailGoalData(detailGoal)
+    } else {
+      setGoalProgress(null)
+      setMilestones([])
+      setHistory([])
+      setMetrics([])
+    }
   }, [detailGoal])
 
   const handleCreateOrUpdate = async (): Promise<void> => {
@@ -67,6 +123,9 @@ export function GoalsPage(): JSX.Element {
         targetValue: targetValue === '' ? null : Number(targetValue),
         unit: unit.trim() || null
       })
+      if (detailGoal?.id === selectedGoal.id) {
+        setDetailGoal({ ...selectedGoal, title: title.trim(), measurementType: measurementType as any })
+      }
     } else {
       await planner.goals.create({
         title: title.trim(),
@@ -90,7 +149,7 @@ export function GoalsPage(): JSX.Element {
     setAreaId('')
     setPriority('medium')
     setTargetDate('')
-    setMeasurementType('percentage')
+    setMeasurementType('duration')
     setTargetValue('')
     setUnit('')
     setIsModalOpen(true)
@@ -103,7 +162,7 @@ export function GoalsPage(): JSX.Element {
     setAreaId(goal.areaId || '')
     setPriority(goal.priority)
     setTargetDate(goal.targetDate || '')
-    setMeasurementType(goal.measurementType)
+    setMeasurementType(goal.measurementType || 'duration')
     setTargetValue(goal.targetValue ?? '')
     setUnit(goal.unit || '')
     setIsModalOpen(true)
@@ -118,10 +177,12 @@ export function GoalsPage(): JSX.Element {
     if (!newMilestoneTitle.trim() || !detailGoal || !planner) return
     await planner.milestones.create({
       goalId: detailGoal.id,
-      title: newMilestoneTitle.trim()
-    })
+      title: newMilestoneTitle.trim(),
+      weight: Number(newMilestoneWeight) || 1
+    } as any)
     setNewMilestoneTitle('')
-    await refreshMilestones(detailGoal.id)
+    setNewMilestoneWeight(20)
+    await refreshDetailGoalData(detailGoal)
   }
 
   const handleToggleMilestone = async (m: Milestone): Promise<void> => {
@@ -133,7 +194,45 @@ export function GoalsPage(): JSX.Element {
       status: nextStatus as any,
       progress: nextProgress
     })
-    await refreshMilestones(detailGoal.id)
+    await refreshDetailGoalData(detailGoal)
+  }
+
+  const handleRecordSnapshot = async (): Promise<void> => {
+    if (!detailGoal || !planner?.progress) return
+    await planner.progress.recordSnapshot({ entityType: 'goal', entityId: detailGoal.id })
+    await refreshDetailGoalData(detailGoal)
+  }
+
+  const handleSaveMetric = async (): Promise<void> => {
+    if (!metricName.trim() || !detailGoal || !planner?.goalMetrics) return
+    await planner.goalMetrics.create({
+      goalId: detailGoal.id,
+      name: metricName.trim(),
+      currentValue: Number(metricCurrent) || 0,
+      targetValue: Number(metricTarget) || 0,
+      unit: metricUnit.trim() || undefined
+    })
+    setIsMetricModalOpen(false)
+    setMetricName('')
+    setMetricCurrent(0)
+    setMetricTarget(100)
+    setMetricUnit('')
+    await refreshDetailGoalData(detailGoal)
+  }
+
+  const handleUpdateMetricValue = async (metricId: string, current: number): Promise<void> => {
+    if (!planner?.goalMetrics || !detailGoal) return
+    await planner.goalMetrics.update({
+      id: metricId,
+      currentValue: current
+    })
+    await refreshDetailGoalData(detailGoal)
+  }
+
+  const handleDeleteMetric = async (metricId: string): Promise<void> => {
+    if (!planner?.goalMetrics || !detailGoal) return
+    await planner.goalMetrics.delete(metricId)
+    await refreshDetailGoalData(detailGoal)
   }
 
   const handleDeleteGoal = async (childAction?: 'detach' | 'archive'): Promise<void> => {
@@ -144,13 +243,16 @@ export function GoalsPage(): JSX.Element {
     await refreshGoals()
   }
 
+  const linkedProjects = detailGoal ? projects.filter((p) => p.goalId === detailGoal.id) : []
+
   return (
     <div className="space-y-6">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('goals')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Desired outcomes. Area association is optional.
+            High-level outcomes powered by the multi-model Progress Engine.
           </p>
         </div>
         <Button onClick={openCreateModal}>
@@ -159,129 +261,297 @@ export function GoalsPage(): JSX.Element {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {goals.map((goal) => {
-              const matchedArea = areas.find((a) => a.id === goal.areaId)
-              return (
-                <Card
-                  key={goal.id}
-                  className={`cursor-pointer transition-shadow hover:shadow-md ${
-                    detailGoal?.id === goal.id ? 'ring-2 ring-indigo-500' : ''
-                  }`}
-                  onClick={() => setDetailGoal(goal)}
-                >
-                  <div className="flex items-start justify-between">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Goals List (Left 5 Cols) */}
+        <div className="space-y-3 lg:col-span-5">
+          {goals.map((goal) => {
+            const isSelected = detailGoal?.id === goal.id
+            const matchedArea = areas.find((a) => a.id === goal.areaId)
+            return (
+              <Card
+                key={goal.id}
+                onClick={() => setDetailGoal(goal)}
+                className={`cursor-pointer p-4 transition-all ${
+                  isSelected
+                    ? 'border-indigo-500 bg-indigo-50/20 ring-1 ring-indigo-500 dark:bg-indigo-950/20'
+                    : 'hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">{goal.title}</h3>
-                    <Badge variant={goal.priority}>{t(goal.priority)}</Badge>
+                    {goal.description && (
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-500">{goal.description}</p>
+                    )}
                   </div>
-                  {goal.description && (
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
-                      {goal.description}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                    <span>{matchedArea ? matchedArea.name : t('noArea')}</span>
-                    {goal.targetDate && <span>Due: {goal.targetDate}</span>}
-                  </div>
-                  <div className="mt-3 flex justify-end space-x-1 space-x-reverse">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openEditModal(goal)
-                      }}
-                    >
-                      {t('edit')}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setDeleteTarget(goal)
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-
-        <div>
-          {detailGoal ? (
-            <Card className="space-y-4 sticky top-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {detailGoal.title}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {areas.find((a) => a.id === detailGoal.areaId)?.name ?? t('noArea')}
-                  </p>
+                  <Badge variant={goal.priority}>{t(goal.priority)}</Badge>
                 </div>
-                <Badge variant={detailGoal.priority}>{t(detailGoal.priority)}</Badge>
-              </div>
 
-              {detailGoal.description && (
-                <p className="text-sm text-slate-600 dark:text-slate-400">{detailGoal.description}</p>
-              )}
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <span className="rounded bg-slate-100 px-2 py-0.5 capitalize dark:bg-slate-800">
+                    Mode: {goal.measurementType || 'duration'}
+                  </span>
+                  {matchedArea && (
+                    <span className="rounded bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      {matchedArea.name}
+                    </span>
+                  )}
+                  {goal.targetDate && <span>Due: {goal.targetDate}</span>}
+                </div>
 
-              <div className="border-t border-slate-200 pt-3 dark:border-slate-800 space-y-2">
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {t('milestones')}
-                </h4>
-                <div className="flex space-x-2 space-x-reverse">
-                  <Input
-                    placeholder="New milestone..."
-                    value={newMilestoneTitle}
-                    onChange={(e) => setNewMilestoneTitle(e.target.value)}
-                  />
-                  <Button size="sm" onClick={() => void handleAddMilestone()}>
-                    <Plus size={16} />
+                <div className="mt-3 flex justify-end space-x-2 space-x-reverse border-t border-slate-100 pt-2 dark:border-slate-800">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openEditModal(goal)
+                    }}
+                  >
+                    {t('edit')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeleteTarget(goal)
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={16} />
                   </Button>
                 </div>
-                <div className="space-y-1 pt-1">
-                  {milestones.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => void handleToggleMilestone(m)}
-                      className="flex cursor-pointer items-center space-x-2 space-x-reverse rounded-md p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      <CheckCircle2
-                        size={18}
-                        className={m.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}
-                      />
-                      <span
-                        className={`text-sm ${
-                          m.status === 'completed'
-                            ? 'line-through text-slate-400'
-                            : 'text-slate-800 dark:text-slate-200'
-                        }`}
-                      >
-                        {m.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </Card>
+            )
+          })}
+        </div>
 
+        {/* Goal Detail View (Right 7 Cols) */}
+        <div className="lg:col-span-7">
+          {detailGoal ? (
+            <div className="space-y-6">
+              {/* Progress Summary Card */}
+              <Card className="p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                      {detailGoal.title}
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      Calculation: {goalProgress?.details || 'Evaluating progress...'}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => void handleRecordSnapshot()}>
+                    <Camera size={14} className="me-1 text-indigo-600" />
+                    Record Snapshot
+                  </Button>
+                </div>
+
+                {/* Progress Bar & Metric Numbers */}
+                <div className="mt-4">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                      {goalProgress?.progressPercentage ?? 0}%
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Invested: {goalProgress?.completedWorkloadMinutes ?? 0}m / Total:{' '}
+                      {goalProgress?.totalWorkloadMinutes ?? 0}m
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div
+                      className="h-full rounded-full bg-indigo-600 transition-all duration-300"
+                      style={{ width: `${goalProgress?.progressPercentage ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Snapshots & History Trend */}
+                {history.length > 0 && (
+                  <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+                    <div className="flex items-center space-x-1.5 space-x-reverse text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      <TrendingUp size={14} className="text-emerald-500" />
+                      <span>Progress Snapshots ({history.length} recorded)</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      {history.slice(-4).map((h) => (
+                        <span
+                          key={h.id}
+                          className="rounded bg-slate-100 px-2 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        >
+                          {h.snapshotDate}: <strong className="text-slate-900 dark:text-slate-100">{h.progressPercentage}%</strong>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* Milestones with Component Weights */}
+              <Card className="p-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                    Milestones & Component Weights
+                  </h3>
+                  <span className="text-xs text-slate-400">
+                    {milestones.filter((m) => m.status === 'completed').length}/{milestones.length} completed
+                  </span>
+                </div>
+
+                <div className="mt-3 flex space-x-2 space-x-reverse">
+                  <Input
+                    placeholder="Add milestone (e.g. Validation, MVP, Marketing)"
+                    value={newMilestoneTitle}
+                    onChange={(e) => setNewMilestoneTitle(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Weight %"
+                    value={newMilestoneWeight}
+                    onChange={(e) => setNewMilestoneWeight(Number(e.target.value))}
+                    className="w-24"
+                    title="Weight percentage for weighted mode"
+                  />
+                  <Button onClick={() => void handleAddMilestone()}>Add</Button>
+                </div>
+
+                <div className="mt-3 space-y-1">
+                  {milestones.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-400">
+                      No milestones created yet.
+                    </div>
+                  ) : (
+                    milestones.map((m) => (
+                      <div
+                        key={m.id}
+                        onClick={() => void handleToggleMilestone(m)}
+                        className="flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-slate-50 dark:hover:bg-slate-900/40"
+                      >
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <CheckCircle2
+                            size={18}
+                            className={
+                              m.status === 'completed' ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'
+                            }
+                          />
+                          <span
+                            className={`text-sm ${
+                              m.status === 'completed'
+                                ? 'line-through text-slate-400'
+                                : 'text-slate-800 dark:text-slate-200'
+                            }`}
+                          >
+                            {m.title}
+                          </span>
+                        </div>
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-slate-800">
+                          Weight: {(m as any).weight ?? 1}%
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </Card>
+
+              {/* Custom Numeric Metrics (Section 78) */}
+              <Card className="p-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Target size={16} className="text-indigo-600" />
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                      Custom Numeric Metrics
+                    </h3>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setIsMetricModalOpen(true)}>
+                    <Plus size={14} className="me-1" />
+                    Add Metric
+                  </Button>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {metrics.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-400">
+                      No custom metrics tracked. (e.g. pages, kilometers, hours, money)
+                    </div>
+                  ) : (
+                    metrics.map((met) => {
+                      const pct = met.targetValue > 0 ? Math.min(100, Math.round((met.currentValue / met.targetValue) * 100)) : 0
+                      return (
+                        <div
+                          key={met.id}
+                          className="flex items-center justify-between rounded-lg border border-slate-100 p-2.5 dark:border-slate-800"
+                        >
+                          <div>
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                              {met.name}
+                            </span>
+                            <div className="text-[11px] text-slate-500">
+                              {met.currentValue} / {met.targetValue} {met.unit || ''} ({pct}%)
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1.5 space-x-reverse">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void handleUpdateMetricValue(met.id, met.currentValue + 1)}
+                            >
+                              +1
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleDeleteMetric(met.id)}
+                              className="text-red-500"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </Card>
+
+              {/* Linked Projects */}
+              <Card className="p-5">
+                <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
+                  Linked Projects ({linkedProjects.length})
+                </h3>
+                {linkedProjects.length === 0 ? (
+                  <div className="py-4 text-center text-xs text-slate-400">
+                    No projects linked to this goal.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {linkedProjects.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between rounded-md bg-slate-50 p-2 text-xs dark:bg-slate-900/40"
+                      >
+                        <span className="font-medium text-slate-800 dark:text-slate-200">{p.title}</span>
+                        <Badge variant={p.priority}>{p.priority}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              {/* Notes */}
               <NotesWidget entityType="goal" entityId={detailGoal.id} />
-            </Card>
+            </div>
           ) : (
-            <Card className="p-8 text-center text-slate-400">
-              Select a goal to view milestones and notes.
+            <Card className="p-12 text-center text-slate-400">
+              <Compass size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-700" />
+              Select a goal to view progress breakdown, milestones, metrics and history.
             </Card>
           )}
         </div>
       </div>
 
+      {/* Goal Create/Edit Dialog */}
       <Dialog
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -292,13 +562,26 @@ export function GoalsPage(): JSX.Element {
             label={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Learn TypeScript, Pass Certification, Read 20 books"
+            placeholder="e.g. Launch Business, Master TypeScript"
           />
           <Input
             label={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Optional description"
+          />
+          <Select
+            label="Progress Calculation Mode"
+            value={measurementType}
+            onChange={(e) => setMeasurementType(e.target.value)}
+            options={[
+              { value: 'duration', label: 'Duration Weighted (Completed vs Total Time)' },
+              { value: 'weighted', label: 'Weighted Components (Milestone Component %)' },
+              { value: 'count', label: 'Task Count (Completed / Total Tasks)' },
+              { value: 'milestone', label: 'Milestone Average (Completed Milestones)' },
+              { value: 'numeric', label: 'Numeric Target (Current / Target Value)' },
+              { value: 'percentage', label: 'Manual Percentage (0 - 100%)' }
+            ]}
           />
           <Select
             label={t('area')}
@@ -338,6 +621,49 @@ export function GoalsPage(): JSX.Element {
         </div>
       </Dialog>
 
+      {/* Add Custom Metric Dialog */}
+      <Dialog
+        isOpen={isMetricModalOpen}
+        onClose={() => setIsMetricModalOpen(false)}
+        title="Add Custom Metric"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Metric Name"
+            placeholder="e.g. Pages Read, Kilometers, Money Saved"
+            value={metricName}
+            onChange={(e) => setMetricName(e.target.value)}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Current Value"
+              type="number"
+              value={metricCurrent}
+              onChange={(e) => setMetricCurrent(Number(e.target.value))}
+            />
+            <Input
+              label="Target Value"
+              type="number"
+              value={metricTarget}
+              onChange={(e) => setMetricTarget(Number(e.target.value))}
+            />
+          </div>
+          <Input
+            label="Unit (Optional)"
+            placeholder="e.g. km, pages, USD, reps"
+            value={metricUnit}
+            onChange={(e) => setMetricUnit(e.target.value)}
+          />
+          <div className="flex justify-end space-x-2 space-x-reverse pt-2">
+            <Button variant="ghost" onClick={() => setIsMetricModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => void handleSaveMetric()}>Save Metric</Button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Delete Dialog */}
       {deleteTarget && (
         <DeleteDialog
           isOpen={!!deleteTarget}
