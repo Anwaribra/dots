@@ -10,13 +10,17 @@ import {
   customFieldValues,
   entityTags,
   fixedEvents,
+  goalMetrics,
   goals,
   habitLogs,
   habits,
   milestones,
   notes,
+  planVersions,
   profiles,
+  progressHistory,
   projects,
+  replanningHistory,
   resourceItems,
   resources,
   reviewEvents,
@@ -25,6 +29,7 @@ import {
   scheduledItems,
   settings,
   tags,
+  templates,
   timeBudgets,
   timeSessions,
   workItemDependencies,
@@ -63,6 +68,11 @@ export type BackupJsonExport = {
     timeSessions: any[]
     reviewPolicies: any[]
     reviewEvents: any[]
+    replanningHistory: any[]
+    planVersions: any[]
+    progressHistory: any[]
+    goalMetrics: any[]
+    templates: any[]
   }
 }
 
@@ -98,29 +108,83 @@ export function exportJsonData(): BackupJsonExport {
       scheduledItems: db.select().from(scheduledItems).all(),
       timeSessions: db.select().from(timeSessions).all(),
       reviewPolicies: db.select().from(reviewPolicies).all(),
-      reviewEvents: db.select().from(reviewEvents).all()
+      reviewEvents: db.select().from(reviewEvents).all(),
+      replanningHistory: db.select().from(replanningHistory).all(),
+      planVersions: db.select().from(planVersions).all(),
+      progressHistory: db.select().from(progressHistory).all(),
+      goalMetrics: db.select().from(goalMetrics).all(),
+      templates: db.select().from(templates).all()
     }
   }
 }
 
-export function validateJsonBackup(parsed: any): boolean {
-  if (!parsed || typeof parsed !== 'object') return false
-  if (typeof parsed.version !== 'string' || !parsed.data || typeof parsed.data !== 'object') return false
+export interface BackupIntegrityReport {
+  valid: boolean
+  errors: string[]
+  summary: Record<string, number>
+}
+
+export function verifyBackupIntegrity(parsed: any): BackupIntegrityReport {
+  const errors: string[] = []
+  const summary: Record<string, number> = {}
+
+  if (!parsed || typeof parsed !== 'object') {
+    return { valid: false, errors: ['Backup is empty or not a valid JSON object'], summary: {} }
+  }
+
+  if (typeof parsed.version !== 'string') {
+    errors.push('Missing or invalid schema version string.')
+  }
+
+  if (!parsed.data || typeof parsed.data !== 'object') {
+    errors.push('Missing or invalid backup data container.')
+    return { valid: false, errors, summary: {} }
+  }
+
   const d = parsed.data
-  return (
-    Array.isArray(d.settings) &&
-    Array.isArray(d.areas) &&
-    Array.isArray(d.workItems) &&
-    Array.isArray(d.projects)
-  )
+  const requiredArrays = ['settings', 'areas', 'goals', 'projects', 'workItems']
+  for (const table of requiredArrays) {
+    if (!Array.isArray(d[table])) {
+      errors.push(`Required table collection "${table}" is missing or not an array.`)
+    }
+  }
+
+  // Count items across all array keys in d
+  for (const [key, value] of Object.entries(d)) {
+    if (Array.isArray(value)) {
+      summary[key] = value.length
+    }
+  }
+
+  // Validate critical integrity rules
+  if (Array.isArray(d.workItems)) {
+    for (let i = 0; i < Math.min(d.workItems.length, 50); i++) {
+      const item = d.workItems[i]
+      if (!item || typeof item.id !== 'string' || typeof item.title !== 'string') {
+        errors.push(`Work item at index ${i} lacks a valid ID or title.`)
+        break
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    summary
+  }
+}
+
+export function validateJsonBackup(parsed: any): boolean {
+  return verifyBackupIntegrity(parsed).valid
 }
 
 export function restoreJsonData(jsonInput: string | object): void {
   const parsed: BackupJsonExport =
-    typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput
+    typeof jsonInput === 'string' ? JSON.parse(jsonInput) : (jsonInput as BackupJsonExport)
 
-  if (!validateJsonBackup(parsed)) {
-    throw new Error('Invalid or corrupted backup JSON data format.')
+  const integrity = verifyBackupIntegrity(parsed)
+  if (!integrity.valid) {
+    throw new Error(`Invalid or corrupted backup JSON data format: ${integrity.errors.join('; ')}`)
   }
 
   const db = getDatabase()
@@ -128,6 +192,10 @@ export function restoreJsonData(jsonInput: string | object): void {
 
   db.transaction((tx) => {
     // 1. Wipe existing data in reverse dependency order
+    tx.delete(goalMetrics).run()
+    tx.delete(progressHistory).run()
+    tx.delete(planVersions).run()
+    tx.delete(replanningHistory).run()
     tx.delete(reviewEvents).run()
     tx.delete(timeSessions).run()
     tx.delete(scheduledItems).run()
@@ -154,6 +222,7 @@ export function restoreJsonData(jsonInput: string | object): void {
     tx.delete(goals).run()
     tx.delete(areas).run()
     tx.delete(profiles).run()
+    tx.delete(templates).run()
     tx.delete(settings).run()
 
     // 2. Re-insert restored records
@@ -184,6 +253,11 @@ export function restoreJsonData(jsonInput: string | object): void {
     for (const row of d.scheduledItems || []) tx.insert(scheduledItems).values(row).run()
     for (const row of d.timeSessions || []) tx.insert(timeSessions).values(row).run()
     for (const row of d.reviewEvents || []) tx.insert(reviewEvents).values(row).run()
+    for (const row of d.replanningHistory || []) tx.insert(replanningHistory).values(row).run()
+    for (const row of d.planVersions || []) tx.insert(planVersions).values(row).run()
+    for (const row of d.progressHistory || []) tx.insert(progressHistory).values(row).run()
+    for (const row of d.goalMetrics || []) tx.insert(goalMetrics).values(row).run()
+    for (const row of d.templates || []) tx.insert(templates).values(row).run()
   })
 }
 
@@ -198,4 +272,46 @@ export function createDatabaseBackupFile(destPath?: string): string {
     fs.copyFileSync(dbFile, targetPath)
   }
   return targetPath
+}
+
+/**
+ * Runs an automatic daily rolling backup.
+ * Keeps up to maxBackups (default 7) backups in the backups directory.
+ */
+export function runDailyRollingBackup(maxBackups = 7): string | null {
+  try {
+    const userDataFolder = app.getPath('userData')
+    const backupsDir = path.join(userDataFolder, 'backups')
+    if (!fs.existsSync(backupsDir)) {
+      fs.mkdirSync(backupsDir, { recursive: true })
+    }
+
+    const todayStr = new Date().toISOString().slice(0, 10)
+    const backupFileName = `daily-backup-${todayStr}.json`
+    const backupPath = path.join(backupsDir, backupFileName)
+
+    // Only create once per day
+    if (!fs.existsSync(backupPath)) {
+      const data = exportJsonData()
+      fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), 'utf-8')
+    }
+
+    // Prune backups beyond maxBackups
+    const existing = fs
+      .readdirSync(backupsDir)
+      .filter((f) => f.startsWith('daily-backup-') && f.endsWith('.json'))
+      .sort()
+
+    if (existing.length > maxBackups) {
+      const toDelete = existing.slice(0, existing.length - maxBackups)
+      for (const f of toDelete) {
+        fs.unlinkSync(path.join(backupsDir, f))
+      }
+    }
+
+    return backupPath
+  } catch (err) {
+    console.error('Failed to run daily rolling backup:', err)
+    return null
+  }
 }

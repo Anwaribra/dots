@@ -9,12 +9,16 @@ import {
   FolderKanban,
   Goal as GoalIcon,
   Inbox,
+  Keyboard,
   Layers,
   Library,
+  Network,
   Plus,
   Repeat2,
+  Search,
   Settings2,
-  Tag as TagIcon
+  Tag as TagIcon,
+  ClipboardCheck
 } from 'lucide-react'
 import i18n from './i18n'
 import type { Settings } from '../../shared/settings'
@@ -40,6 +44,10 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { LayoutDashboard, BarChart2, Sparkles } from 'lucide-react'
 import { TemplatesPage } from './pages/TemplatesPage'
 import { OnboardingWizard } from './components/OnboardingWizard'
+import { GlobalSearchModal } from './components/GlobalSearchModal'
+import { ShortcutsHelpModal } from './components/ShortcutsHelpModal'
+import { WeeklyReviewPage } from './pages/WeeklyReviewPage'
+import { FlowViewPage } from './pages/FlowViewPage'
 
 const navigation = [
   ['dashboard', LayoutDashboard],
@@ -57,6 +65,8 @@ const navigation = [
   ['types', Activity],
   ['tags', TagIcon],
   ['review', CheckSquare],
+  ['weeklyReview', ClipboardCheck],
+  ['flow', Network],
   ['templates', Sparkles]
 ] as const
 
@@ -65,6 +75,8 @@ export function App(): JSX.Element {
   const [settings, setSettings] = useState<Settings | null>(null)
   const [active, setActive] = useState<string>('today')
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const planner = window.planner
 
   useEffect(() => {
@@ -76,9 +88,46 @@ export function App(): JSX.Element {
     }
 
     const handleKeyDown = (e: KeyboardEvent): void => {
+      const target = e.target as HTMLElement | null
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+
+      // Quick Add: Ctrl+K or Alt+N
       if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.altKey && e.key.toLowerCase() === 'n')) {
         e.preventDefault()
         setQuickAddOpen((prev) => !prev)
+        return
+      }
+      // Global search: Ctrl+F
+      if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        setSearchOpen((prev) => !prev)
+        return
+      }
+      // Keyboard shortcuts: Ctrl+/ or ? (when not typing in an input)
+      if ((e.ctrlKey && (e.key === '/' || e.key === '?')) || (!isInput && e.key === '?')) {
+        e.preventDefault()
+        setShortcutsOpen((prev) => !prev)
+        return
+      }
+
+      // Quick page navigation with keys 1..9 (when not in an input)
+      if (!isInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const navMap: Record<string, string> = {
+          '1': 'dashboard',
+          '2': 'today',
+          '3': 'inbox',
+          '4': 'planner',
+          '5': 'analytics',
+          '6': 'goals',
+          '7': 'projects',
+          '8': 'weeklyReview',
+          '9': 'settings'
+        }
+        if (navMap[e.key]) {
+          e.preventDefault()
+          setActive(navMap[e.key])
+          return
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -122,10 +171,22 @@ export function App(): JSX.Element {
             </div>
           </div>
 
+          {/* Search button */}
+          <button
+            id="sidebar-search-btn"
+            onClick={() => setSearchOpen(true)}
+            className="flex w-full items-center space-x-2 space-x-reverse rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-400 hover:border-indigo-300 hover:text-slate-600 dark:hover:border-indigo-700 dark:hover:text-slate-300 transition-colors"
+          >
+            <Search size={14} />
+            <span className="flex-1 text-start text-xs">Search…</span>
+            <kbd className="hidden md:inline-block rounded bg-slate-200 dark:bg-slate-700 px-1 text-[9px] text-slate-500">Ctrl+F</kbd>
+          </button>
+
           <nav aria-label="Main navigation" className="space-y-1">
             {navigation.map(([key, Icon]) => (
               <button
                 key={key}
+                id={`nav-${key}`}
                 className={`flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   active === key
                     ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400'
@@ -140,8 +201,19 @@ export function App(): JSX.Element {
           </nav>
         </div>
 
-        <div className="sidebar-bottom pt-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="sidebar-bottom space-y-1 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button
+            id="shortcuts-help-btn"
+            onClick={() => setShortcutsOpen(true)}
+            className="flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-500 dark:hover:bg-slate-800 transition-colors"
+            title="Keyboard Shortcuts (Ctrl+/)"
+          >
+            <Keyboard size={18} />
+            <span>Shortcuts</span>
+            <kbd className="hidden md:inline-block ml-auto rounded bg-slate-100 dark:bg-slate-800 px-1 text-[9px] text-slate-400">Ctrl+/</kbd>
+          </button>
+          <button
+            id="nav-settings"
             className={`flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               active === 'settings'
                 ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400'
@@ -184,6 +256,7 @@ export function App(): JSX.Element {
           <div className="settings-row flex items-center space-x-4 space-x-reverse text-xs">
             <button
               onClick={() => setQuickAddOpen(true)}
+              id="topbar-quick-add-btn"
               className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-500 shadow-sm"
               title="Quick Capture (Ctrl+K or Alt+N)"
             >
@@ -250,6 +323,10 @@ export function App(): JSX.Element {
           <WeeklyPlannerPage />
         ) : active === 'review' ? (
           <ReviewPage />
+        ) : active === 'weeklyReview' ? (
+          <WeeklyReviewPage />
+        ) : active === 'flow' ? (
+          <FlowViewPage />
         ) : active === 'templates' ? (
           <TemplatesPage />
         ) : (
@@ -274,6 +351,17 @@ export function App(): JSX.Element {
         onCreated={() => {
           // Refresh views if needed
         }}
+      />
+
+      <GlobalSearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onNavigate={(page) => { setActive(page); setSearchOpen(false) }}
+      />
+
+      <ShortcutsHelpModal
+        isOpen={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
       />
     </main>
   )

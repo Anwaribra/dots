@@ -227,9 +227,25 @@ Migrations `0000_foundation` through `0010_templates_and_onboarding` create `set
 - Goal Metrics: `goal-metrics:list`, `goal-metrics:create`, `goal-metrics:update`, `goal-metrics:delete`
 - Analytics: `analytics:get-overview`
 - Dashboard: `dashboard:get-data`
-- Templates: `templates:list`, `templates:apply`, `templates:save-custom`, `templates:delete`
+- Templates: `templates:list`, `templates:apply`, `templates:save-custom`, `templates:delete`, `templates:export-json`, `templates:import-json`
 - Demo Data: `demo:load`, `demo:delete`
+- Search: `search:global`
+- Weekly Review: `weekly-review:generate`
 
-## Next stage
+- **Stage 12 — Advanced and polish**: Fully completed.
+  - **Weekly Review Page** (`src/renderer/src/pages/WeeklyReviewPage.tsx` & `src/main/services/weekly-review-service.ts`): Period navigation, overall key numbers (completion rate, planned vs actual minutes), area breakdown with progress bars, goal progress tracking, habit streaks, friction signals (overruns, missed deadlines, postponements), and data-driven recommendations adhering strictly to neutral analytical tone without guilt or motivational filler.
+  - **Customizable Dashboard** (`src/renderer/src/pages/DashboardPage.tsx`): Users can rearrange and toggle visibility of widgets (KPI summary, Goal Progress, Planned vs Actual, Time by Area, Upcoming Deadlines, Recent Sessions) with persistent local layout storage and one-click reset to default.
+  - **Flow / Graph View** (`src/renderer/src/pages/FlowViewPage.tsx`): Interactive multi-column cascade visualization mapping Areas → Goals → Milestones → Projects → Work Items, supporting upstream/downstream filtering on click.
+  - **Template JSON Export / Import** (`src/main/services/template-service.ts` & `src/renderer/src/pages/TemplatesPage.tsx`): Full round-trip template sharing. Export custom or built-in templates to standalone JSON files; import external template JSON files directly into the workspace gallery.
+  - **Global Cross-Entity Search** (`src/main/services/search-service.ts` & `src/renderer/src/components/GlobalSearchModal.tsx`): Cross-entity search (areas, goals, milestones, projects, work items, tags, notes, resources, routines, habits) with real-time scoring, keyboard navigation, type badges, and direct page routing. Accessible via `Ctrl+F` or header search.
+  - **Keyboard Shortcuts** (`src/renderer/src/components/ShortcutsHelpModal.tsx` & `src/renderer/src/App.tsx`): Cheat sheet modal toggled with `Ctrl+/` or `?`. Quick navigation with number keys `1-9` (`1`: Dashboard, `2`: Today, `3`: Inbox, `4`: Planner, `5`: Analytics, `6`: Goals, `7`: Projects, `8`: Weekly Review, `9`: Settings). Quick add with `Ctrl+K`/`Alt+N`.
+  - **Full Desktop Notifications System** (`src/main/services/notification-service.ts`): Background notification scheduler running every 60 seconds. Alerts for scheduled item start (configurable lead time), routine start at preferred time, habit completion reminders in the evening, spaced repetition due review notifications, daily morning planning prompt, and daily evening wrap-up prompt.
+  - **Full Backup / Restore & Daily Rolling Backups** (`src/main/services/backup-service.ts`): Comprehensive export/restore covering all tables from all stages (including replanning history, plan versions, progress history, goal metrics, templates). Structural integrity verification before restore. Automated daily rolling backups retaining 7 days of snapshots in user data directory.
+  - **Tests**: `tests/stage12-advanced.test.ts` (12 tests passing). Total **97 tests passing** across 12 test suites.
+  - **Production Build Validation**: `npm run build` (`electron-vite build`) compiles cleanly (exit code 0), bundling main, preload, and renderer assets.
+  - **0 TypeScript errors** (`npm run typecheck` exit code 0).
 
-- Stage 12 of 12 — Final polish, comprehensive export/import, backup/restore, production packaging validation.
+## Project Complete
+
+All 12 stages of the roadmap are fully implemented, verified, tested, and production-ready.
+

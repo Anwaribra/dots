@@ -112,5 +112,7 @@
   "startFromScratch": "البدء من الصفر",
   "pickTemplate": "اختيار قالب جاهز",
   "exploreDemo": "استكشاف البيانات التجريبية",
-  "skipOnboarding": "تخطي الإعداد الأولي"
+  "skipOnboarding": "تخطي الإعداد الأولي",
+  "weeklyReview": "المراجعة الأسبوعية",
+  "flow": "عرض التدفق"
 }

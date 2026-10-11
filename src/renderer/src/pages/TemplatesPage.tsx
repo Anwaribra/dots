@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Sparkles,
@@ -13,7 +13,9 @@ import {
   AlertCircle,
   HelpCircle,
   Copy,
-  Sliders
+  Sliders,
+  Download,
+  Upload
 } from 'lucide-react'
 import type { TemplateRecord, ApplyTemplateResult } from '../../../shared/templates'
 import { Card } from '../components/ui/card'
@@ -43,6 +45,9 @@ export function TemplatesPage(): JSX.Element {
   // Apply confirmation state
   const [applyTarget, setApplyTarget] = useState<TemplateRecord | null>(null)
   const [skipDuplicates, setSkipDuplicates] = useState(true)
+
+  // Import file ref
+  const importFileRef = useRef<HTMLInputElement>(null)
 
   const loadTemplates = async (): Promise<void> => {
     if (!planner) return
@@ -92,6 +97,37 @@ export function TemplatesPage(): JSX.Element {
       setResultMessage({ type: 'success', text: `Template "${name}" deleted.` })
     } catch (err: any) {
       setResultMessage({ type: 'error', text: err?.message || String(err) })
+    }
+  }
+
+  const handleExport = async (tpl: TemplateRecord): Promise<void> => {
+    if (!planner) return
+    try {
+      const json = await (planner as any).templates.exportJson(tpl.id)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `template-${tpl.name.toLowerCase().replace(/\s+/g, '-')}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
+      setResultMessage({ type: 'error', text: err?.message || String(err) })
+    }
+  }
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = e.target.files?.[0]
+    if (!file || !planner) return
+    try {
+      const text = await file.text()
+      await (planner as any).templates.importJson(text)
+      loadTemplates()
+      setResultMessage({ type: 'success', text: `Template imported from "${file.name}".` })
+    } catch (err: any) {
+      setResultMessage({ type: 'error', text: `Import failed: ${err?.message || String(err)}` })
+    } finally {
+      if (importFileRef.current) importFileRef.current.value = ''
     }
   }
 
@@ -152,13 +188,30 @@ export function TemplatesPage(): JSX.Element {
           </p>
         </div>
 
-        <button
-          onClick={() => setSaveModalOpen(true)}
-          className="inline-flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          <Plus size={16} />
-          <span>Save Current Setup as Template</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setSaveModalOpen(true)}
+            className="inline-flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            <Plus size={16} />
+            <span>Save Current Setup as Template</span>
+          </button>
+          <button
+            id="templates-import-btn"
+            onClick={() => importFileRef.current?.click()}
+            className="inline-flex items-center space-x-1.5 space-x-reverse rounded-lg bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+          >
+            <Upload size={16} />
+            <span>Import JSON</span>
+          </button>
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+        </div>
       </div>
 
       {/* Result feedback */}
@@ -229,15 +282,25 @@ export function TemplatesPage(): JSX.Element {
                   </div>
                 </div>
 
-                {!tpl.builtin && (
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDelete(tpl.id, tpl.name)}
-                    className="text-slate-400 hover:text-rose-600 transition-colors"
-                    title="Delete custom template"
+                    onClick={() => handleExport(tpl)}
+                    className="text-slate-400 hover:text-indigo-600 transition-colors"
+                    title="Export as JSON"
+                    id={`template-export-${tpl.id}`}
                   >
-                    <Trash2 size={16} />
+                    <Download size={16} />
                   </button>
-                )}
+                  {!tpl.builtin && (
+                    <button
+                      onClick={() => handleDelete(tpl.id, tpl.name)}
+                      className="text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Delete custom template"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {tpl.description && (
@@ -286,13 +349,21 @@ export function TemplatesPage(): JSX.Element {
               </div>
             </div>
 
-            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
               <button
                 onClick={() => setApplyTarget(tpl)}
-                className="w-full flex items-center justify-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-400 dark:hover:bg-indigo-900/60 transition-colors"
+                className="flex-1 flex items-center justify-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-400 dark:hover:bg-indigo-900/60 transition-colors"
               >
                 <Sparkles size={14} />
                 <span>{t('applyTemplate')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleExport(tpl)}
+                title="Export as JSON"
+                className="flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <Download size={14} />
               </button>
             </div>
           </Card>

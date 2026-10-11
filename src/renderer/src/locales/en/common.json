@@ -112,6 +112,9 @@
   "startFromScratch": "Start from Scratch",
   "pickTemplate": "Pick a Ready-Made Template",
   "exploreDemo": "Explore with Demo Data",
-  "skipOnboarding": "Skip Onboarding"
+  "skipOnboarding": "Skip Onboarding",
+  "weeklyReview": "Weekly Review",
+  "flow": "Flow View"
 }
+
 

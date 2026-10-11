@@ -198,11 +198,19 @@ const api = {
     list: () => ipcRenderer.invoke('templates:list', undefined),
     apply: (id: string, skipDuplicates?: boolean) => ipcRenderer.invoke('templates:apply', { id, skipDuplicates }),
     saveCustom: (input: unknown) => ipcRenderer.invoke('templates:save-custom', input),
-    delete: (id: string) => ipcRenderer.invoke('templates:delete', { id })
+    delete: (id: string) => ipcRenderer.invoke('templates:delete', { id }),
+    exportJson: (id: string) => ipcRenderer.invoke('templates:export-json', { id }),
+    importJson: (jsonStr: string) => ipcRenderer.invoke('templates:import-json', { jsonStr })
   },
   demo: {
     load: () => ipcRenderer.invoke('demo:load', undefined),
     delete: () => ipcRenderer.invoke('demo:delete', undefined)
+  },
+  search: {
+    global: (query: unknown) => ipcRenderer.invoke('search:global', query)
+  },
+  weeklyReview: {
+    generate: (period: unknown) => ipcRenderer.invoke('weekly-review:generate', period)
   }
 }
 

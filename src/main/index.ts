@@ -105,8 +105,10 @@ import {
 import {
   exportJsonData,
   restoreJsonData,
-  createDatabaseBackupFile
+  createDatabaseBackupFile,
+  runDailyRollingBackup
 } from './services/backup-service'
+import { startNotificationScheduler } from './services/notification-service'
 import {
   attachReviewPolicy,
   createReviewPolicy,
@@ -150,7 +152,9 @@ import {
   loadDemoData,
   deleteDemoData
 } from './services/demo-service'
-
+import { globalSearch } from './services/search-service'
+import { generateWeeklyReview } from './services/weekly-review-service'
+import { exportTemplateJson, importTemplateJson } from './services/template-service'
 
 
 let mainWindow: BrowserWindow | undefined
@@ -604,6 +608,24 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.demoDelete, () => {
     deleteDemoData()
   })
+
+  // Stage 12: Search, Weekly Review, Template Export/Import
+  ipcMain.handle(ipcChannels.searchGlobal, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.searchGlobal].parse(input)
+    return globalSearch(parsed as any)
+  })
+  ipcMain.handle(ipcChannels.weeklyReviewGenerate, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.weeklyReviewGenerate].parse(input)
+    return generateWeeklyReview({ startDate: parsed.startDate, endDate: parsed.endDate })
+  })
+  ipcMain.handle(ipcChannels.templatesExportJson, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.templatesExportJson].parse(input)
+    return exportTemplateJson(parsed.id)
+  })
+  ipcMain.handle(ipcChannels.templatesImportJson, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.templatesImportJson].parse(input)
+    return importTemplateJson(parsed.jsonStr)
+  })
 }
 
 app.whenReady().then(() => {
@@ -611,6 +633,8 @@ app.whenReady().then(() => {
   seedBuiltInWorkItemTypes()
   seedDefaultAvailabilityRules()
   seedBuiltInTemplates()
+  runDailyRollingBackup()
+  startNotificationScheduler()
   registerIpc()
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })

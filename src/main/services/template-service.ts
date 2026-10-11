@@ -485,6 +485,47 @@ export function saveCustomTemplate(input: SaveCustomTemplateInput): TemplateReco
 }
 
 // ---------------------------------------------------------------------------
+// Stage 12: Template JSON export / import
+// ---------------------------------------------------------------------------
+
+export function exportTemplateJson(id: string): string {
+  const db = getDatabase()
+  const row = db.select().from(templates).where(eq(templates.id, id)).get()
+  if (!row) throw new Error(`Template ${id} not found`)
+  const record = rowToRecord(row)
+  return JSON.stringify(record, null, 2)
+}
+
+export function importTemplateJson(jsonStr: string): TemplateRecord {
+  let parsed: any
+  try {
+    parsed = JSON.parse(jsonStr)
+  } catch {
+    throw new Error('Invalid JSON: could not parse template file.')
+  }
+  if (!parsed || typeof parsed !== 'object' || !parsed.name || !parsed.payload) {
+    throw new Error('Invalid template format: missing required fields (name, payload).')
+  }
+
+  const db = getDatabase()
+  const ts = Date.now()
+  const id = randomUUID()
+
+  db.insert(templates).values({
+    id,
+    name: String(parsed.name),
+    description: parsed.description ? String(parsed.description) : null,
+    category: parsed.category ? String(parsed.category) : 'custom',
+    builtin: false,
+    payloadJson: JSON.stringify(parsed.payload),
+    createdAt: ts,
+    updatedAt: ts
+  }).run()
+
+  return rowToRecord(db.select().from(templates).where(eq(templates.id, id)).get()!)
+}
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 

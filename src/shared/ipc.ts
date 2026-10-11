@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { settingsSchema, settingsUpdateSchema } from './settings'
+import type { SearchQuery, SearchResponse } from './search-types'
+import type { WeeklyReviewPeriod, WeeklyReviewResult } from '../main/services/weekly-review-service'
 import type {
   PlanningResult,
   ScheduleItem as SchedulerScheduleItem,
@@ -245,7 +247,13 @@ export const ipcChannels = {
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
-  entityDelete: 'entities:delete'
+  entityDelete: 'entities:delete',
+
+  // Stage 12 Channels: Search, Weekly Review, Template Export/Import
+  searchGlobal: 'search:global',
+  weeklyReviewGenerate: 'weekly-review:generate',
+  templatesExportJson: 'templates:export-json',
+  templatesImportJson: 'templates:import-json'
 } as const
 
 export const ipcSchemas = {
@@ -545,7 +553,21 @@ export const ipcSchemas = {
 
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
-  [ipcChannels.entityDelete]: deleteEntitySchema
+  [ipcChannels.entityDelete]: deleteEntitySchema,
+
+  // Stage 12 schemas
+  [ipcChannels.searchGlobal]: z.object({
+    q: z.string(),
+    limit: z.number().int().positive().optional(),
+    types: z.array(z.string()).optional(),
+    includeArchived: z.boolean().optional()
+  }),
+  [ipcChannels.weeklyReviewGenerate]: z.object({
+    startDate: z.string(),
+    endDate: z.string()
+  }),
+  [ipcChannels.templatesExportJson]: z.object({ id: z.string() }),
+  [ipcChannels.templatesImportJson]: z.object({ jsonStr: z.string() })
 } as const
 
 export type PlannerApi = {
@@ -774,9 +796,17 @@ export type PlannerApi = {
     apply: (id: string, skipDuplicates?: boolean) => Promise<ApplyTemplateResult>
     saveCustom: (input: SaveCustomTemplateInput) => Promise<TemplateRecord>
     delete: (id: string) => Promise<void>
+    exportJson: (id: string) => Promise<string>
+    importJson: (jsonStr: string) => Promise<TemplateRecord>
   }
   demo: {
     load: () => Promise<void>
     delete: () => Promise<void>
+  }
+  search: {
+    global: (query: SearchQuery) => Promise<SearchResponse>
+  }
+  weeklyReview: {
+    generate: (period: WeeklyReviewPeriod) => Promise<WeeklyReviewResult>
   }
 }
