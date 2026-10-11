@@ -253,7 +253,13 @@ export const ipcChannels = {
   searchGlobal: 'search:global',
   weeklyReviewGenerate: 'weekly-review:generate',
   templatesExportJson: 'templates:export-json',
-  templatesImportJson: 'templates:import-json'
+  templatesImportJson: 'templates:import-json',
+
+  // Window Controls
+  windowMinimize: 'window:minimize',
+  windowMaximize: 'window:maximize',
+  windowClose: 'window:close',
+  windowIsMaximized: 'window:is-maximized'
 } as const
 
 export const ipcSchemas = {
@@ -567,7 +573,13 @@ export const ipcSchemas = {
     endDate: z.string()
   }),
   [ipcChannels.templatesExportJson]: z.object({ id: z.string() }),
-  [ipcChannels.templatesImportJson]: z.object({ jsonStr: z.string() })
+  [ipcChannels.templatesImportJson]: z.object({ jsonStr: z.string() }),
+
+  // Window Controls schemas
+  [ipcChannels.windowMinimize]: z.undefined(),
+  [ipcChannels.windowMaximize]: z.undefined(),
+  [ipcChannels.windowClose]: z.undefined(),
+  [ipcChannels.windowIsMaximized]: z.undefined()
 } as const
 
 export type PlannerApi = {
@@ -808,5 +820,11 @@ export type PlannerApi = {
   }
   weeklyReview: {
     generate: (period: WeeklyReviewPeriod) => Promise<WeeklyReviewResult>
+  }
+  windowControls: {
+    minimize: () => Promise<void>
+    maximize: () => Promise<void>
+    close: () => Promise<void>
+    isMaximized: () => Promise<boolean>
   }
 }

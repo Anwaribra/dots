@@ -18,7 +18,17 @@ import {
   Search,
   Settings2,
   Tag as TagIcon,
-  ClipboardCheck
+  ClipboardCheck,
+  LayoutDashboard,
+  BarChart2,
+  Sparkles,
+  Minus,
+  Square,
+  Copy,
+  X,
+  Sun,
+  Moon,
+  Laptop
 } from 'lucide-react'
 import i18n from './i18n'
 import type { Settings } from '../../shared/settings'
@@ -41,7 +51,6 @@ import { DashboardPage } from './pages/DashboardPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { QuickAddModal } from './components/QuickAddModal'
 import { PlaceholderPage } from './pages/PlaceholderPage'
-import { LayoutDashboard, BarChart2, Sparkles } from 'lucide-react'
 import { TemplatesPage } from './pages/TemplatesPage'
 import { OnboardingWizard } from './components/OnboardingWizard'
 import { GlobalSearchModal } from './components/GlobalSearchModal'
@@ -77,7 +86,26 @@ export function App(): JSX.Element {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [isMaximized, setIsMaximized] = useState(true)
+
   const planner = window.planner
+
+  function applySettings(next: Settings): void {
+    setSettings(next)
+    i18n.changeLanguage(next.locale)
+    document.documentElement.lang = next.locale
+    document.documentElement.dir = next.locale === 'ar' ? 'rtl' : 'ltr'
+
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isDark = next.theme === 'dark' || (next.theme === 'system' && systemDark)
+
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
+  }
 
   useEffect(() => {
     if (planner) {
@@ -85,11 +113,25 @@ export function App(): JSX.Element {
         .get()
         .then(applySettings)
         .catch(() => undefined)
+
+      if (planner.windowControls) {
+        planner.windowControls.isMaximized().then(setIsMaximized).catch(() => undefined)
+      }
     }
+
+    // Media listener for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleMediaChange = (): void => {
+      if (settings?.theme === 'system') {
+        applySettings(settings)
+      }
+    }
+    mediaQuery.addEventListener('change', handleMediaChange)
 
     const handleKeyDown = (e: KeyboardEvent): void => {
       const target = e.target as HTMLElement | null
-      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      const isInput =
+        target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
 
       // Quick Add: Ctrl+K or Alt+N
       if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.altKey && e.key.toLowerCase() === 'n')) {
@@ -130,20 +172,31 @@ export function App(): JSX.Element {
         }
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [planner])
 
-  function applySettings(next: Settings): void {
-    setSettings(next)
-    i18n.changeLanguage(next.locale)
-    document.documentElement.lang = next.locale
-    document.documentElement.dir = next.locale === 'ar' ? 'rtl' : 'ltr'
-    document.documentElement.dataset.theme = next.theme
-  }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      mediaQuery.removeEventListener('change', handleMediaChange)
+    }
+  }, [planner, settings?.theme])
 
   async function changeSettings(patch: Partial<Settings>): Promise<void> {
     if (planner) applySettings(await planner.settings.update(patch))
+  }
+
+  const handleMinimize = (): void => {
+    planner?.windowControls?.minimize().catch(() => undefined)
+  }
+
+  const handleMaximize = async (): Promise<void> => {
+    if (!planner?.windowControls) return
+    await planner.windowControls.maximize()
+    const max = await planner.windowControls.isMaximized()
+    setIsMaximized(max)
+  }
+
+  const handleClose = (): void => {
+    planner?.windowControls?.close().catch(() => undefined)
   }
 
   if (!planner) {
@@ -157,183 +210,284 @@ export function App(): JSX.Element {
     )
   }
 
+  const isDarkCurrent =
+    document.documentElement.classList.contains('dark') ||
+    settings?.theme === 'dark' ||
+    (settings?.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
   return (
-    <main className="app-shell min-h-screen flex bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <aside className="sidebar w-64 border-e border-slate-200 bg-white p-4 flex flex-col justify-between dark:border-slate-800 dark:bg-slate-900">
-        <div className="space-y-6">
-          <div className="brand flex items-center space-x-3 space-x-reverse px-2">
-            <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 font-bold text-white">
-              C
-            </div>
-            <div>
-              <strong className="block text-sm font-bold leading-tight">{t('appName')}</strong>
-              <small className="text-xs text-slate-500">{t('appTagline')}</small>
-            </div>
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100 select-none">
+      {/* Sleek Custom Topbar & Titlebar */}
+      <header className="app-drag-region flex h-11 w-full shrink-0 items-center justify-between border-b border-slate-200/80 bg-white/95 px-3 backdrop-blur dark:border-slate-800/80 dark:bg-slate-900/95 z-50">
+        {/* App identity on titlebar */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-black text-white shadow-sm">
+            C
           </div>
+          <span className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-200">
+            Clarity Planner
+          </span>
+          <span className="hidden sm:inline-block text-[11px] text-slate-400 dark:text-slate-500">
+            / {t(active)}
+          </span>
+        </div>
 
-          {/* Search button */}
+        {/* Global Controls & Window Control Buttons */}
+        <div className="app-no-drag flex items-center gap-1.5">
+          {/* Quick Capture Button */}
           <button
-            id="sidebar-search-btn"
+            onClick={() => setQuickAddOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-indigo-500 active:bg-indigo-700 transition-colors"
+            title="Quick Capture (Ctrl+K or Alt+N)"
+          >
+            <Plus size={13} />
+            <span className="hidden md:inline">Quick Add</span>
+            <kbd className="hidden lg:inline-block rounded bg-indigo-700/80 px-1 py-0.2 text-[9px] font-mono">
+              Ctrl+K
+            </kbd>
+          </button>
+
+          {/* Search trigger */}
+          <button
             onClick={() => setSearchOpen(true)}
-            className="flex w-full items-center space-x-2 space-x-reverse rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-400 hover:border-indigo-300 hover:text-slate-600 dark:hover:border-indigo-700 dark:hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200 transition-colors"
+            title="Search Everywhere (Ctrl+F)"
           >
-            <Search size={14} />
-            <span className="flex-1 text-start text-xs">Search…</span>
-            <kbd className="hidden md:inline-block rounded bg-slate-200 dark:bg-slate-700 px-1 text-[9px] text-slate-500">Ctrl+F</kbd>
+            <Search size={13} />
+            <span className="hidden md:inline text-[11px]">Search</span>
+            <kbd className="hidden lg:inline-block rounded bg-slate-200/80 dark:bg-slate-700 px-1 text-[9px] font-mono">
+              Ctrl+F
+            </kbd>
           </button>
 
-          <nav aria-label="Main navigation" className="space-y-1">
-            {navigation.map(([key, Icon]) => (
+          {/* Language Switcher */}
+          <div className="flex items-center rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 p-0.5 text-[11px]">
+            <button
+              onClick={() => changeSettings({ locale: 'en' })}
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
+                (settings?.locale ?? 'en') === 'en'
+                  ? 'bg-white shadow-xs text-indigo-600 dark:bg-slate-700 dark:text-indigo-300'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => changeSettings({ locale: 'ar' })}
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
+                settings?.locale === 'ar'
+                  ? 'bg-white shadow-xs text-indigo-600 dark:bg-slate-700 dark:text-indigo-300'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              عربي
+            </button>
+          </div>
+
+          {/* Theme Quick Toggle */}
+          <div className="flex items-center rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 p-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <button
+              onClick={() => changeSettings({ theme: 'light' })}
+              className={`p-1 rounded transition-colors ${
+                settings?.theme === 'light'
+                  ? 'bg-white shadow-xs text-amber-500 dark:bg-slate-700'
+                  : 'hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title="Light theme"
+            >
+              <Sun size={13} />
+            </button>
+            <button
+              onClick={() => changeSettings({ theme: 'dark' })}
+              className={`p-1 rounded transition-colors ${
+                settings?.theme === 'dark'
+                  ? 'bg-white shadow-xs text-indigo-400 dark:bg-slate-700'
+                  : 'hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title="Dark theme"
+            >
+              <Moon size={13} />
+            </button>
+            <button
+              onClick={() => changeSettings({ theme: 'system' })}
+              className={`p-1 rounded transition-colors ${
+                settings?.theme === 'system'
+                  ? 'bg-white shadow-xs text-indigo-500 dark:bg-slate-700 dark:text-indigo-300'
+                  : 'hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title="System theme"
+            >
+              <Laptop size={13} />
+            </button>
+          </div>
+
+          {/* Window Control Buttons */}
+          <div className="flex items-center ms-2 border-s border-slate-200 dark:border-slate-800 ps-1.5">
+            <button
+              onClick={handleMinimize}
+              className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
+              title="Minimize"
+            >
+              <Minus size={14} />
+            </button>
+            <button
+              onClick={handleMaximize}
+              className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
+              title={isMaximized ? 'Restore' : 'Maximize'}
+            >
+              {isMaximized ? <Copy size={12} className="rotate-180" /> : <Square size={12} />}
+            </button>
+            <button
+              onClick={handleClose}
+              className="flex h-7 w-8 items-center justify-center rounded text-slate-500 hover:bg-rose-600 hover:text-white dark:text-slate-400 dark:hover:bg-rose-600 dark:hover:text-white transition-colors"
+              title="Close Application"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main App Layout: Sidebar + Scrollable View */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Navigation Sidebar */}
+        <aside className="flex w-60 shrink-0 flex-col justify-between border-e border-slate-200/80 bg-white dark:border-slate-800/80 dark:bg-slate-900/90 p-3">
+          <div className="space-y-4 overflow-y-auto">
+            {/* Quick search button in sidebar */}
+            <button
+              id="sidebar-search-btn"
+              onClick={() => setSearchOpen(true)}
+              className="flex w-full items-center gap-2 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs text-slate-500 hover:border-indigo-300 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-indigo-600 dark:hover:text-slate-200 transition-colors"
+            >
+              <Search size={14} />
+              <span className="flex-1 text-start">Search workspace…</span>
+              <kbd className="rounded bg-slate-200/80 px-1 text-[9px] font-mono dark:bg-slate-700">
+                Ctrl+F
+              </kbd>
+            </button>
+
+            {/* Navigation items */}
+            <nav aria-label="Main navigation" className="space-y-0.5">
+              {navigation.map(([key, Icon]) => {
+                const isActive = active === key
+                return (
+                  <button
+                    key={key}
+                    id={`nav-${key}`}
+                    onClick={() => setActive(key)}
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'} />
+                    <span className="truncate">{t(key)}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
+
+          {/* Bottom Sidebar Tools */}
+          <div className="border-t border-slate-200/80 pt-3 dark:border-slate-800/80 space-y-0.5">
+            <button
+              id="shortcuts-help-btn"
+              onClick={() => setShortcutsOpen(true)}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-200 transition-colors"
+              title="Keyboard Shortcuts (Ctrl+/)"
+            >
+              <Keyboard size={15} />
+              <span>Shortcuts</span>
+              <kbd className="ms-auto rounded bg-slate-100 dark:bg-slate-800 px-1 text-[9px] font-mono text-slate-400">
+                ?
+              </kbd>
+            </button>
+            <button
+              id="nav-settings"
+              onClick={() => setActive('settings')}
+              className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                active === 'settings'
+                  ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-200'
+              }`}
+            >
+              <Settings2 size={15} />
+              <span>{t('settings')}</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Dynamic Content View Container */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 dark:bg-slate-950">
+          {/* Demo Mode Banner */}
+          {settings?.demoMode && (
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 shadow-sm dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200">
+              <div className="flex items-center gap-2 font-semibold">
+                <Sparkles size={16} className="text-amber-600 dark:text-amber-400" />
+                <span>{t('demoModeActive')} — You are exploring sample data. Real tasks are unaffected.</span>
+              </div>
               <button
-                key={key}
-                id={`nav-${key}`}
-                className={`flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  active === key
-                    ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
-                }`}
-                onClick={() => setActive(key)}
+                onClick={async () => {
+                  if (planner) {
+                    await planner.demo.delete()
+                    const updated = await planner.settings.get()
+                    applySettings(updated)
+                  }
+                }}
+                className="rounded-lg bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-500 shadow-sm transition-colors"
               >
-                <Icon size={18} />
-                <span>{t(key)}</span>
+                {t('clearDemoData')}
               </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="sidebar-bottom space-y-1 pt-4 border-t border-slate-200 dark:border-slate-800">
-          <button
-            id="shortcuts-help-btn"
-            onClick={() => setShortcutsOpen(true)}
-            className="flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-500 dark:hover:bg-slate-800 transition-colors"
-            title="Keyboard Shortcuts (Ctrl+/)"
-          >
-            <Keyboard size={18} />
-            <span>Shortcuts</span>
-            <kbd className="hidden md:inline-block ml-auto rounded bg-slate-100 dark:bg-slate-800 px-1 text-[9px] text-slate-400">Ctrl+/</kbd>
-          </button>
-          <button
-            id="nav-settings"
-            className={`flex w-full items-center space-x-3 space-x-reverse rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              active === 'settings'
-                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400'
-                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            onClick={() => setActive('settings')}
-          >
-            <Settings2 size={18} />
-            <span>{t('settings')}</span>
-          </button>
-        </div>
-      </aside>
-
-      <section className="content flex-1 p-8 overflow-y-auto">
-        {settings?.demoMode && (
-          <div className="mb-6 flex items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 shadow-sm dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
-            <div className="flex items-center space-x-2 space-x-reverse font-semibold">
-              <Sparkles size={16} className="text-amber-600 dark:text-amber-400" />
-              <span>{t('demoModeActive')} — You are exploring sample data. Real tasks are unaffected.</span>
             </div>
-            <button
-              onClick={async () => {
-                if (planner) {
-                  await planner.demo.delete()
-                  const updated = await planner.settings.get()
-                  applySettings(updated)
-                }
-              }}
-              className="rounded-lg bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-500 shadow-sm transition-colors"
-            >
-              {t('clearDemoData')}
-            </button>
-          </div>
-        )}
+          )}
 
-        <header className="topbar mb-6 flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-slate-400 text-xs">
-            {t(active)}
-          </h2>
-          <div className="settings-row flex items-center space-x-4 space-x-reverse text-xs">
-            <button
-              onClick={() => setQuickAddOpen(true)}
-              id="topbar-quick-add-btn"
-              className="flex items-center space-x-1.5 space-x-reverse rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-500 shadow-sm"
-              title="Quick Capture (Ctrl+K or Alt+N)"
-            >
-              <Plus size={14} />
-              <span>Quick Add</span>
-              <kbd className="hidden md:inline-block rounded bg-indigo-700 px-1 text-[10px]">Ctrl+K</kbd>
-            </button>
+          {/* Active View Router */}
+          {active === 'dashboard' ? (
+            <DashboardPage onNavigate={setActive} />
+          ) : active === 'analytics' ? (
+            <AnalyticsPage />
+          ) : active === 'areas' ? (
+            <AreasPage />
+          ) : active === 'goals' ? (
+            <GoalsPage />
+          ) : active === 'projects' ? (
+            <ProjectsPage />
+          ) : active === 'inbox' ? (
+            <InboxPage />
+          ) : active === 'resources' ? (
+            <ResourcesPage />
+          ) : active === 'routines' ? (
+            <RoutinesAndHabitsPage />
+          ) : active === 'budgets' ? (
+            <TimeBudgetsPage />
+          ) : active === 'availability' ? (
+            <AvailabilityAndCapacityPage />
+          ) : active === 'types' ? (
+            <TypesAndFieldsPage />
+          ) : active === 'tags' ? (
+            <TagsPage />
+          ) : active === 'settings' ? (
+            <SettingsPage />
+          ) : active === 'today' ? (
+            <TodayPage />
+          ) : active === 'planner' ? (
+            <WeeklyPlannerPage />
+          ) : active === 'review' ? (
+            <ReviewPage />
+          ) : active === 'weeklyReview' ? (
+            <WeeklyReviewPage />
+          ) : active === 'flow' ? (
+            <FlowViewPage />
+          ) : active === 'templates' ? (
+            <TemplatesPage />
+          ) : (
+            <PlaceholderPage titleKey={active} stageNumber={0} />
+          )}
+        </main>
+      </div>
 
-            <label className="flex items-center space-x-2 space-x-reverse">
-              <span>{t('language')}:</span>
-              <select
-                value={settings?.locale ?? 'en'}
-                onChange={(e) => changeSettings({ locale: e.target.value as Settings['locale'] })}
-                className="rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-              >
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
-              </select>
-            </label>
-            <label className="flex items-center space-x-2 space-x-reverse">
-              <span>{t('theme')}:</span>
-              <select
-                value={settings?.theme ?? 'system'}
-                onChange={(e) => changeSettings({ theme: e.target.value as Settings['theme'] })}
-                className="rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-              >
-                <option value="system">{t('system')}</option>
-                <option value="light">{t('light')}</option>
-                <option value="dark">{t('dark')}</option>
-              </select>
-            </label>
-          </div>
-        </header>
-
-        {active === 'dashboard' ? (
-          <DashboardPage onNavigate={setActive} />
-        ) : active === 'analytics' ? (
-          <AnalyticsPage />
-        ) : active === 'areas' ? (
-          <AreasPage />
-        ) : active === 'goals' ? (
-          <GoalsPage />
-        ) : active === 'projects' ? (
-          <ProjectsPage />
-        ) : active === 'inbox' ? (
-          <InboxPage />
-        ) : active === 'resources' ? (
-          <ResourcesPage />
-        ) : active === 'routines' ? (
-          <RoutinesAndHabitsPage />
-        ) : active === 'budgets' ? (
-          <TimeBudgetsPage />
-        ) : active === 'availability' ? (
-          <AvailabilityAndCapacityPage />
-        ) : active === 'types' ? (
-          <TypesAndFieldsPage />
-        ) : active === 'tags' ? (
-          <TagsPage />
-        ) : active === 'settings' ? (
-          <SettingsPage />
-        ) : active === 'today' ? (
-          <TodayPage />
-        ) : active === 'planner' ? (
-          <WeeklyPlannerPage />
-        ) : active === 'review' ? (
-          <ReviewPage />
-        ) : active === 'weeklyReview' ? (
-          <WeeklyReviewPage />
-        ) : active === 'flow' ? (
-          <FlowViewPage />
-        ) : active === 'templates' ? (
-          <TemplatesPage />
-        ) : (
-          <PlaceholderPage titleKey={active} stageNumber={0} />
-        )}
-      </section>
-
+      {/* Global Modals */}
       <OnboardingWizard
         isOpen={Boolean(settings && !settings.onboardingDone)}
         currentSettings={settings}
@@ -356,13 +510,13 @@ export function App(): JSX.Element {
       <GlobalSearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
-        onNavigate={(page) => { setActive(page); setSearchOpen(false) }}
+        onNavigate={(page) => {
+          setActive(page)
+          setSearchOpen(false)
+        }}
       />
 
-      <ShortcutsHelpModal
-        isOpen={shortcutsOpen}
-        onClose={() => setShortcutsOpen(false)}
-      />
-    </main>
+      <ShortcutsHelpModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+    </div>
   )
 }

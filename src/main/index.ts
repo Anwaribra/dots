@@ -175,7 +175,10 @@ function createWindow(): void {
       sandbox: true
     }
   })
-  mainWindow.once('ready-to-show', () => mainWindow?.show())
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.maximize()
+    mainWindow?.show()
+  })
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
@@ -625,6 +628,24 @@ function registerIpc(): void {
   ipcMain.handle(ipcChannels.templatesImportJson, (_event, input: unknown) => {
     const parsed = ipcSchemas[ipcChannels.templatesImportJson].parse(input)
     return importTemplateJson(parsed.jsonStr)
+  })
+
+  // Window Controls
+  ipcMain.handle(ipcChannels.windowMinimize, () => {
+    mainWindow?.minimize()
+  })
+  ipcMain.handle(ipcChannels.windowMaximize, () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize()
+    } else {
+      mainWindow?.maximize()
+    }
+  })
+  ipcMain.handle(ipcChannels.windowClose, () => {
+    mainWindow?.close()
+  })
+  ipcMain.handle(ipcChannels.windowIsMaximized, () => {
+    return mainWindow?.isMaximized() ?? false
   })
 }
 

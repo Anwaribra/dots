@@ -211,6 +211,12 @@ const api = {
   },
   weeklyReview: {
     generate: (period: unknown) => ipcRenderer.invoke('weekly-review:generate', period)
+  },
+  windowControls: {
+    minimize: () => ipcRenderer.invoke('window:minimize', undefined),
+    maximize: () => ipcRenderer.invoke('window:maximize', undefined),
+    close: () => ipcRenderer.invoke('window:close', undefined),
+    isMaximized: () => ipcRenderer.invoke('window:is-maximized', undefined)
   }
 }
 
