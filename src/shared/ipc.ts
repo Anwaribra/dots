@@ -11,6 +11,7 @@ import type {
 import type { GoalProgressResult } from './progress-engine'
 import type { AnalyticsFilter, AnalyticsOverview } from './analytics-engine'
 import type { DashboardData } from '../main/services/analytics-service'
+import type { TemplateRecord, ApplyTemplateResult, SaveCustomTemplateInput } from './templates'
 import {
   archiveEntitySchema,
   attachTagSchema,
@@ -233,6 +234,14 @@ export const ipcChannels = {
   goalMetricsDelete: 'goal-metrics:delete',
   analyticsGetOverview: 'analytics:get-overview',
   dashboardGetData: 'dashboard:get-data',
+
+  // Stage 11 Channels: Templates, Onboarding & Demo
+  templatesList: 'templates:list',
+  templatesApply: 'templates:apply',
+  templatesSaveCustom: 'templates:save-custom',
+  templatesDelete: 'templates:delete',
+  demoLoad: 'demo:load',
+  demoDelete: 'demo:delete',
 
   entityArchive: 'entities:archive',
   entityRestore: 'entities:restore',
@@ -513,6 +522,27 @@ export const ipcSchemas = {
     nowDate: z.string().optional()
   }).optional(),
 
+  // Stage 11: Templates, Onboarding & Demo
+  [ipcChannels.templatesList]: z.undefined(),
+  [ipcChannels.templatesApply]: z.object({
+    id: z.string(),
+    skipDuplicates: z.boolean().optional()
+  }),
+  [ipcChannels.templatesSaveCustom]: z.object({
+    name: z.string().trim().min(1),
+    description: z.string().optional(),
+    includeAreas: z.boolean().optional(),
+    includeGoals: z.boolean().optional(),
+    includeMilestones: z.boolean().optional(),
+    includeWorkItemTypes: z.boolean().optional(),
+    includeRoutines: z.boolean().optional(),
+    includeTimeBudgets: z.boolean().optional(),
+    includeReviewPolicies: z.boolean().optional()
+  }),
+  [ipcChannels.templatesDelete]: z.object({ id: z.string() }),
+  [ipcChannels.demoLoad]: z.undefined(),
+  [ipcChannels.demoDelete]: z.undefined(),
+
   [ipcChannels.entityArchive]: archiveEntitySchema,
   [ipcChannels.entityRestore]: restoreEntitySchema,
   [ipcChannels.entityDelete]: deleteEntitySchema
@@ -738,5 +768,15 @@ export type PlannerApi = {
   }
   dashboard: {
     getData: (nowDate?: string) => Promise<DashboardData>
+  }
+  templates: {
+    list: () => Promise<TemplateRecord[]>
+    apply: (id: string, skipDuplicates?: boolean) => Promise<ApplyTemplateResult>
+    saveCustom: (input: SaveCustomTemplateInput) => Promise<TemplateRecord>
+    delete: (id: string) => Promise<void>
+  }
+  demo: {
+    load: () => Promise<void>
+    delete: () => Promise<void>
   }
 }

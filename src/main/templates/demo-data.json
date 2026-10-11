@@ -1,0 +1,81 @@
+{
+  "areas": [
+    {
+      "name": "[Demo] Learning",
+      "description": "Example learning area — demo data only.",
+      "color": "#6366f1",
+      "icon": "📚"
+    },
+    {
+      "name": "[Demo] Fitness",
+      "description": "Example fitness area — demo data only.",
+      "color": "#10b981",
+      "icon": "💪"
+    },
+    {
+      "name": "[Demo] Personal",
+      "description": "Example personal area — demo data only.",
+      "color": "#8b5cf6",
+      "icon": "🌱"
+    }
+  ],
+  "goals": [
+    {
+      "areaKey": 0,
+      "title": "[Demo] Learn a New Skill",
+      "description": "Example skill-learning goal — delete when ready to start for real.",
+      "progressMode": "calculated",
+      "measurementType": "percentage"
+    },
+    {
+      "areaKey": 1,
+      "title": "[Demo] Example Fitness Goal",
+      "description": "Example fitness goal — delete when ready to start for real.",
+      "progressMode": "manual",
+      "measurementType": "percentage"
+    }
+  ],
+  "projects": [
+    {
+      "areaKey": 0,
+      "goalKey": 0,
+      "title": "[Demo] Example Course Project",
+      "description": "Tracks progress through the example course."
+    }
+  ],
+  "routines": [
+    {
+      "name": "[Demo] Daily Practice",
+      "description": "Example daily practice routine.",
+      "targetDuration": 30,
+      "recurrenceRule": "FREQ=DAILY",
+      "preferredTime": "09:00"
+    }
+  ],
+  "workItems": [
+    {
+      "areaKey": 0,
+      "goalKey": 0,
+      "projectKey": 0,
+      "title": "[Demo] Lesson 1",
+      "estimatedMinutes": 45,
+      "status": "todo"
+    },
+    {
+      "areaKey": 0,
+      "goalKey": 0,
+      "projectKey": 0,
+      "title": "[Demo] Lesson 2",
+      "estimatedMinutes": 45,
+      "status": "todo"
+    },
+    {
+      "areaKey": 0,
+      "goalKey": 0,
+      "projectKey": 0,
+      "title": "[Demo] Lesson 3",
+      "estimatedMinutes": 45,
+      "status": "todo"
+    }
+  ]
+}

@@ -99,5 +99,18 @@
   "moveTomorrow": "نقله إلى الغد",
   "nextFreeSlot": "أول فترة شاغرة متاحة",
   "skipTask": "تجاوز",
-  "cancelTask": "إلغاء"
+  "cancelTask": "إلغاء",
+  "templates": "القوالب",
+  "saveAsTemplate": "حفظ كقالب",
+  "applyTemplate": "تطبيق القالب",
+  "templateApplied": "تم تطبيق القالب بنجاح",
+  "demoModeActive": "وضع العرض التجريبي نشط",
+  "clearDemoData": "حذف البيانات التجريبية",
+  "loadDemoData": "تحميل بيانات تجريبية",
+  "onboardingWelcome": "مرحباً بك في Clarity Planner",
+  "onboardingSubtitle": "نظّم حياتك وأهدافك بنظام محلي ومرن يتكيّف مع واقعك.",
+  "startFromScratch": "البدء من الصفر",
+  "pickTemplate": "اختيار قالب جاهز",
+  "exploreDemo": "استكشاف البيانات التجريبية",
+  "skipOnboarding": "تخطي الإعداد الأولي"
 }

@@ -131,11 +131,40 @@ Migrations `0000_foundation` through `0008_replanning` create `settings`, `profi
   - **Tests**: `tests/progress-analytics.test.ts` — 15/15 passing. Covers all 6 progress modes, weighted calculation, edge cases (empty data, over-100 caps), project progress, velocity/trend, analytics breakdowns, filters, and empty-dataset safety.
   - **0 TypeScript errors** (`npm run typecheck` exit code 0).
 
+- **Stage 11 — Templates, onboarding & demo data**: Fully completed.
+  - **Database Migration `0010_templates_and_onboarding.sql`**: Creates `templates` table (`id`, `name`, `description`, `category`, `builtin`, `payload_json`, `created_at`, `updated_at`) and adds `onboarding_done` and `demo_mode` columns to `settings`.
+  - **Built-in Templates**: Shipped as pure JSON blueprints in `src/main/templates/` (`builtin-study.json`, `builtin-fitness.json`, `builtin-review.json`, `builtin-freelance.json`). Seeded automatically on startup into the `templates` table.
+  - **Template Service** (`src/main/services/template-service.ts`):
+    - `listTemplates()`: lists built-in and custom templates.
+    - `applyTemplate()`: applies template payload purely through existing entity services (areas, goals, milestones, work item types, routines, time budgets, review policies, resources). Completely decoupled from scheduler and planning engines. Robust duplicate detection via `skipDuplicates` flag.
+    - `saveCustomTemplate()`: captures current workspace entities into a reusable template payload, honoring user inclusion toggles.
+    - `deleteTemplate()`: safely removes custom templates (prohibits deleting built-in templates).
+  - **Demo Data Service** (`src/main/services/demo-service.ts`):
+    - Seeds rich sample dataset (`demo-data.json`) labeled with `[Demo]` prefix into the active database.
+    - `deleteDemoData()`: one-click removal of all demo data in dependency-safe order (`workItems` → `projects` → `goals` → `areas` → `routines`), leaving no orphan records.
+    - `demoMode` state triggers persistent app banner.
+  - **Onboarding Wizard** (`src/renderer/src/components/OnboardingWizard.tsx`):
+    - Welcome screen with three clear pathways: "Pick a ready-made template", "Explore with demo data", or "Start from scratch".
+    - Skippable guided steps: Language & regional format (en/ar, 12h/24h, week starts on), Focus areas selection, Planning capacity & reality buffer configuration.
+    - Displays on first launch or can be re-run on demand from Settings.
+  - **Templates UI** (`src/renderer/src/pages/TemplatesPage.tsx`):
+    - Categorized gallery (Study, Fitness, Spaced Review, Freelance, Custom).
+    - Detailed card breakdown showing constituent entity counts.
+    - Apply modal with duplicate skipping toggle.
+    - "Save Current Setup as Template" modal with selective entity module checkboxes.
+  - **Settings Page Upgrade** (`src/renderer/src/pages/SettingsPage.tsx`):
+    - Load / Delete Demo Data buttons.
+    - Re-launch Onboarding Wizard action.
+  - **IPC Channels**: `templates:list`, `templates:apply`, `templates:save-custom`, `templates:delete`, `demo:load`, `demo:delete`.
+  - **Localisation**: Full English and Arabic translations for templates, demo, and onboarding.
+  - **Tests**: `tests/templates.test.ts` (8/8 passing). Total 85 tests passing across 11 test suites under Node.
+  - **0 TypeScript errors** (`npm run typecheck` exit code 0).
+
 ## How to run
 
 ```powershell
 cmd /c npm run typecheck
-cmd /c npx vitest run tests/replanning.test.ts tests/scheduler.test.ts tests/capacity.test.ts tests/time-math.test.ts tests/bulk-parser.test.ts tests/dependency-cycle.test.ts tests/recurrence.test.ts tests/entity-schemas.test.ts tests/settings-schema.test.ts tests/progress-analytics.test.ts
+cmd /c npx vitest run tests/replanning.test.ts tests/scheduler.test.ts tests/capacity.test.ts tests/time-math.test.ts tests/bulk-parser.test.ts tests/dependency-cycle.test.ts tests/recurrence.test.ts tests/entity-schemas.test.ts tests/settings-schema.test.ts tests/progress-analytics.test.ts tests/templates.test.ts
 cmd /c npm run dev
 ```
 
@@ -144,27 +173,28 @@ cmd /c npm run dev
 ```text
 src/
 ├── main/
-│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0009)
+│   ├── db/          # database, schema, migrations runner, application migrations (0000 - 0010)
 │   ├── scheduler/   # pure deterministic planning & replanning engines (constraints, scoring, allocation, capacity, dependencies, scheduling, replanning, explanations, types)
-│   ├── services/    # domain services (settings-service, entity-service, planning-service, replanning-service, session-service, timer-service, notification-service, backup-service, review-service, progress-service, analytics-service)
+│   ├── services/    # domain services (settings-service, entity-service, planning-service, replanning-service, session-service, timer-service, notification-service, backup-service, review-service, progress-service, analytics-service, template-service, demo-service)
+│   ├── templates/   # built-in JSON templates (study, fitness, review, freelance) and demo-data.json
 │   └── index.ts     # main process & IPC handler registration
 ├── preload/
 │   └── index.ts     # contextBridge API exposing typed planner IPC bridge
 ├── renderer/
 │   ├── src/
-│   │   ├── components/  # UI primitives, ReplanPreviewModal, PlanHistoryModal, BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
+│   │   ├── components/  # UI primitives, OnboardingWizard, ReplanPreviewModal, PlanHistoryModal, BulkResourceModal, QuickAddModal, NotesWidget, DeleteDialog
 │   │   ├── locales/     # en/common.json, ar/common.json
-│   │   ├── pages/       # TodayPage, InboxPage, WeeklyPlannerPage, ReviewPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, DashboardPage, AnalyticsPage
+│   │   ├── pages/       # TodayPage, InboxPage, WeeklyPlannerPage, ReviewPage, AreasPage, GoalsPage, ProjectsPage, WorkItemsPage, ResourcesPage, RoutinesAndHabitsPage, TimeBudgetsPage, AvailabilityAndCapacityPage, TypesAndFieldsPage, TagsPage, SettingsPage, PlannerDebugPage, DashboardPage, AnalyticsPage, TemplatesPage
 │   │   ├── App.tsx      # Main application shell with sidebar & topbar
 │   │   ├── i18n.ts
 │   │   └── main.tsx
 │   └── index.html
-└── shared/          # Zod schemas, bulk-parser.ts, dependency-utils.ts, capacity.ts, recurrence.ts, time-math.ts, review-engine.ts, progress-engine.ts, analytics-engine.ts & IPC contract (ipc.ts)
+└── shared/          # Zod schemas, templates.ts, bulk-parser.ts, dependency-utils.ts, capacity.ts, recurrence.ts, time-math.ts, review-engine.ts, progress-engine.ts, analytics-engine.ts & IPC contract (ipc.ts)
 ```
 
 ## Database
 
-Migrations `0000_foundation` through `0009_progress_analytics` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, `scheduled_items`, `time_sessions`, `review_policies`, `review_events`, `replanning_history`, `plan_versions`, `progress_history`, and `goal_metrics`.
+Migrations `0000_foundation` through `0010_templates_and_onboarding` create `settings`, `profiles`, `areas`, `goals`, `milestones`, `projects`, `work_item_types`, `custom_field_definitions`, `work_items`, `custom_field_values`, `tags`, `entity_tags`, `notes`, `resources`, `resource_items`, `work_item_dependencies`, `availability_rules`, `availability_overrides`, `fixed_events`, `time_budgets`, `routines`, `habits`, `habit_logs`, `scheduled_items`, `time_sessions`, `review_policies`, `review_events`, `replanning_history`, `plan_versions`, `progress_history`, `goal_metrics`, and `templates`.
 
 ## IPC channels
 
@@ -197,7 +227,9 @@ Migrations `0000_foundation` through `0009_progress_analytics` create `settings`
 - Goal Metrics: `goal-metrics:list`, `goal-metrics:create`, `goal-metrics:update`, `goal-metrics:delete`
 - Analytics: `analytics:get-overview`
 - Dashboard: `dashboard:get-data`
+- Templates: `templates:list`, `templates:apply`, `templates:save-custom`, `templates:delete`
+- Demo Data: `demo:load`, `demo:delete`
 
 ## Next stage
 
-- Stage 11 — Notifications, reminders, and smart suggestions.
+- Stage 12 of 12 — Final polish, comprehensive export/import, backup/restore, production packaging validation.

@@ -11,7 +11,9 @@ export const settingsSchema = z.object({
   use24HourTime: z.boolean().default(true),
   planningCapacityPercentage: z.number().int().min(1).max(100).default(75),
   bufferPercentage: z.number().int().min(0).max(100).default(20),
-  notificationsEnabled: z.boolean().default(true)
+  notificationsEnabled: z.boolean().default(true),
+  onboardingDone: z.boolean().default(false),
+  demoMode: z.boolean().default(false)
 })
 export type Settings = z.infer<typeof settingsSchema>
 

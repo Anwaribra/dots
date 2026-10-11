@@ -37,7 +37,9 @@ import { DashboardPage } from './pages/DashboardPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { QuickAddModal } from './components/QuickAddModal'
 import { PlaceholderPage } from './pages/PlaceholderPage'
-import { LayoutDashboard, BarChart2 } from 'lucide-react'
+import { LayoutDashboard, BarChart2, Sparkles } from 'lucide-react'
+import { TemplatesPage } from './pages/TemplatesPage'
+import { OnboardingWizard } from './components/OnboardingWizard'
 
 const navigation = [
   ['dashboard', LayoutDashboard],
@@ -54,7 +56,8 @@ const navigation = [
   ['availability', CalendarDays],
   ['types', Activity],
   ['tags', TagIcon],
-  ['review', CheckSquare]
+  ['review', CheckSquare],
+  ['templates', Sparkles]
 ] as const
 
 export function App(): JSX.Element {
@@ -153,6 +156,27 @@ export function App(): JSX.Element {
       </aside>
 
       <section className="content flex-1 p-8 overflow-y-auto">
+        {settings?.demoMode && (
+          <div className="mb-6 flex items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 shadow-sm dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
+            <div className="flex items-center space-x-2 space-x-reverse font-semibold">
+              <Sparkles size={16} className="text-amber-600 dark:text-amber-400" />
+              <span>{t('demoModeActive')} — You are exploring sample data. Real tasks are unaffected.</span>
+            </div>
+            <button
+              onClick={async () => {
+                if (planner) {
+                  await planner.demo.delete()
+                  const updated = await planner.settings.get()
+                  applySettings(updated)
+                }
+              }}
+              className="rounded-lg bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-500 shadow-sm transition-colors"
+            >
+              {t('clearDemoData')}
+            </button>
+          </div>
+        )}
+
         <header className="topbar mb-6 flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
           <h2 className="text-xl font-bold uppercase tracking-wider text-slate-400 text-xs">
             {t(active)}
@@ -226,10 +250,23 @@ export function App(): JSX.Element {
           <WeeklyPlannerPage />
         ) : active === 'review' ? (
           <ReviewPage />
+        ) : active === 'templates' ? (
+          <TemplatesPage />
         ) : (
           <PlaceholderPage titleKey={active} stageNumber={0} />
         )}
       </section>
+
+      <OnboardingWizard
+        isOpen={Boolean(settings && !settings.onboardingDone)}
+        currentSettings={settings}
+        onClose={() => changeSettings({ onboardingDone: true })}
+        onComplete={() => {
+          if (planner) {
+            planner.settings.get().then(applySettings).catch(() => undefined)
+          }
+        }}
+      />
 
       <QuickAddModal
         isOpen={quickAddOpen}

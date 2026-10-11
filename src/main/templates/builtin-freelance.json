@@ -1,0 +1,88 @@
+{
+  "id": "builtin-freelance",
+  "name": "Freelance Work Week",
+  "description": "Client work area, project type, weekly time budgets, and a structured freelance workday routine.",
+  "category": "freelance",
+  "areas": [
+    {
+      "_key": "area-work",
+      "name": "Client Work",
+      "description": "Freelance projects, client deliverables, and professional tasks.",
+      "color": "#3b82f6",
+      "icon": "💼"
+    },
+    {
+      "_key": "area-admin",
+      "name": "Business Admin",
+      "description": "Invoicing, proposals, communication, and business operations.",
+      "color": "#f59e0b",
+      "icon": "📋"
+    }
+  ],
+  "goals": [
+    {
+      "_key": "goal-revenue",
+      "areaKey": "area-work",
+      "title": "Complete Client Projects On Time",
+      "description": "Deliver high-quality work within agreed deadlines.",
+      "progressMode": "calculated",
+      "measurementType": "percentage"
+    }
+  ],
+  "workItemTypes": [
+    { "_key": "wit-deliverable", "name": "Deliverable", "color": "#3b82f6", "icon": "📦" },
+    { "_key": "wit-meeting", "name": "Meeting", "color": "#8b5cf6", "icon": "🎙️" },
+    { "_key": "wit-admin", "name": "Admin", "color": "#f59e0b", "icon": "📋" }
+  ],
+  "routines": [
+    {
+      "_key": "routine-morning",
+      "name": "Morning Planning",
+      "description": "Review priorities, check messages, set the day's focus.",
+      "targetDuration": 20,
+      "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+      "preferredTime": "08:00",
+      "flexibility": "semi_flexible"
+    },
+    {
+      "_key": "routine-deep-work",
+      "name": "Deep Work Block",
+      "description": "Uninterrupted focused work on primary client deliverable.",
+      "targetDuration": 120,
+      "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+      "preferredTime": "09:00",
+      "flexibility": "semi_flexible"
+    },
+    {
+      "_key": "routine-eod",
+      "name": "End-of-Day Wrap-Up",
+      "description": "Send updates, log time, plan tomorrow.",
+      "targetDuration": 20,
+      "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+      "preferredTime": "17:30",
+      "flexibility": "flexible"
+    }
+  ],
+  "timeBudgets": [
+    {
+      "_key": "budget-client",
+      "name": "Client Work",
+      "areaKey": "area-work",
+      "allocationMode": "target",
+      "protection": "protected",
+      "targetMinutes": 1500,
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "priority": "critical"
+    },
+    {
+      "_key": "budget-admin",
+      "name": "Business Admin",
+      "areaKey": "area-admin",
+      "allocationMode": "target",
+      "protection": "flexible",
+      "targetMinutes": 180,
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "priority": "medium"
+    }
+  ]
+}

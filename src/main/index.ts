@@ -139,6 +139,17 @@ import {
   getAnalyticsOverview,
   getDashboardWidgetsData
 } from './services/analytics-service'
+import {
+  seedBuiltInTemplates,
+  listTemplates,
+  applyTemplate,
+  saveCustomTemplate,
+  deleteTemplate
+} from './services/template-service'
+import {
+  loadDemoData,
+  deleteDemoData
+} from './services/demo-service'
 
 
 
@@ -570,12 +581,36 @@ function registerIpc(): void {
     ipcSchemas[ipcChannels.dashboardGetData].parse(input)
     return getDashboardWidgetsData()
   })
+
+  // Stage 11: Templates, Onboarding & Demo
+  ipcMain.handle(ipcChannels.templatesList, () => {
+    return listTemplates()
+  })
+  ipcMain.handle(ipcChannels.templatesApply, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.templatesApply].parse(input)
+    return applyTemplate(parsed.id, { skipDuplicates: parsed.skipDuplicates })
+  })
+  ipcMain.handle(ipcChannels.templatesSaveCustom, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.templatesSaveCustom].parse(input)
+    return saveCustomTemplate(parsed)
+  })
+  ipcMain.handle(ipcChannels.templatesDelete, (_event, input: unknown) => {
+    const parsed = ipcSchemas[ipcChannels.templatesDelete].parse(input)
+    deleteTemplate(parsed.id)
+  })
+  ipcMain.handle(ipcChannels.demoLoad, () => {
+    loadDemoData()
+  })
+  ipcMain.handle(ipcChannels.demoDelete, () => {
+    deleteDemoData()
+  })
 }
 
 app.whenReady().then(() => {
   runApplicationMigrations()
   seedBuiltInWorkItemTypes()
   seedDefaultAvailabilityRules()
+  seedBuiltInTemplates()
   registerIpc()
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })

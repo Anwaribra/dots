@@ -103,6 +103,53 @@ export function SettingsPage(): JSX.Element {
           </div>
         </div>
       </Card>
+
+      {/* Stage 11: Demo Data & Onboarding Wizard */}
+      <Card className="space-y-4">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          Demo Data & Onboarding
+        </h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Populate your system with sample data to experiment safely, or re-run the initial onboarding flow.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          {settings.demoMode ? (
+            <button
+              onClick={async () => {
+                if (planner) {
+                  await planner.demo.delete()
+                  const updated = await planner.settings.get()
+                  applySettings(updated)
+                }
+              }}
+              className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-500 shadow-sm"
+            >
+              {t('clearDemoData')}
+            </button>
+          ) : (
+            <button
+              onClick={async () => {
+                if (planner) {
+                  await planner.demo.load()
+                  const updated = await planner.settings.get()
+                  applySettings(updated)
+                }
+              }}
+              className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm"
+            >
+              {t('loadDemoData')}
+            </button>
+          )}
+
+          <button
+            onClick={() => updateSetting({ onboardingDone: false })}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            Re-run Onboarding Wizard
+          </button>
+        </div>
+      </Card>
     </div>
   )
 }

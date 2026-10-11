@@ -1,0 +1,98 @@
+{
+  "id": "builtin-fitness",
+  "name": "Fitness Training",
+  "description": "An area, training routine, workout type, and a structured training plan for any fitness goal.",
+  "category": "fitness",
+  "areas": [
+    {
+      "_key": "area-fitness",
+      "name": "Fitness",
+      "description": "Health, training, and physical wellbeing.",
+      "color": "#10b981",
+      "icon": "💪"
+    }
+  ],
+  "goals": [
+    {
+      "_key": "goal-fitness",
+      "areaKey": "area-fitness",
+      "title": "Example Fitness Goal",
+      "description": "Build consistent training habits and reach a specific fitness outcome.",
+      "progressMode": "calculated",
+      "measurementType": "percentage"
+    }
+  ],
+  "milestones": [
+    { "_key": "ms-1", "goalKey": "goal-fitness", "title": "Establish consistent schedule (4 weeks)" },
+    { "_key": "ms-2", "goalKey": "goal-fitness", "title": "Complete first training block" },
+    { "_key": "ms-3", "goalKey": "goal-fitness", "title": "Reach primary performance target" }
+  ],
+  "workItemTypes": [
+    { "_key": "wit-workout", "name": "Workout", "color": "#10b981", "icon": "🏋️" },
+    { "_key": "wit-cardio", "name": "Cardio Session", "color": "#f59e0b", "icon": "🏃" }
+  ],
+  "routines": [
+    {
+      "_key": "routine-training",
+      "name": "Training Session",
+      "description": "Primary workout block.",
+      "targetDuration": 60,
+      "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,WE,FR",
+      "preferredTime": "07:00",
+      "flexibility": "semi_flexible"
+    },
+    {
+      "_key": "routine-cardio",
+      "name": "Cardio Session",
+      "description": "Active recovery or cardiovascular training.",
+      "targetDuration": 30,
+      "recurrenceRule": "FREQ=WEEKLY;BYDAY=TU,TH",
+      "preferredTime": "07:00",
+      "flexibility": "flexible"
+    }
+  ],
+  "timeBudgets": [
+    {
+      "_key": "budget-fitness",
+      "name": "Training Time",
+      "areaKey": "area-fitness",
+      "allocationMode": "target",
+      "protection": "protected",
+      "targetMinutes": 300,
+      "daysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+      "priority": "high"
+    }
+  ],
+  "resources": [
+    {
+      "_key": "res-plan",
+      "areaKey": "area-fitness",
+      "goalKey": "goal-fitness",
+      "title": "Training Plan",
+      "resourceType": "training_program",
+      "orderingMode": "sequential",
+      "items": [
+        {
+          "_key": "week-1",
+          "title": "Week 1: Foundation",
+          "itemType": "section",
+          "children": [
+            { "title": "Day 1 Workout", "estimatedMinutes": 60, "itemType": "item" },
+            { "title": "Day 2 Cardio", "estimatedMinutes": 30, "itemType": "item" },
+            { "title": "Day 3 Workout", "estimatedMinutes": 60, "itemType": "item" }
+          ]
+        },
+        {
+          "_key": "week-2",
+          "title": "Week 2: Build",
+          "itemType": "section",
+          "children": [
+            { "title": "Day 1 Workout", "estimatedMinutes": 65, "itemType": "item" },
+            { "title": "Day 2 Cardio", "estimatedMinutes": 35, "itemType": "item" },
+            { "title": "Day 3 Workout", "estimatedMinutes": 65, "itemType": "item" }
+          ]
+        }
+      ]
+    }
+  ]
+}

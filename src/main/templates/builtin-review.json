@@ -1,0 +1,59 @@
+{
+  "id": "builtin-review",
+  "name": "Review & Repetition System",
+  "description": "A standalone spaced-repetition review system for any type of material: flashcards, vocabulary, notes, or procedures.",
+  "category": "review",
+  "areas": [
+    {
+      "_key": "area-review",
+      "name": "Personal",
+      "description": "Personal growth, practices, and recurring work.",
+      "color": "#8b5cf6",
+      "icon": "🔄"
+    }
+  ],
+  "goals": [
+    {
+      "_key": "goal-mastery",
+      "areaKey": "area-review",
+      "title": "Maintain a Daily Practice",
+      "description": "Build a consistent daily review and practice habit.",
+      "progressMode": "manual",
+      "measurementType": "percentage"
+    }
+  ],
+  "routines": [
+    {
+      "_key": "routine-morning",
+      "name": "Daily Practice",
+      "description": "Daily review of important material and practice items.",
+      "targetDuration": 30,
+      "recurrenceRule": "FREQ=DAILY",
+      "preferredTime": "09:00",
+      "flexibility": "semi_flexible"
+    },
+    {
+      "_key": "routine-evening",
+      "name": "Evening Reflection",
+      "description": "Evening review and planning session.",
+      "targetDuration": 15,
+      "recurrenceRule": "FREQ=DAILY",
+      "preferredTime": "21:00",
+      "flexibility": "flexible"
+    }
+  ],
+  "reviewPolicies": [
+    {
+      "_key": "policy-standard",
+      "name": "Standard Review",
+      "intervalDays": [1, 3, 7, 14, 30],
+      "shortenOnWeak": true
+    },
+    {
+      "_key": "policy-intensive",
+      "name": "Intensive Review",
+      "intervalDays": [1, 2, 4, 7, 14],
+      "shortenOnWeak": true
+    }
+  ]
+}

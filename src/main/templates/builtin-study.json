@@ -1,0 +1,106 @@
+{
+  "id": "builtin-study",
+  "name": "Study System",
+  "description": "An area, study routine, course resource structure, and spaced-repetition review policy for learning anything.",
+  "category": "study",
+  "areas": [
+    {
+      "_key": "area-study",
+      "name": "Learning",
+      "description": "Everything related to study and skill acquisition.",
+      "color": "#6366f1",
+      "icon": "📚"
+    }
+  ],
+  "goals": [
+    {
+      "_key": "goal-study",
+      "areaKey": "area-study",
+      "title": "Learn a New Skill",
+      "description": "Master a subject through structured study and spaced repetition.",
+      "progressMode": "calculated",
+      "measurementType": "percentage"
+    }
+  ],
+  "milestones": [
+    { "_key": "ms-1", "goalKey": "goal-study", "title": "Complete core material" },
+    { "_key": "ms-2", "goalKey": "goal-study", "title": "Pass first self-assessment" },
+    { "_key": "ms-3", "goalKey": "goal-study", "title": "Apply in a real project" }
+  ],
+  "workItemTypes": [
+    { "_key": "wit-lesson", "name": "Lesson", "color": "#6366f1", "icon": "📖" },
+    { "_key": "wit-exercise", "name": "Exercise", "color": "#10b981", "icon": "✏️" }
+  ],
+  "routines": [
+    {
+      "_key": "routine-study",
+      "name": "Daily Study Session",
+      "description": "Focused daily study block.",
+      "targetDuration": 60,
+      "recurrenceRule": "FREQ=DAILY",
+      "preferredTime": "08:00",
+      "flexibility": "semi_flexible"
+    },
+    {
+      "_key": "routine-review",
+      "name": "Daily Review",
+      "description": "Spaced-repetition review of previously studied material.",
+      "targetDuration": 20,
+      "recurrenceRule": "FREQ=DAILY",
+      "preferredTime": "20:00",
+      "flexibility": "flexible"
+    }
+  ],
+  "timeBudgets": [
+    {
+      "_key": "budget-study",
+      "name": "Study Time",
+      "areaKey": "area-study",
+      "allocationMode": "target",
+      "protection": "protected",
+      "targetMinutes": 420,
+      "daysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+      "priority": "high"
+    }
+  ],
+  "reviewPolicies": [
+    {
+      "_key": "policy-sr",
+      "name": "Spaced Repetition",
+      "intervalDays": [1, 3, 7, 14, 30, 90],
+      "shortenOnWeak": true
+    }
+  ],
+  "resources": [
+    {
+      "_key": "res-course",
+      "areaKey": "area-study",
+      "goalKey": "goal-study",
+      "title": "Example Course",
+      "resourceType": "course",
+      "orderingMode": "sequential",
+      "items": [
+        {
+          "_key": "mod-1",
+          "title": "Module 1: Foundations",
+          "itemType": "section",
+          "children": [
+            { "title": "Lesson 1", "estimatedMinutes": 45, "itemType": "item" },
+            { "title": "Lesson 2", "estimatedMinutes": 45, "itemType": "item" },
+            { "title": "Exercise 1", "estimatedMinutes": 30, "itemType": "item" }
+          ]
+        },
+        {
+          "_key": "mod-2",
+          "title": "Module 2: Core Concepts",
+          "itemType": "section",
+          "children": [
+            { "title": "Lesson 3", "estimatedMinutes": 45, "itemType": "item" },
+            { "title": "Lesson 4", "estimatedMinutes": 45, "itemType": "item" },
+            { "title": "Exercise 2", "estimatedMinutes": 30, "itemType": "item" }
+          ]
+        }
+      ]
+    }
+  ]
+}

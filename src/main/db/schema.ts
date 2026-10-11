@@ -11,6 +11,8 @@ export const settings = sqliteTable('settings', {
   planningCapacityPercentage: integer('planning_capacity_percentage').notNull().default(75),
   bufferPercentage: integer('buffer_percentage').notNull().default(20),
   notificationsEnabled: integer('notifications_enabled', { mode: 'boolean' }).notNull().default(true),
+  onboardingDone: integer('onboarding_done', { mode: 'boolean' }).notNull().default(false),
+  demoMode: integer('demo_mode', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
@@ -289,4 +291,16 @@ export const progressHistory = sqliteTable('progress_history', {
   updatedAt: integer('updated_at').notNull()
 })
 
+// Stage 11 Tables: Templates & Onboarding
 
+export const templates = sqliteTable('templates', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  category: text('category').notNull().default('custom'), // study | fitness | review | freelance | custom
+  builtin: integer('builtin', { mode: 'boolean' }).notNull().default(false),
+  /** JSON-serialised TemplatePayload */
+  payloadJson: text('payload_json').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})

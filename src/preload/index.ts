@@ -193,6 +193,16 @@ const api = {
   },
   dashboard: {
     getData: (nowDate?: string) => ipcRenderer.invoke('dashboard:get-data', nowDate ? { nowDate } : undefined)
+  },
+  templates: {
+    list: () => ipcRenderer.invoke('templates:list', undefined),
+    apply: (id: string, skipDuplicates?: boolean) => ipcRenderer.invoke('templates:apply', { id, skipDuplicates }),
+    saveCustom: (input: unknown) => ipcRenderer.invoke('templates:save-custom', input),
+    delete: (id: string) => ipcRenderer.invoke('templates:delete', { id })
+  },
+  demo: {
+    load: () => ipcRenderer.invoke('demo:load', undefined),
+    delete: () => ipcRenderer.invoke('demo:delete', undefined)
   }
 }
 
