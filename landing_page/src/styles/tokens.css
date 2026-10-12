@@ -6,9 +6,9 @@
 
 :root {
   /* Canvas & Base Neutrals */
-  --color-canvas: #F7F9FE;
-  --color-canvas-subtle: #EEF2FC;
-  --color-canvas-warm: #FBFCFF;
+  --color-canvas: #F8F9FE;
+  --color-canvas-subtle: #F0F3FC;
+  --color-canvas-warm: #F8F9FE;
   --color-ink: #17172B;
   --color-ink-secondary: #35354F;
   --color-ink-muted: #5F5F7C;

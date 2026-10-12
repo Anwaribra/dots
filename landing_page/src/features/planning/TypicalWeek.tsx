@@ -16,7 +16,7 @@ export const TypicalWeek: React.FC = () => {
     <section
       id="how-it-works"
       style={{
-        paddingBlock: '70px 110px',
+        paddingBlock: '70px 32px',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -418,7 +418,7 @@ export const TypicalWeek: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            marginTop: '60px',
+            marginTop: '36px',
           }}
         >
           <div style={{ width: '40px', height: '1px', background: '#E5E7EB' }} />

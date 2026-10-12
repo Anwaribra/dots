@@ -10,7 +10,8 @@
 
 html {
   font-family: var(--font-sans);
-  background-color: var(--color-canvas);
+  background-color: #F8F9FE;
+  background: #F8F9FE;
   color: var(--color-ink);
   font-size: 16px;
   line-height: 1.5;
@@ -21,28 +22,29 @@ html {
 }
 
 body {
-  background-color: var(--color-canvas);
-  background-image:
-    radial-gradient(circle at 86% 10%, rgba(99, 91, 255, 0.09), transparent 28rem),
-    radial-gradient(circle at 8% 32%, rgba(201, 244, 85, 0.06), transparent 24rem),
-    linear-gradient(180deg, #fbfcff 0%, var(--color-canvas) 28%, #f4f7fd 100%);
+  background-color: #F8F9FE;
+  background: #F8F9FE;
   color: var(--color-ink);
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
 }
 
-/* Subtle ambient backdrop glows */
-body::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 20%;
-  width: 600px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(67, 56, 242, 0.05) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+.dots-app {
+  background-color: #F8F9FE;
+  background: #F8F9FE;
+  min-height: 100vh;
+  width: 100%;
+}
+
+main {
+  background: transparent !important;
+}
+
+main > section,
+section {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 img, svg {
@@ -568,11 +570,10 @@ section p { text-wrap: pretty; }
 /* The narrative arrives one section at a time. It is intentionally subtle:
    product surfaces stay readable before, during and after the movement. */
 .reveal-section > .SectionCanvas {
-  opacity: 0;
-  transform: translateY(26px);
-  transition: opacity 720ms var(--ease-editorial), transform 720ms var(--ease-editorial);
+  opacity: 1 !important;
+  transform: none !important;
 }
-.reveal-section.is-revealed > .SectionCanvas { opacity: 1; transform: translateY(0); }
+.reveal-section.is-revealed > .SectionCanvas { opacity: 1 !important; transform: none !important; }
 
 /* Hero: product-led, editorial, and deliberately spare. */
 #hero::after {
@@ -679,8 +680,7 @@ section p { text-wrap: pretty; }
 #early-access input:focus-visible { outline: 2px solid var(--color-lime); outline-offset: 4px; border-radius: 8px; }
 #faq { padding-bottom: clamp(80px, 9vw, 132px) !important; }
 #faq > .SectionCanvas { max-width: 1040px !important; }
-#faq button { border-radius: 12px; }
-footer { background: rgba(255, 255, 255, 0.5) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+/* Footer background handled component-level */
 
 @keyframes productRise {
   from { opacity: 0; transform: translateY(32px) scale(.975); }

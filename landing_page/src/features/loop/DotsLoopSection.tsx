@@ -1,82 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 import {
-  ArrowRight,
-  Mail,
-  CheckCircle2,
-  AlertCircle,
-  ChevronDown,
   Sparkles,
-  BarChart2,
   Check,
-  X,
+  CheckCircle2,
+  ShieldCheck,
+  ArrowDown,
+  Zap,
+  Mail,
 } from 'lucide-react';
-import { dotsAdapter } from '../../lib/api/client';
-import { WaitlistStatus } from '../../domain/waitlist';
-
-interface CompactFaqItem {
-  id: string;
-  q: string;
-  a: string;
-}
-
-const COMPACT_FAQS: CompactFaqItem[] = [
-  {
-    id: 'loop-faq-1',
-    q: 'What is Dots?',
-    a: 'Dots is an AI personal execution platform that connects your goals, plans your week, and adapts when life changes. It protects your key commitments and makes sure your daily schedule reflects reality.',
-  },
-  {
-    id: 'loop-faq-2',
-    q: 'Do I approve changes?',
-    a: 'Yes. You are always in control. Dots evaluates trade-offs, protects your fixed meetings, and proposes reasoned adjustments for your one-tap approval.',
-  },
-  {
-    id: 'loop-faq-3',
-    q: 'Can I change my plan?',
-    a: 'Always. You can add tasks, lock specific commitments, or trigger manual adjustments anytime. Dots recalculates buffer space and keeps your week balanced.',
-  },
-];
 
 export const DotsLoopSection: React.FC = () => {
-  // Early access form state
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<WaitlistStatus>('idle');
-  const [message, setMessage] = useState('');
-  const [showInput, setShowInput] = useState(false);
-
-  // Compact FAQ state
-  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
-
-  const toggleFaq = (id: string) => {
-    setOpenFaqId((prev) => (prev === id ? null : id));
-  };
-
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email.trim())) {
-      setStatus('error');
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-
-    setStatus('submitting');
-    try {
-      const result = await dotsAdapter.submitWaitlist(email.trim());
-      setStatus(result.status);
-      setMessage(result.message);
-    } catch {
-      setStatus('unavailable');
-      setMessage('The early access endpoint is currently unavailable. Please check back soon.');
-    }
-  };
-
   return (
     <section id="the-dots-loop" className="dots-loop-section" aria-label="The Dots Loop">
-      {/* Anchor targets to preserve existing navbar links */}
+      {/* Anchor target to preserve navbar links */}
       <div id="early-access" style={{ position: 'relative', top: '-80px', height: 0, visibility: 'hidden' }} />
-      <div id="faq" style={{ position: 'relative', top: '-80px', height: 0, visibility: 'hidden' }} />
 
       {/* Ambient background accent orbs */}
       <div className="loop-ambient-layer" aria-hidden="true">
@@ -174,10 +112,16 @@ export const DotsLoopSection: React.FC = () => {
             </svg>
           </div>
 
-          {/* 3 Horizontal Cards Group */}
+          {/* 3 Horizontal Cards Group with Framer Motion */}
           <ol className="loop-cards-grid">
             {/* STAGE 1 — Notice */}
-            <li className="loop-stage-card card-notice">
+            <motion.li
+              className="loop-stage-card card-notice"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="card-mobile-node" aria-hidden="true">
                 <span className="mobile-dot" />
               </div>
@@ -190,23 +134,52 @@ export const DotsLoopSection: React.FC = () => {
                 </p>
               </div>
 
-              {/* Mini UI 1 */}
+              {/* Mini UI 1 - Rich Incoming Event + Realtime Impact Analysis */}
               <div className="mini-ui-card ui-notice-card">
-                <div className="ui-notice-inner">
+                {/* Incoming Request Pill */}
+                <div className="notice-incoming-item">
                   <div className="ui-icon-box ui-blue-icon">
                     <Mail size={16} strokeWidth={2.4} />
+                    <span className="live-ping-dot" aria-hidden="true" />
                   </div>
                   <div className="ui-text-column">
-                    <span className="ui-primary-text">A client request came up</span>
+                    <div className="notice-title-row">
+                      <span className="ui-primary-text">A client request came up</span>
+                      <span className="notice-urgent-pill">Urgent</span>
+                    </div>
                     <span className="ui-sub-text">10:24 AM · 2 hours needed</span>
                   </div>
                   <div className="ui-accent-slashes" aria-hidden="true">//</div>
                 </div>
+
+                {/* Conflict Detection & Dots Auto-assessment */}
+                <div className="notice-impact-panel">
+                  <div className="impact-header-row">
+                    <div className="impact-badge">
+                      <Zap size={13} className="impact-alert-icon" />
+                      <span>Conflict detected</span>
+                    </div>
+                    <span className="impact-target">10:00 AM slot</span>
+                  </div>
+                  <div className="impact-desc-row">
+                    <span>Overlaps scheduled <strong>Deep work</strong>. Dots calculates flexible reschedule...</span>
+                  </div>
+                  <div className="impact-status-bar">
+                    <span className="impact-evaluating-dot" />
+                    <span>Evaluating 3 trade-off scenarios</span>
+                  </div>
+                </div>
               </div>
-            </li>
+            </motion.li>
 
             {/* STAGE 2 — Rebalance */}
-            <li className="loop-stage-card card-rebalance is-elevated">
+            <motion.li
+              className="loop-stage-card card-rebalance is-elevated"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="card-mobile-node" aria-hidden="true">
                 <span className="mobile-dot" />
               </div>
@@ -219,52 +192,71 @@ export const DotsLoopSection: React.FC = () => {
                 </p>
               </div>
 
-              {/* Mini UI 2 */}
+              {/* Mini UI 2 - Clear Before / After Slot Reschedule Flow */}
               <div className="mini-ui-card ui-rebalance-card">
-                {/* Original scheduled block */}
-                <div className="rebalance-item original-item">
+                {/* Original scheduled block (Moved) */}
+                <div className="rebalance-slot slot-original">
+                  <div className="slot-side-indicator indicator-muted" />
                   <div className="rebalance-info">
                     <span className="rebalance-title">Deep work</span>
                     <span className="rebalance-time">10:00 – 12:00</span>
                   </div>
+                  <span className="slot-badge-shifted">Shifted</span>
                 </div>
 
-                {/* Dotted curve transition arrow */}
-                <div className="rebalance-transition-indicator" aria-hidden="true">
-                  <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
-                    <path
-                      d="M 6 2 C 18 2, 20 16, 12 24"
-                      stroke="#2B2FD9"
-                      strokeWidth="1.6"
-                      strokeDasharray="3 3"
-                      strokeLinecap="round"
-                    />
-                    <path d="M 9 22 L 12 25 L 15 22" stroke="#2B2FD9" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
+                {/* Dedicated SVG Connecting Flow Bridge */}
+                <div className="rebalance-flow-bridge" aria-hidden="true">
+                  <div className="flow-bridge-track">
+                    <svg width="100%" height="26" viewBox="0 0 240 26" fill="none" preserveAspectRatio="none">
+                      <path
+                        d="M 30 2 C 30 18, 170 8, 170 24"
+                        stroke="#6366F1"
+                        strokeWidth="1.75"
+                        strokeDasharray="4 3"
+                        strokeLinecap="round"
+                        className="bridge-curve-line"
+                      />
+                      <polygon points="170,26 166,19 174,19" fill="#6366F1" />
+                    </svg>
+                  </div>
+                  <div className="flow-bridge-tag">
+                    <ArrowDown size={10} strokeWidth={3} />
+                    <span>Auto-moved to afternoon</span>
+                  </div>
                 </div>
 
-                {/* Adjusted flexible block with green check */}
-                <div className="rebalance-item moved-item">
+                {/* Adjusted protected block (Zero text collision) */}
+                <div className="rebalance-slot slot-adjusted">
+                  <div className="slot-side-indicator indicator-active" />
                   <div className="rebalance-info">
                     <span className="rebalance-title">Deep work</span>
                     <span className="rebalance-time text-adjusted">2:00 – 4:00</span>
                   </div>
-                  <div className="rebalance-check-icon">
-                    <Check size={14} strokeWidth={3} />
+                  <div className="rebalance-protected-badge">
+                    <div className="badge-check-circle">
+                      <Check size={11} strokeWidth={3.2} />
+                    </div>
+                    <span>Protected</span>
                   </div>
                 </div>
 
                 {/* Space made pill */}
                 <div className="space-made-pill">
                   <Sparkles size={13} className="space-sparkle-icon" />
-                  <span className="space-label">Space made</span>
+                  <span className="space-label">Space made for client</span>
                   <span className="space-value">+ 2 hours</span>
                 </div>
               </div>
-            </li>
+            </motion.li>
 
             {/* STAGE 3 — Move forward */}
-            <li className="loop-stage-card card-forward">
+            <motion.li
+              className="loop-stage-card card-forward"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="card-mobile-node" aria-hidden="true">
                 <span className="mobile-dot" />
               </div>
@@ -277,154 +269,54 @@ export const DotsLoopSection: React.FC = () => {
                 </p>
               </div>
 
-              {/* Mini UI 3 */}
+              {/* Mini UI 3 - Execution Tracker & Protected Priorities */}
               <div className="mini-ui-card ui-forward-card">
                 <div className="ui-forward-header">
                   <div className="ui-icon-box ui-blue-icon">
-                    <BarChart2 size={16} strokeWidth={2.4} />
+                    <ShieldCheck size={17} strokeWidth={2.4} />
                   </div>
                   <div className="ui-forward-title-group">
-                    <span className="ui-primary-text">Your week still works</span>
-                    <span className="ui-sub-text">3 priorities protected</span>
+                    <div className="forward-title-row">
+                      <span className="ui-primary-text">Your week still works</span>
+                      <span className="forward-status-chip">100% on track</span>
+                    </div>
+                    <span className="ui-sub-text">3 priorities fully protected</span>
                   </div>
                 </div>
 
+                {/* 3-Step Protected Progress Segments */}
+                <div className="forward-progress-track" aria-hidden="true">
+                  <div className="progress-seg is-active" />
+                  <div className="progress-seg is-active" />
+                  <div className="progress-seg is-active" />
+                </div>
+
+                {/* Structured Priority Checklist */}
                 <ul className="forward-checklist" aria-label="Protected priorities">
                   <li className="checklist-item">
                     <span className="check-bullet"><Check size={12} strokeWidth={2.8} /></span>
-                    <span>Launch product update</span>
+                    <span className="item-name">Launch product update</span>
+                    <span className="item-priority-pill pill-p1">P1</span>
                   </li>
                   <li className="checklist-item">
                     <span className="check-bullet"><Check size={12} strokeWidth={2.8} /></span>
-                    <span>Client call</span>
+                    <span className="item-name">Client call</span>
+                    <span className="item-priority-pill pill-client">Scheduled</span>
                   </li>
                   <li className="checklist-item">
                     <span className="check-bullet"><Check size={12} strokeWidth={2.8} /></span>
-                    <span>Plan team offsite</span>
+                    <span className="item-name">Plan team offsite</span>
+                    <span className="item-priority-pill pill-protected">Protected</span>
                   </li>
                 </ul>
-              </div>
-            </li>
-          </ol>
-        </div>
 
-        {/* 3. Bottom Row: CTA + Compact FAQ */}
-        <div className="loop-bottom-row">
-          {/* Subtle horizontal separator line with acid lime node */}
-          <div className="bottom-separator-line" aria-hidden="true">
-            <span className="separator-dot" />
-            <div className="separator-hairline" />
-          </div>
-
-          <div className="bottom-columns-layout">
-            {/* Left Column: CTA */}
-            <div className="loop-cta-block">
-              <h3 className="cta-headline">
-                Make room for a week that can breathe.
-              </h3>
-
-              {!showInput ? (
-                <div className="cta-action-row">
-                  <button
-                    type="button"
-                    onClick={() => setShowInput(true)}
-                    className="cta-lime-btn"
-                  >
-                    <span>Get early access</span>
-                    <ArrowRight size={16} strokeWidth={2.4} />
-                  </button>
-
-                  <div className="cta-reassurance">
-                    <span className="reassurance-divider" aria-hidden="true" />
-                    <span>No spam. Just progress.</span>
-                  </div>
+                <div className="forward-reassurance-footer">
+                  <CheckCircle2 size={12} className="footer-check-icon" />
+                  <span>All commitments intact · Zero burnout</span>
                 </div>
-              ) : (
-                /* Interactive Real Waitlist Form */
-                <form onSubmit={handleWaitlistSubmit} className="cta-inline-form" noValidate>
-                  <div className="form-input-pill">
-                    <Mail size={16} className="form-mail-icon" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (status !== 'idle') setStatus('idle');
-                      }}
-                      placeholder="Enter your email"
-                      className="form-email-field"
-                      autoFocus
-                      disabled={status === 'submitting'}
-                    />
-                    <button
-                      type="submit"
-                      disabled={status === 'submitting'}
-                      className="form-submit-btn"
-                    >
-                      <span>{status === 'submitting' ? 'Joining...' : 'Join'}</span>
-                      <ArrowRight size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowInput(false)}
-                      className="form-cancel-btn"
-                      aria-label="Close email input"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-
-                  {status !== 'idle' && (
-                    <div className={`form-feedback-msg ${status === 'success' ? 'is-success' : 'is-error'}`}>
-                      {status === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                      <span>{message}</span>
-                    </div>
-                  )}
-
-                  <div className="cta-reassurance" style={{ marginTop: '6px' }}>
-                    <span>No spam. Just progress.</span>
-                  </div>
-                </form>
-              )}
-            </div>
-
-            {/* Vertical Divider */}
-            <div className="columns-vertical-divider" aria-hidden="true" />
-
-            {/* Right Column: Compact FAQ */}
-            <div className="loop-compact-faq-block">
-              <h4 className="compact-faq-heading">A few clear answers</h4>
-
-              <div className="compact-faq-list">
-                {COMPACT_FAQS.map((item) => {
-                  const isOpen = openFaqId === item.id;
-                  return (
-                    <div key={item.id} className={`compact-faq-row ${isOpen ? 'is-expanded' : ''}`}>
-                      <button
-                        type="button"
-                        onClick={() => toggleFaq(item.id)}
-                        className="compact-faq-trigger"
-                        aria-expanded={isOpen}
-                        aria-controls={`${item.id}-desc`}
-                      >
-                        <span className="faq-question-text">{item.q}</span>
-                        <ChevronDown
-                          size={18}
-                          className={`faq-chevron-icon ${isOpen ? 'is-rotated' : ''}`}
-                        />
-                      </button>
-
-                      {isOpen && (
-                        <div id={`${item.id}-desc`} className="compact-faq-answer">
-                          <p>{item.a}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
               </div>
-            </div>
-          </div>
+            </motion.li>
+          </ol>
         </div>
       </div>
 
@@ -432,8 +324,9 @@ export const DotsLoopSection: React.FC = () => {
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
 
         .dots-loop-section {
-          padding-block: clamp(72px, 8vw, 112px);
-          background: #F8F9FE;
+          padding-top: clamp(24px, 3.2vw, 44px);
+          padding-bottom: clamp(64px, 7vw, 100px);
+          background: transparent !important;
           position: relative;
           overflow: hidden;
           color: #111827;
@@ -481,7 +374,7 @@ export const DotsLoopSection: React.FC = () => {
         /* 1. Section Introduction */
         .loop-header {
           max-width: 680px;
-          margin-bottom: clamp(32px, 5vw, 54px);
+          margin-bottom: clamp(24px, 3.5vw, 38px);
         }
 
         .loop-kicker {
@@ -491,7 +384,7 @@ export const DotsLoopSection: React.FC = () => {
           letter-spacing: 0.16em;
           text-transform: uppercase;
           color: #6366F1;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
         }
 
         .loop-title {
@@ -694,21 +587,30 @@ export const DotsLoopSection: React.FC = () => {
         .mini-ui-card {
           background: #FFFFFF;
           border-radius: 20px;
-          border: 1px solid rgba(226, 232, 240, 0.9);
-          box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.06);
+          border: 1px solid rgba(226, 232, 240, 0.95);
+          box-shadow: 0 10px 28px -8px rgba(15, 23, 42, 0.08);
           padding: 16px;
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          min-height: 258px;
+          box-sizing: border-box;
         }
 
-        /* Notice Mini UI */
+        /* ---------------- Stage 1: Notice Mini UI ---------------- */
         .ui-notice-card {
-          padding: 18px 16px;
+          gap: 12px;
         }
 
-        .ui-notice-inner {
+        .notice-incoming-item {
           display: flex;
           align-items: center;
           gap: 12px;
           position: relative;
+          padding: 12px 14px;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
         }
 
         .ui-icon-box {
@@ -719,6 +621,7 @@ export const DotsLoopSection: React.FC = () => {
           align-items: center;
           justifyContent: center;
           flex-shrink: 0;
+          position: relative;
         }
 
         .ui-blue-icon {
@@ -726,16 +629,54 @@ export const DotsLoopSection: React.FC = () => {
           color: #2B2FD9;
         }
 
+        .live-ping-dot {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #22C55E;
+          box-shadow: 0 0 0 2px #FFFFFF, 0 0 8px rgba(34, 197, 94, 0.8);
+          animation: pingDot 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes pingDot {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.25); opacity: 0.75; }
+        }
+
         .ui-text-column {
           display: flex;
           flex-direction: column;
           gap: 2px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .notice-title-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
         }
 
         .ui-primary-text {
-          font-size: 0.86rem;
+          font-size: 0.84rem;
           font-weight: 700;
           color: #0F172A;
+          letter-spacing: -0.01em;
+        }
+
+        .notice-urgent-pill {
+          font-size: 0.64rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 1px 6px;
+          border-radius: 9999px;
+          background: #FEE2E2;
+          color: #DC2626;
         }
 
         .ui-sub-text {
@@ -744,48 +685,124 @@ export const DotsLoopSection: React.FC = () => {
         }
 
         .ui-accent-slashes {
-          position: absolute;
-          top: -8px;
-          right: -2px;
           color: #D2F64C;
-          font-size: 1.05rem;
+          font-size: 1.1rem;
           font-weight: 900;
           letter-spacing: -0.08em;
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+          flex-shrink: 0;
         }
 
-        /* Rebalance Mini UI */
-        .ui-rebalance-card {
-          padding: 14px 16px 16px;
+        /* Notice Impact / Conflict Panel */
+        .notice-impact-panel {
+          padding: 12px 14px;
+          background: #EEF2FF;
+          border: 1px solid rgba(99, 102, 241, 0.22);
+          border-radius: 14px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
 
-        .rebalance-item {
-          padding: 10px 14px;
-          border-radius: 12px;
+        .impact-header-row {
           display: flex;
           align-items: center;
           justifyContent: space-between;
+          font-size: 0.75rem;
+          font-weight: 700;
         }
 
-        .original-item {
-          background: #F1F5F9;
-          border-left: 3px solid #94A3B8;
+        .impact-badge {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          color: #3730A3;
         }
 
-        .moved-item {
-          background: rgba(210, 246, 76, 0.18);
-          border-left: 3px solid #84CC16;
-          border: 1px solid rgba(132, 204, 22, 0.25);
-          border-left-width: 3px;
+        .impact-alert-icon {
+          color: #6366F1;
+        }
+
+        .impact-target {
+          font-size: 0.7rem;
+          color: #4F46E5;
+          font-weight: 600;
+          background: rgba(255, 255, 255, 0.85);
+          padding: 1px 6px;
+          border-radius: 6px;
+        }
+
+        .impact-desc-row {
+          font-size: 0.73rem;
+          line-height: 1.45;
+          color: #4338CA;
+        }
+
+        .impact-status-bar {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.69rem;
+          font-weight: 600;
+          color: #4F46E5;
+          margin-top: 2px;
+        }
+
+        .impact-evaluating-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #6366F1;
+          animation: pulseDot 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+          0%, 100% { opacity: 0.4; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        /* ---------------- Stage 2: Rebalance Mini UI ---------------- */
+        .ui-rebalance-card {
+          gap: 8px;
+        }
+
+        .rebalance-slot {
+          padding: 10px 14px;
+          border-radius: 13px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          position: relative;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .slot-original {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+        }
+
+        .slot-side-indicator {
+          width: 3px;
+          height: 24px;
+          border-radius: 2px;
+          flex-shrink: 0;
+        }
+
+        .indicator-muted {
+          background: #94A3B8;
+        }
+
+        .indicator-active {
+          background: #10B981;
         }
 
         .rebalance-info {
           display: flex;
           flex-direction: column;
           gap: 1px;
+          flex: 1;
+          min-width: 0;
         }
 
         .rebalance-title {
@@ -800,38 +817,101 @@ export const DotsLoopSection: React.FC = () => {
           font-variant-numeric: tabular-nums;
         }
 
+        .slot-badge-shifted {
+          font-size: 0.68rem;
+          font-weight: 600;
+          color: #64748B;
+          background: #E2E8F0;
+          padding: 2px 7px;
+          border-radius: 6px;
+          flex-shrink: 0;
+          margin-left: auto;
+        }
+
+        /* SVG Flow Bridge */
+        .rebalance-flow-bridge {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-inline: 8px;
+          margin-block: 2px;
+        }
+
+        .flow-bridge-track {
+          flex: 1;
+          height: 26px;
+          max-width: 90px;
+        }
+
+        .bridge-curve-line {
+          animation: dashMove 2.5s linear infinite;
+        }
+
+        @keyframes dashMove {
+          from { stroke-dashoffset: 20; }
+          to { stroke-dashoffset: 0; }
+        }
+
+        .flow-bridge-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #4F46E5;
+          background: #EEF2FF;
+          padding: 3px 9px;
+          border-radius: 9999px;
+          border: 1px solid rgba(99, 102, 241, 0.22);
+          box-shadow: 0 1px 3px rgba(99, 102, 241, 0.08);
+        }
+
+        .slot-adjusted {
+          background: rgba(210, 246, 76, 0.16);
+          border: 1px solid rgba(132, 204, 22, 0.35);
+        }
+
         .text-adjusted {
           color: #15803D;
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 0.76rem;
         }
 
-        .rebalance-transition-indicator {
+        .rebalance-protected-badge {
           display: flex;
-          justify-content: flex-end;
-          padding-right: 18px;
-          margin-block: -4px;
+          align-items: center;
+          gap: 5px;
+          flex-shrink: 0;
+          margin-left: auto;
+          font-size: 0.71rem;
+          font-weight: 700;
+          color: #15803D;
+          background: rgba(34, 197, 94, 0.12);
+          padding: 3px 8px;
+          border-radius: 9999px;
         }
 
-        .rebalance-check-icon {
-          width: 22px;
-          height: 22px;
+        .badge-check-circle {
+          width: 15px;
+          height: 15px;
           border-radius: 50%;
-          background: #22C55E;
+          background: #16A34A;
           color: #FFFFFF;
           display: flex;
           align-items: center;
           justifyContent: center;
+          flex-shrink: 0;
         }
 
         .space-made-pill {
           margin-top: 4px;
-          background: rgba(210, 246, 76, 0.22);
-          border: 1px solid rgba(132, 204, 22, 0.25);
+          background: linear-gradient(90deg, rgba(210, 246, 76, 0.35) 0%, rgba(210, 246, 76, 0.18) 100%);
+          border: 1px solid rgba(132, 204, 22, 0.35);
           border-radius: 9999px;
-          padding: 6px 14px;
+          padding: 7px 14px;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
         }
 
         .space-sparkle-icon {
@@ -840,8 +920,8 @@ export const DotsLoopSection: React.FC = () => {
 
         .space-label {
           font-size: 0.74rem;
-          font-weight: 600;
-          color: #15803D;
+          font-weight: 700;
+          color: #166534;
         }
 
         .space-value {
@@ -851,24 +931,57 @@ export const DotsLoopSection: React.FC = () => {
           margin-left: auto;
         }
 
-        /* Move Forward Mini UI */
+        /* ---------------- Stage 3: Move Forward Mini UI ---------------- */
         .ui-forward-card {
-          padding: 16px;
+          gap: 8px;
         }
 
         .ui-forward-header {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #F1F5F9;
         }
 
         .ui-forward-title-group {
+          flex: 1;
+          min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 2px;
+        }
+
+        .forward-title-row {
+          display: flex;
+          align-items: center;
+          justifyContent: space-between;
+        }
+
+        .forward-status-chip {
+          font-size: 0.67rem;
+          font-weight: 800;
+          color: #15803D;
+          background: #DCFCE7;
+          padding: 2px 7px;
+          border-radius: 9999px;
+        }
+
+        .forward-progress-track {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 4px;
+          margin-block: 4px 6px;
+        }
+
+        .progress-seg {
+          height: 4px;
+          border-radius: 2px;
+          background: #E2E8F0;
+        }
+
+        .progress-seg.is-active {
+          background: #10B981;
         }
 
         .forward-checklist {
@@ -877,21 +990,38 @@ export const DotsLoopSection: React.FC = () => {
           padding: 0;
           display: flex;
           flex-direction: column;
-          gap: 9px;
+          gap: 6px;
         }
 
         .checklist-item {
           display: flex;
           align-items: center;
-          gap: 10px;
-          font-size: 0.8rem;
+          gap: 8px;
+          font-size: 0.78rem;
           font-weight: 600;
           color: #1E293B;
+          padding: 5px 8px;
+          border-radius: 8px;
+          background: #F8FAFC;
+          border: 1px solid #F1F5F9;
+          transition: background 0.15s ease;
+        }
+
+        .checklist-item:hover {
+          background: #F1F5F9;
+        }
+
+        .item-name {
+          flex: 1;
+          min-width: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .check-bullet {
-          width: 18px;
-          height: 18px;
+          width: 17px;
+          height: 17px;
           border-radius: 50%;
           background: #EEF2FF;
           color: #2B2FD9;
@@ -901,299 +1031,44 @@ export const DotsLoopSection: React.FC = () => {
           flex-shrink: 0;
         }
 
-        /* 3. Bottom Row: CTA + Compact FAQ */
-        .loop-bottom-row {
-          position: relative;
-        }
-
-        .bottom-separator-line {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 36px;
-        }
-
-        .separator-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #D2F64C;
-          box-shadow: 0 0 0 3px rgba(210, 246, 76, 0.35);
+        .item-priority-pill {
+          font-size: 0.64rem;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 4px;
           flex-shrink: 0;
         }
 
-        .separator-hairline {
-          flex: 1;
-          height: 1px;
-          background: linear-gradient(90deg, rgba(203, 213, 225, 0.8) 0%, rgba(203, 213, 225, 0.2) 100%);
+        .pill-p1 {
+          background: #EEF2FF;
+          color: #4338CA;
         }
 
-        .bottom-columns-layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 36px;
-          align-items: start;
-        }
-
-        @media (min-width: 960px) {
-          .bottom-columns-layout {
-            grid-template-columns: 1.1fr auto 1fr;
-            gap: 40px;
-            align-items: center;
-          }
-        }
-
-        /* Left CTA Column */
-        .loop-cta-block {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .cta-headline {
-          font-size: clamp(1.4rem, 2.2vw, 1.85rem);
-          font-weight: 800;
-          line-height: 1.2;
-          letter-spacing: -0.03em;
-          color: #0F172A;
-          margin: 0;
-          max-width: 380px;
-        }
-
-        .cta-action-row {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 18px;
-        }
-
-        .cta-lime-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #D2F64C;
-          color: #0F172A;
-          font-size: 0.94rem;
-          font-weight: 800;
-          padding: 13px 26px;
-          border-radius: 9999px;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 6px 20px -4px rgba(163, 230, 53, 0.55);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .cta-lime-btn:hover {
-          background: #C4EE38;
-          transform: translateY(-2px);
-          box-shadow: 0 10px 26px -4px rgba(163, 230, 53, 0.7);
-        }
-
-        .cta-lime-btn:active {
-          transform: translateY(0);
-        }
-
-        .cta-reassurance {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          font-size: 0.82rem;
-          color: #64748B;
-          font-weight: 500;
-        }
-
-        .reassurance-divider {
-          width: 1px;
-          height: 18px;
-          background: #CBD5E1;
-        }
-
-        /* Interactive Inline Form */
-        .cta-inline-form {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          max-width: 480px;
-        }
-
-        .form-input-pill {
-          display: flex;
-          align-items: center;
-          background: #FFFFFF;
-          border: 1px solid #CBD5E1;
-          border-radius: 9999px;
-          padding: 5px 6px 5px 16px;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-          transition: border-color 0.15s ease;
-        }
-
-        .form-input-pill:focus-within {
-          border-color: #2B2FD9;
-          box-shadow: 0 0 0 3px rgba(43, 47, 217, 0.15);
-        }
-
-        .form-mail-icon {
-          color: #94A3B8;
-          flex-shrink: 0;
-          margin-right: 8px;
-        }
-
-        .form-email-field {
-          flex: 1;
-          border: none;
-          background: transparent;
-          font-size: 0.9rem;
-          color: #0F172A;
-          outline: none;
-        }
-
-        .form-submit-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: #D2F64C;
-          color: #0F172A;
-          font-size: 0.84rem;
-          font-weight: 800;
-          padding: 9px 18px;
-          border-radius: 9999px;
-          border: none;
-          cursor: pointer;
-          transition: background 0.15s ease;
-        }
-
-        .form-submit-btn:hover:not(:disabled) {
-          background: #C4EE38;
-        }
-
-        .form-cancel-btn {
-          background: transparent;
-          border: none;
-          color: #94A3B8;
-          padding: 6px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          margin-left: 2px;
-        }
-
-        .form-cancel-btn:hover {
-          color: #0F172A;
+        .pill-client {
           background: #F1F5F9;
-        }
-
-        .form-feedback-msg {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.78rem;
-          padding-left: 12px;
-        }
-
-        .form-feedback-msg.is-success {
-          color: #15803D;
-        }
-
-        .form-feedback-msg.is-error {
-          color: #DC2626;
-        }
-
-        /* Vertical Divider */
-        .columns-vertical-divider {
-          display: none;
-          width: 1px;
-          height: 110px;
-          background: rgba(203, 213, 225, 0.6);
-        }
-
-        @media (min-width: 960px) {
-          .columns-vertical-divider {
-            display: block;
-          }
-        }
-
-        /* Right Column: Compact FAQ */
-        .loop-compact-faq-block {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .compact-faq-heading {
-          font-size: 1.15rem;
-          font-weight: 800;
-          color: #0F172A;
-          letter-spacing: -0.02em;
-          margin: 0 0 6px;
-        }
-
-        .compact-faq-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .compact-faq-row {
-          border-bottom: 1px solid rgba(226, 232, 240, 0.9);
-          transition: background 0.15s ease;
-        }
-
-        .compact-faq-row.is-expanded {
-          background: rgba(255, 255, 255, 0.7);
-          border-radius: 12px;
-          padding-inline: 8px;
-          border-bottom-color: transparent;
-        }
-
-        .compact-faq-trigger {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justifyContent: space-between;
-          padding: 11px 4px;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          text-align: left;
-          color: #1E293B;
-          font-size: 0.92rem;
-          font-weight: 600;
-          transition: color 0.15s ease;
-        }
-
-        .compact-faq-trigger:hover {
-          color: #2B2FD9;
-        }
-
-        .faq-chevron-icon {
-          color: #64748B;
-          transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
-          flex-shrink: 0;
-          margin-left: 12px;
-        }
-
-        .faq-chevron-icon.is-rotated {
-          transform: rotate(180deg);
-          color: #2B2FD9;
-        }
-
-        .compact-faq-answer {
-          padding: 0 4px 14px;
-          font-size: 0.86rem;
-          line-height: 1.55;
           color: #475569;
-          animation: faqFade 0.2s ease-out;
         }
 
-        @keyframes faqFade {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
+        .pill-protected {
+          background: #DCFCE7;
+          color: #166534;
         }
 
-        .compact-faq-answer p {
-          margin: 0;
+        .forward-reassurance-footer {
+          margin-top: 4px;
+          padding-top: 6px;
+          border-top: 1px dashed #E2E8F0;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.68rem;
+          font-weight: 600;
+          color: #64748B;
+        }
+
+        .footer-check-icon {
+          color: #10B981;
+          flex-shrink: 0;
         }
 
         /* Responsive Mobile Layout */
@@ -1239,8 +1114,7 @@ export const DotsLoopSection: React.FC = () => {
         @media (prefers-reduced-motion: reduce) {
           .animated-connector-line,
           .lime-node,
-          .loop-stage-card,
-          .compact-faq-answer {
+          .loop-stage-card {
             animation: none !important;
             transition: none !important;
           }
@@ -1249,3 +1123,4 @@ export const DotsLoopSection: React.FC = () => {
     </section>
   );
 };
+

@@ -8,6 +8,7 @@ import { ChannelsAndIntegrations } from './features/channels/ChannelsAndIntegrat
 import { PlanningPhilosophy } from './features/planning/PlanningPhilosophy';
 import { TypicalWeek } from './features/planning/TypicalWeek';
 import { DotsLoopSection } from './features/loop/DotsLoopSection';
+import { FaqSection } from './features/faq/FaqSection';
 import { Footer } from './components/marketing/Footer';
 import { PricingPage } from './pages/PricingPage';
 import { SignInPage } from './pages/SignInPage';
@@ -54,32 +55,7 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  useEffect(() => {
-    if (currentRoute !== 'home') return;
 
-    const sections = Array.from(appRef.current?.querySelectorAll<HTMLElement>('main > section') ?? []);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    sections.forEach((section, index) => {
-      section.classList.add('reveal-section');
-      if (index === 0) section.classList.add('is-revealed');
-    });
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.08 },
-    );
-
-    sections.slice(1).forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [currentRoute]);
 
   const handleBackToHome = () => {
     window.location.hash = '';
@@ -91,6 +67,7 @@ export const App: React.FC = () => {
     return (
       <div ref={appRef} className="dots-app">
         <SignInPage onBackToHome={handleBackToHome} />
+        <Footer />
       </div>
     );
   }
@@ -130,13 +107,18 @@ export const App: React.FC = () => {
           <ChannelsAndIntegrations />
 
           {/* F. Planning Philosophy */}
+          <div id="manifesto" style={{ position: 'relative', top: '-70px', height: 0, visibility: 'hidden' }} />
           <PlanningPhilosophy />
 
           {/* G. Workflow / Typical Week */}
           <TypicalWeek />
 
-          {/* H. The Dots Loop (Product-led section replacing Early Access + FAQ) */}
+          {/* H. The Dots Loop */}
+          <div id="careers" style={{ position: 'relative', top: '-70px', height: 0, visibility: 'hidden' }} />
           <DotsLoopSection />
+
+          {/* I. Comprehensive FAQ Section */}
+          <FaqSection />
         </main>
       )}
 
