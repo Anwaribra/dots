@@ -1,0 +1,9 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "page": "index.html",
+      "description": "Dots — AI Personal Execution Platform Home"
+    }
+  ]
+}

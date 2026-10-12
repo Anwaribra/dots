@@ -1,0 +1,107 @@
+/**
+ * DOTS — Design System Tokens & Calm Intelligent Glass Specifications
+ * Inspired by Shipwork restraint with deep cobalt/violet feature surfaces,
+ * acid-lime accents, and multi-tier liquid glass surfaces.
+ */
+
+:root {
+  /* Canvas & Base Neutrals */
+  --color-canvas: #F7F9FE;
+  --color-canvas-subtle: #EEF2FC;
+  --color-canvas-warm: #FBFCFF;
+  --color-ink: #17172B;
+  --color-ink-secondary: #35354F;
+  --color-ink-muted: #5F5F7C;
+  --color-ink-subtle: #8E8EA8;
+
+  /* Cobalt & Violet Spectrum */
+  --color-cobalt: #4338F2;
+  --color-cobalt-hover: #372ECB;
+  --color-cobalt-light: rgba(67, 56, 242, 0.08);
+  --color-cobalt-subtle: rgba(67, 56, 242, 0.14);
+  --color-cobalt-glow: rgba(67, 56, 242, 0.22);
+  --color-violet: #635BFF;
+  --color-violet-deep: #3127C7;
+  --color-violet-stage: #1A164B;
+  --color-violet-stage-dark: #141138;
+
+  /* Signature Action Accent */
+  --color-lime: #C9F455;
+  --color-lime-hover: #BEEA46;
+  --color-lime-subtle: rgba(201, 244, 85, 0.16);
+  --color-lime-border: rgba(201, 244, 85, 0.45);
+  --color-lime-glow: rgba(201, 244, 85, 0.3);
+  --color-lime-ink: #17172B;
+
+  /* Solid Fallback Surfaces */
+  --surface-solid-white: #FFFFFF;
+  --surface-solid-ink: #17172B;
+  --surface-ink-card: #202038;
+  --surface-ink-elevated: #282846;
+
+  /* Liquid Glass Multi-Intensity Tokens */
+  --glass-nav-bg: rgba(255, 255, 255, 0.68);
+  --glass-nav-border: rgba(255, 255, 255, 0.76);
+  --glass-nav-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  --glass-base-bg: rgba(255, 255, 255, 0.72);
+  --glass-base-border: rgba(255, 255, 255, 0.65);
+  --glass-panel-bg: rgba(255, 255, 255, 0.76);
+  --glass-panel-border: rgba(255, 255, 255, 0.7);
+
+  --glass-elevated-bg: rgba(255, 255, 255, 0.88);
+  --glass-elevated-border: rgba(255, 255, 255, 0.9);
+  --glass-elevated-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+
+  --glass-dark-bg: rgba(23, 23, 43, 0.85);
+  --glass-dark-border: rgba(244, 247, 252, 0.12);
+  --glass-dark-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  --glass-dark-elevated-bg: rgba(32, 32, 56, 0.92);
+  --glass-dark-elevated-border: rgba(244, 247, 252, 0.18);
+
+  --glass-proposal-bg: rgba(201, 244, 85, 0.09);
+  --glass-proposal-border: rgba(201, 244, 85, 0.48);
+
+  /* Precise Fine Borders */
+  --border-light: rgba(23, 23, 43, 0.08);
+  --border-light-hover: rgba(23, 23, 43, 0.16);
+  --border-subtle: rgba(23, 23, 43, 0.04);
+  --border-dark: rgba(244, 247, 252, 0.12);
+  --border-dark-highlight: rgba(244, 247, 252, 0.24);
+
+  /* Geometry & Radii */
+  --radius-panel: 28px;
+  --radius-card: 18px;
+  --radius-nav: 20px;
+  --radius-pill: 9999px;
+  --radius-input: 12px;
+  --radius-sm: 8px;
+
+  /* Layered Shadows */
+  --shadow-sm: 0 1px 3px rgba(23, 23, 43, 0.04), 0 1px 2px rgba(23, 23, 43, 0.03);
+  --shadow-nav: 0 14px 34px -6px rgba(23, 23, 43, 0.07), 0 2px 6px -1px rgba(23, 23, 43, 0.03);
+  --shadow-card: 0 20px 42px -12px rgba(23, 23, 43, 0.08), 0 3px 12px -2px rgba(23, 23, 43, 0.04);
+  --shadow-panel-dark: 0 32px 64px -16px rgba(10, 8, 30, 0.55), 0 8px 24px -4px rgba(10, 8, 30, 0.3);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --max-width-nav: 1280px;
+  --max-width-hero: 1600px;
+  --max-width-canvas: 1600px;
+  --max-width: 1600px;
+  --gutter-desktop: clamp(32px, 4.5vw, 72px);
+  --gutter-mobile: 20px;
+  --nav-height: 64px;
+}
+
+/* Solid Fallbacks for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  :root {
+    --glass-nav-bg: #FFFFFF;
+    --glass-base-bg: #FFFFFF;
+    --glass-elevated-bg: #FFFFFF;
+    --glass-dark-bg: #17172B;
+    --glass-dark-elevated-bg: #202038;
+  }
+}
