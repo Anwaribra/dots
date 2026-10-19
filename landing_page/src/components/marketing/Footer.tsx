@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ArrowRight,
   Mail,
   CheckCircle2,
   AlertCircle,
   Globe,
-  Github,
-  Twitter,
-  Linkedin,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { DotsLogo } from '../brand/DotsLogo';
 import { TelegramIcon } from '../brand/TelegramIcon';
 import { dotsAdapter } from '../../lib/api/client';
 import { WaitlistStatus } from '../../domain/waitlist';
 
+const LANGUAGES = [
+  { code: 'EN (US)', label: 'English (US)' },
+  { code: 'AR', label: 'العربية (Arabic)' },
+  { code: 'ES', label: 'Español' },
+  { code: 'FR', label: 'Français' },
+  { code: 'DE', label: 'Deutsch' },
+];
+
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<WaitlistStatus>('idle');
   const [message, setMessage] = useState('');
+
+  // Interactive Language Selector
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState('EN (US)');
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,19 +64,12 @@ export const Footer: React.FC = () => {
   return (
     <div className="footer-outer-shell">
       <footer className="footer-rounded-card" aria-label="Site Footer">
-        {/* Soft Ambient Brand Glow Orbs (Cobalt Blue + Electric Lime mix) */}
-        <div className="footer-ambient-glow" aria-hidden="true">
-          <div className="footer-orb orb-cobalt" />
-          <div className="footer-orb orb-lime" />
-        </div>
-
         <div className="footer-inner-content">
           {/* 1. Top Newsletter & Vision Capsule */}
           <div className="footer-top-banner">
             <div className="banner-text-column">
               <div className="banner-kicker">
-                <span className="banner-kicker-dot" />
-                <span>EXECUTION ENGINE · POWERED BY DOTS</span>
+                <span>WEEKLY EXECUTION PLATFORM</span>
               </div>
               <h3 className="banner-headline">
                 Make room for a week that can <span className="highlight-blue">breathe.</span>
@@ -102,53 +117,33 @@ export const Footer: React.FC = () => {
 
           {/* 2. Main Multi-Column Directory */}
           <div className="footer-nav-grid">
-            {/* Brand Information Column with Authentic Logo Colors */}
+            {/* Brand Information Column */}
             <div className="footer-col col-brand">
               <a href="#hero" className="footer-brand-link" aria-label="Dots Home">
                 <DotsLogo size={32} theme="light" />
               </a>
 
               <p className="footer-brand-mission">
-                The AI personal execution platform that connects your goals, plans your week, and adapts when real life changes.
+                The personal execution platform that connects your goals, plans your week, and adapts when real life changes.
               </p>
 
-              {/* Social Channels */}
-              <div className="footer-social-row">
+              {/* Telegram Featured Community Card */}
+              <div className="footer-telegram-channel">
                 <a
                   href="https://t.me"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon-btn"
-                  aria-label="Telegram"
+                  className="telegram-featured-btn"
+                  aria-label="Join our Telegram community"
                 >
-                  <TelegramIcon size={16} />
-                </a>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-icon-btn"
-                  aria-label="Twitter / X"
-                >
-                  <Twitter size={15} />
-                </a>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-icon-btn"
-                  aria-label="GitHub"
-                >
-                  <Github size={15} />
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-icon-btn"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin size={15} />
+                  <div className="telegram-btn-icon-box">
+                    <TelegramIcon size={16} />
+                  </div>
+                  <div className="telegram-btn-content">
+                    <span className="telegram-btn-label">Join on Telegram</span>
+                    <span className="telegram-btn-desc">Community & Voice Bot</span>
+                  </div>
+                  <ArrowRight size={13} className="telegram-btn-arrow" />
                 </a>
               </div>
             </div>
@@ -162,7 +157,7 @@ export const Footer: React.FC = () => {
                 <li><a href="#product">Adaptive Engine</a></li>
                 <li><a href="#use-cases">3 Responsibilities</a></li>
                 <li><a href="#pricing">Pricing & Tiers</a></li>
-                <li><a href="#early-access">Early Access Program</a></li>
+                <li><a href="#app">Web Application</a></li>
                 <li><a href="#faq">Telegram & Voice Bot</a></li>
               </ul>
             </div>
@@ -227,25 +222,52 @@ export const Footer: React.FC = () => {
               </span>
             </div>
 
-            {/* Center: The Three Dots Motif & Motto */}
-            <div className="footer-center-motto" aria-hidden="true">
-              <div className="footer-dots-constellation">
-                <span className="constellation-dot dot-cobalt" />
-                <span className="constellation-dot dot-lime" />
-                <span className="constellation-dot dot-ink" />
-              </div>
+            {/* Center: Editorial Motto (No artificial dots) */}
+            <div className="footer-center-motto">
               <span className="footer-motto-text">No perfect week required. Just progress.</span>
             </div>
 
-            {/* Right: Security & Region */}
+            {/* Right: Legal & Interactive Region */}
             <div className="footer-trust-group">
               <a href="#privacy" className="footer-legal-link">Privacy</a>
               <span className="footer-legal-dot">·</span>
               <a href="#terms" className="footer-legal-link">Terms</a>
               <span className="footer-legal-dot">·</span>
-              <div className="trust-badge">
-                <Globe size={13} className="trust-icon" />
-                <span>EN (US)</span>
+
+              {/* Language Selector Popover */}
+              <div className="trust-badge-wrap" ref={langDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsLangOpen((prev) => !prev)}
+                  className={`trust-badge-btn ${isLangOpen ? 'is-active' : ''}`}
+                  aria-expanded={isLangOpen}
+                  aria-haspopup="menu"
+                  aria-label="Select language"
+                >
+                  <Globe size={13} className="trust-icon" />
+                  <span>{currentLang}</span>
+                  <ChevronDown size={12} className={`trust-chevron ${isLangOpen ? 'is-rotated' : ''}`} />
+                </button>
+
+                {isLangOpen && (
+                  <div className="lang-popover" role="menu">
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        role="menuitem"
+                        className={`lang-option ${currentLang === lang.code ? 'is-selected' : ''}`}
+                        onClick={() => {
+                          setCurrentLang(lang.code);
+                          setIsLangOpen(false);
+                        }}
+                      >
+                        <span>{lang.label}</span>
+                        {currentLang === lang.code && <Check size={13} className="lang-check-icon" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -274,40 +296,8 @@ export const Footer: React.FC = () => {
             0 2px 10px rgba(0, 0, 0, 0.02),
             inset 0 1px 1px rgba(255, 255, 255, 1) !important;
           position: relative;
-          overflow: hidden;
+          overflow: visible;
           color: #0F172A !important;
-        }
-
-        /* Ambient Glow Layer: Subtle Cobalt Blue + Electric Lime */
-        .footer-ambient-glow {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          overflow: hidden;
-          z-index: 0;
-        }
-
-        .footer-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.6;
-        }
-
-        .orb-cobalt {
-          width: 500px;
-          height: 500px;
-          top: -120px;
-          left: -100px;
-          background: radial-gradient(circle, rgba(56, 70, 248, 0.1) 0%, rgba(56, 70, 248, 0) 70%);
-        }
-
-        .orb-lime {
-          width: 440px;
-          height: 440px;
-          bottom: -100px;
-          right: -80px;
-          background: radial-gradient(circle, rgba(210, 246, 76, 0.18) 0%, rgba(210, 246, 76, 0) 70%);
         }
 
         .footer-inner-content {
@@ -342,20 +332,11 @@ export const Footer: React.FC = () => {
         .banner-kicker {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           font-weight: 800;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #2B2FD9;
-        }
-
-        .banner-kicker-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #2B2FD9;
-          box-shadow: 0 0 8px rgba(43, 47, 217, 0.5);
         }
 
         .banner-headline {
@@ -514,33 +495,72 @@ export const Footer: React.FC = () => {
           max-width: 290px;
         }
 
-        /* Social Icons */
-        .footer-social-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-top: 6px;
+        /* Telegram Featured Community Card */
+        .footer-telegram-channel {
+          margin-top: 10px;
         }
 
-        .social-icon-btn {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          color: #475569;
-          display: flex;
+        .telegram-featured-btn {
+          display: inline-flex;
           align-items: center;
-          justifyContent: center;
+          gap: 12px;
+          padding: 8px 14px 8px 10px;
+          background: #FFFFFF;
+          border: 1px solid rgba(43, 47, 217, 0.16);
+          border-radius: 14px;
           text-decoration: none;
-          transition: all 0.18s ease;
+          box-shadow: 0 2px 8px rgba(36, 161, 222, 0.08);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          max-width: 260px;
         }
 
-        .social-icon-btn:hover {
-          color: #2B2FD9;
-          background: #EEF2FF;
-          border-color: rgba(43, 47, 217, 0.3);
+        .telegram-featured-btn:hover {
+          border-color: #24A1DE;
+          background: #F0F9FF;
           transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(36, 161, 222, 0.2);
+        }
+
+        .telegram-btn-icon-box {
+          width: 32px;
+          height: 32px;
+          border-radius: 9px;
+          background: linear-gradient(135deg, #24A1DE 0%, #1E88E5 100%);
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(36, 161, 222, 0.35);
+        }
+
+        .telegram-btn-content {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+
+        .telegram-btn-label {
+          font-size: 0.82rem;
+          font-weight: 800;
+          color: #0F172A;
+          letter-spacing: -0.01em;
+        }
+
+        .telegram-btn-desc {
+          font-size: 0.7rem;
+          color: #64748B;
+          font-weight: 500;
+        }
+
+        .telegram-btn-arrow {
+          color: #94A3B8;
+          transition: transform 0.18s ease, color 0.18s ease;
+        }
+
+        .telegram-featured-btn:hover .telegram-btn-arrow {
+          color: #24A1DE;
+          transform: translateX(3px);
         }
 
         .footer-col-title {
@@ -607,10 +627,11 @@ export const Footer: React.FC = () => {
         .footer-bottom-bar {
           display: flex;
           align-items: center;
-          justifyContent: space-between;
+          justify-content: space-between;
           flex-wrap: wrap;
           gap: 20px;
           padding-top: clamp(20px, 2.8vw, 30px);
+          position: relative;
         }
 
         .footer-copyright-group {
@@ -624,43 +645,16 @@ export const Footer: React.FC = () => {
           color: #64748B;
         }
 
-        /* Center Motif: Logo 3 Dots + Motto */
+        /* Center Motto (Clean, no artificial dots) */
         .footer-center-motto {
           display: flex;
           align-items: center;
-          gap: 10px;
-        }
-
-        .footer-dots-constellation {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-        }
-
-        .constellation-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-        }
-
-        .dot-cobalt {
-          background: #3846F8;
-          box-shadow: 0 0 6px rgba(56, 70, 248, 0.5);
-        }
-
-        .dot-lime {
-          background: #D2F64C;
-          box-shadow: 0 0 6px rgba(210, 246, 76, 0.6);
-        }
-
-        .dot-ink {
-          background: #111827;
         }
 
         .footer-motto-text {
-          font-size: 0.76rem;
+          font-size: 0.78rem;
           font-weight: 700;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.02em;
           color: #475569;
         }
 
@@ -673,10 +667,11 @@ export const Footer: React.FC = () => {
         }
 
         .footer-legal-link {
-          font-size: 0.74rem;
+          font-size: 0.76rem;
           color: #64748B;
           text-decoration: none;
           transition: color 0.15s ease;
+          font-weight: 500;
         }
 
         .footer-legal-link:hover {
@@ -688,19 +683,92 @@ export const Footer: React.FC = () => {
           font-size: 0.74rem;
         }
 
-        .trust-badge {
+        /* Language Selector Pill & Popover */
+        .trust-badge-wrap {
+          position: relative;
+        }
+
+        .trust-badge-btn {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
-          font-size: 0.72rem;
-          color: #64748B;
+          gap: 6px;
+          font-size: 0.74rem;
+          font-weight: 600;
+          color: #475569;
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          padding: 4px 9px;
-          border-radius: 6px;
+          padding: 5px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.18s ease;
+        }
+
+        .trust-badge-btn:hover,
+        .trust-badge-btn.is-active {
+          background: #FFFFFF;
+          border-color: rgba(43, 47, 217, 0.35);
+          color: #2B2FD9;
+          box-shadow: 0 2px 8px rgba(43, 47, 217, 0.08);
         }
 
         .trust-icon {
+          color: #2B2FD9;
+        }
+
+        .trust-chevron {
+          color: #94A3B8;
+          transition: transform 0.18s ease;
+        }
+
+        .trust-chevron.is-rotated {
+          transform: rotate(180deg);
+          color: #2B2FD9;
+        }
+
+        .lang-popover {
+          position: absolute;
+          bottom: calc(100% + 8px);
+          right: 0;
+          background: #FFFFFF;
+          border: 1px solid rgba(226, 232, 240, 0.95);
+          border-radius: 12px;
+          padding: 6px;
+          box-shadow: 0 10px 28px -4px rgba(15, 23, 42, 0.14);
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 140px;
+          z-index: 50;
+        }
+
+        .lang-option {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 7px 10px;
+          border-radius: 7px;
+          border: none;
+          background: transparent;
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: #334155;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+          text-align: left;
+        }
+
+        .lang-option:hover {
+          background: #F1F5F9;
+          color: #0F172A;
+        }
+
+        .lang-option.is-selected {
+          background: #EEF2FF;
+          color: #2B2FD9;
+          font-weight: 700;
+        }
+
+        .lang-check-icon {
           color: #2B2FD9;
         }
 
@@ -718,6 +786,12 @@ export const Footer: React.FC = () => {
           }
           .footer-copyright-group {
             order: 1;
+          }
+          .lang-popover {
+            bottom: auto;
+            top: calc(100% + 8px);
+            right: auto;
+            left: 0;
           }
         }
       `}</style>

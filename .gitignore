@@ -4,3 +4,8 @@ dist/
 data/
 *.db
 *.db-*
+.env
+.env.*
+!.env.example
+.supabase/
+

@@ -12,27 +12,44 @@ import { FaqSection } from './features/faq/FaqSection';
 import { Footer } from './components/marketing/Footer';
 import { PricingPage } from './pages/PricingPage';
 import { SignInPage } from './pages/SignInPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 
-type AppRoute = 'home' | 'pricing' | 'signin';
+import { AuthProvider } from './context/AuthContext';
+import { AppDashboard } from './pages/AppDashboard';
 
-export const App: React.FC = () => {
+type AppRoute = 'home' | 'pricing' | 'signin' | 'privacy' | 'terms' | 'app';
+
+export const AppContent: React.FC = () => {
   const appRef = useRef<HTMLDivElement>(null);
   const [currentRoute, setCurrentRoute] = useState<AppRoute>(() => {
     if (typeof window === 'undefined') return 'home';
     const hash = window.location.hash;
+    if (hash === '#app' || hash === '#dashboard' || hash === '#today' || hash === '#week' || hash === '#changes') return 'app';
     if (hash === '#pricing') return 'pricing';
     if (hash === '#signin' || hash === '#login' || hash === '#account') return 'signin';
+    if (hash === '#privacy') return 'privacy';
+    if (hash === '#terms') return 'terms';
     return 'home';
   });
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#pricing') {
+      if (hash === '#app' || hash === '#dashboard' || hash === '#today' || hash === '#week' || hash === '#changes') {
+        setCurrentRoute('app');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else if (hash === '#pricing') {
         setCurrentRoute('pricing');
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else if (hash === '#signin' || hash === '#login' || hash === '#account') {
         setCurrentRoute('signin');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else if (hash === '#privacy') {
+        setCurrentRoute('privacy');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else if (hash === '#terms') {
+        setCurrentRoute('terms');
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else {
         setCurrentRoute('home');
@@ -63,11 +80,18 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (currentRoute === 'app') {
+    return (
+      <div ref={appRef} className="dots-app">
+        <AppDashboard onBackToLanding={handleBackToHome} />
+      </div>
+    );
+  }
+
   if (currentRoute === 'signin') {
     return (
       <div ref={appRef} className="dots-app">
         <SignInPage onBackToHome={handleBackToHome} />
-        <Footer />
       </div>
     );
   }
@@ -84,6 +108,14 @@ export const App: React.FC = () => {
       {currentRoute === 'pricing' ? (
         <main id="main-content">
           <PricingPage onBackToHome={handleBackToHome} />
+        </main>
+      ) : currentRoute === 'privacy' ? (
+        <main id="main-content">
+          <PrivacyPage onBackToHome={handleBackToHome} />
+        </main>
+      ) : currentRoute === 'terms' ? (
+        <main id="main-content">
+          <TermsPage onBackToHome={handleBackToHome} />
         </main>
       ) : (
         <main id="main-content">
@@ -125,5 +157,13 @@ export const App: React.FC = () => {
       {/* Footer */}
       <Footer />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };

@@ -514,7 +514,7 @@ export const PlanningPhilosophy: React.FC = () => {
         {/* Bottom CTA Button */}
         <div style={{ textAlign: 'center', marginTop: '56px' }}>
           <a
-            href="#early-access"
+            href="#app"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

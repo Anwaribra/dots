@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
-import { dotsAdapter } from '../../lib/api/client';
-import { WaitlistStatus } from '../../domain/waitlist';
+import { Mail, ArrowRight, CheckCircle2, AlertCircle, Sparkles, Send } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const WaitlistSection: React.FC = () => {
+  const { signInWithOtp } = useAuth();
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<WaitlistStatus>('idle');
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,12 +20,17 @@ export const WaitlistSection: React.FC = () => {
 
     setStatus('submitting');
     try {
-      const result = await dotsAdapter.submitWaitlist(email.trim());
-      setStatus(result.status);
-      setMessage(result.message);
-    } catch {
-      setStatus('unavailable');
-      setMessage('The early access endpoint is currently unavailable. Please check back soon.');
+      const res = await signInWithOtp(email.trim());
+      if (res.success) {
+        setStatus('success');
+        setMessage(`We sent a magic sign-in link to ${email.trim()}. Check your inbox or spam folder!`);
+      } else {
+        setStatus('error');
+        setMessage(res.message || 'Could not dispatch sign-in email. Please try signing in directly with password.');
+      }
+    } catch (err: any) {
+      setStatus('error');
+      setMessage(err.message || 'Authentication service error. Try signing in on the sign-in page.');
     }
   };
 
@@ -115,15 +120,19 @@ export const WaitlistSection: React.FC = () => {
               textTransform: 'uppercase',
               color: 'rgba(255, 255, 255, 0.75)',
               marginBottom: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            A MORE BALANCED YOU
+            <Sparkles size={14} color="#C9F455" />
+            <span>LIVE ADAPTIVE ENGINE</span>
           </div>
 
           {/* Title */}
           <h2
             style={{
-              fontSize: 'clamp(2.4rem, 4.4vw, 3.8rem)',
+              fontSize: 'clamp(2.2rem, 4.2vw, 3.6rem)',
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: '-0.04em',
@@ -131,29 +140,29 @@ export const WaitlistSection: React.FC = () => {
               marginBottom: '14px',
             }}
           >
-            Get Early Access
+            Start Using Dots Today
           </h2>
 
           {/* Subtitle */}
           <p
             style={{
-              fontSize: '1.08rem',
+              fontSize: '1.05rem',
               color: 'rgba(255, 255, 255, 0.88)',
               lineHeight: 1.6,
-              maxWidth: '560px',
-              margin: '0 auto 32px',
+              maxWidth: '580px',
+              margin: '0 auto 28px',
             }}
           >
-            Be the first to experience a calmer, more flexible way to plan your week with Dots.
+            Sign in with a real magic link to sync your schedules across Web and Telegram, or jump right into the live app.
           </p>
 
-          {/* Email Input Form */}
+          {/* Real Supabase Magic Link Form */}
           <form
             onSubmit={handleSubmit}
             noValidate
             style={{
               width: '100%',
-              maxWidth: '520px',
+              maxWidth: '540px',
               display: 'flex',
               alignItems: 'center',
               background: 'rgba(255, 255, 255, 0.16)',
@@ -174,7 +183,7 @@ export const WaitlistSection: React.FC = () => {
                 setEmail(e.target.value);
                 if (status !== 'idle') setStatus('idle');
               }}
-              placeholder="Enter your email"
+              placeholder="Enter your email to receive sign-in link"
               disabled={status === 'submitting'}
               style={{
                 background: 'transparent',
@@ -206,7 +215,7 @@ export const WaitlistSection: React.FC = () => {
                 flexShrink: 0,
               }}
             >
-              <span>{status === 'submitting' ? 'Joining...' : 'Get Early Access'}</span>
+              <span>{status === 'submitting' ? 'Sending link...' : 'Get Magic Link'}</span>
               <ArrowRight size={15} />
             </button>
           </form>
@@ -215,12 +224,18 @@ export const WaitlistSection: React.FC = () => {
           {status !== 'idle' && (
             <div
               style={{
-                marginTop: '14px',
-                fontSize: '0.82rem',
+                marginTop: '16px',
+                fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '8px',
                 color: status === 'success' ? '#C9F455' : '#FECACA',
+                background: status === 'success' ? 'rgba(201, 244, 85, 0.12)' : 'rgba(239, 68, 68, 0.15)',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                border: `1px solid ${status === 'success' ? 'rgba(201, 244, 85, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                maxWidth: '540px',
               }}
             >
               {status === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -228,15 +243,91 @@ export const WaitlistSection: React.FC = () => {
             </div>
           )}
 
+          {/* Instant Direct Action Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              marginTop: '28px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <a
+              href="#app"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#FFFFFF',
+                color: '#252BD5',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                padding: '10px 22px',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                transition: 'all 0.18s ease',
+              }}
+            >
+              <span>Open Web App</span>
+              <ArrowRight size={15} />
+            </a>
+
+            <a
+              href="#signin"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.14)',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '0.88rem',
+                padding: '10px 20px',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              <span>Sign In with Password</span>
+            </a>
+
+            <a
+              href="https://t.me/DotsPersonalPlannerBot"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.14)',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '0.88rem',
+                padding: '10px 20px',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              <Send size={14} />
+              <span>Telegram Bot</span>
+            </a>
+          </div>
+
           {/* Footnote */}
           <div
             style={{
               fontSize: '0.74rem',
               color: 'rgba(255, 255, 255, 0.65)',
-              marginTop: '16px',
+              marginTop: '20px',
             }}
           >
-            No spam. Just progress.
+            Secured by Supabase Auth · Deterministic replanning engine active
           </div>
         </div>
       </div>

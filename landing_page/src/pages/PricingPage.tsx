@@ -72,7 +72,6 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
         {/* Hero Header */}
         <header className="pricing-header">
           <div className="pricing-kicker-badge">
-            <span className="kicker-dot" />
             <span>Simple, honest execution pricing</span>
           </div>
 
@@ -125,7 +124,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
               </p>
             </div>
 
-            <a href="#early-access" className="plan-cta-btn cta-outline">
+            <a href="#app" className="plan-cta-btn cta-outline">
               Start for free
             </a>
             <p className="fine-print">No credit card needed · Instant access</p>
@@ -195,7 +194,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
               </p>
             </div>
 
-            <a href="#early-access" className="plan-cta-btn cta-hero">
+            <a href="#app" className="plan-cta-btn cta-hero">
               <span>Go Unlimited</span>
               <ArrowRight size={16} strokeWidth={2.6} />
             </a>
@@ -261,7 +260,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
               </p>
             </div>
 
-            <a href="#early-access" className="plan-cta-btn cta-outline">
+            <a href="#app" className="plan-cta-btn cta-outline">
               Start team trial
             </a>
             <p className="fine-print">Includes dedicated concierge onboarding</p>
@@ -331,9 +330,19 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
                 <h3>Compare plan capabilities</h3>
                 <p>Full transparency on every feature</p>
               </div>
-              <div className="cmp-col-header">Starter</div>
-              <div className="cmp-col-header feat-header">Unlimited</div>
-              <div className="cmp-col-header">Executive</div>
+              <div className="cmp-col-header">
+                <span className="col-plan-name">Starter</span>
+                <span className="col-plan-price">$0</span>
+              </div>
+              <div className="cmp-col-header feat-header">
+                <div className="col-featured-tag">MOST POPULAR</div>
+                <span className="col-plan-name">Unlimited</span>
+                <span className="col-plan-price">{billing === 'annual' ? '$7.80/mo' : '$9.80/mo'}</span>
+              </div>
+              <div className="cmp-col-header">
+                <span className="col-plan-name">Executive</span>
+                <span className="col-plan-price">{billing === 'annual' ? '$24/mo' : '$29/mo'}</span>
+              </div>
             </div>
 
             {/* Group 1: Core Execution */}
@@ -439,7 +448,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
           <p className="bottom-cta-desc">
             Join hundreds of focused professionals using Dots to turn noisy commitments into calm execution.
           </p>
-          <a href="#early-access" className="bottom-cta-btn">
+          <a href="#app" className="bottom-cta-btn">
             <span>Get started with Dots</span>
             <ArrowRight size={17} strokeWidth={2.4} />
           </a>
@@ -452,8 +461,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
           background: #F8F9FE;
           color: #111827;
           position: relative;
-          overflow-x: hidden;
-          padding-top: clamp(88px, 10vw, 120px);
+          overflow-x: clip;
+          padding-top: clamp(124px, 14vw, 156px);
           padding-bottom: 96px;
         }
 
@@ -791,7 +800,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
           color: #FFFFFF;
           border: 1px solid rgba(255, 255, 255, 0.25);
           box-shadow: 0 34px 74px -18px rgba(35, 40, 195, 0.45);
-          overflow: hidden;
+          overflow: visible;
           isolation: isolate;
         }
 
@@ -806,7 +815,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
 
         .floating-hero-badge {
           position: absolute;
-          top: -12px;
+          top: -14px;
           right: 28px;
           background: #D2F64C;
           color: #111827;
@@ -814,13 +823,13 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          padding: 5px 13px;
+          padding: 6px 14px;
           border-radius: 9999px;
           display: flex;
           align-items: center;
           gap: 5px;
-          box-shadow: 0 6px 16px rgba(210, 246, 76, 0.45);
-          z-index: 5;
+          box-shadow: 0 6px 18px rgba(163, 230, 53, 0.45), 0 2px 4px rgba(0, 0, 0, 0.1);
+          z-index: 10;
         }
 
         /* Drift fields animated ambient glowing shapes */
@@ -830,7 +839,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
           z-index: -1;
           pointer-events: none;
           overflow: hidden;
-          border-radius: inherit;
+          border-radius: 28px;
         }
 
         .drift-orb {
@@ -958,43 +967,79 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
         .comparison-card {
           background: #FFFFFF;
           border-radius: 32px;
-          overflow: hidden;
           border: 1px solid rgba(23, 23, 43, 0.06);
           box-shadow: 0 20px 50px -16px rgba(27, 31, 100, 0.07);
+          position: relative;
         }
 
         .comparison-head-row {
+          position: sticky;
+          top: 76px;
+          z-index: 25;
           display: grid;
           grid-template-columns: 2fr 1fr 1.2fr 1fr;
           align-items: center;
-          padding: 24px 28px;
-          background: #FAFBFF;
-          border-bottom: 1px solid rgba(23, 23, 43, 0.06);
+          padding: 16px 28px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
+          border-top-left-radius: 32px;
+          border-top-right-radius: 32px;
+          border-bottom: 1px solid rgba(23, 23, 43, 0.08);
+          box-shadow: 0 8px 24px -4px rgba(27, 31, 100, 0.08);
         }
 
         .cmp-title-col h3 {
-          font-size: 1.25rem;
+          font-size: 1.15rem;
           font-weight: 800;
           color: #111827;
           margin: 0 0 2px;
         }
 
         .cmp-title-col p {
-          font-size: 0.82rem;
+          font-size: 0.8rem;
           color: #6B7280;
           margin: 0;
         }
 
         .cmp-col-header {
           text-align: center;
-          font-size: 0.94rem;
-          font-weight: 700;
-          color: #374151;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
         }
 
-        .feat-header {
-          color: #2B2FD9;
+        .col-plan-name {
+          font-size: 0.95rem;
           font-weight: 800;
+          color: #1F2937;
+        }
+
+        .col-plan-price {
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: #6B7280;
+        }
+
+        .feat-header .col-plan-name {
+          color: #2B2FD9;
+        }
+
+        .feat-header .col-plan-price {
+          color: #2B2FD9;
+          font-weight: 700;
+        }
+
+        .col-featured-tag {
+          font-size: 0.6rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          padding: 2px 7px;
+          border-radius: 9999px;
+          background: #D2F64C;
+          color: #111827;
+          margin-bottom: 2px;
         }
 
         .cmp-group-heading {
@@ -1017,6 +1062,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onBackToHome }) => {
 
         .cmp-row:last-child {
           border-bottom: none;
+          border-bottom-left-radius: 32px;
+          border-bottom-right-radius: 32px;
         }
 
         .cmp-feature-name {

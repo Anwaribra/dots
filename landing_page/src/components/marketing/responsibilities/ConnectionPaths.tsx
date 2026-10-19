@@ -4,13 +4,21 @@ interface WireGeometry {
   width: number;
   height: number;
   pathLeft1: string;
-  pathLeft2: string;
   pathRightUpper: string;
   pathRightLower: string;
   pathArrow: string;
   nodeLeft: { x: number; y: number };
   nodePinch: { x: number; y: number };
   node03: { x: number; y: number };
+}
+
+// Calculate silhouette contour X at a given SVG Y (viewBox 0 0 1000 700) along the shoulder
+function getSilhouetteLeftX(svgY: number): number {
+  if (svgY <= 14) return 80;
+  if (svgY >= 100) return 8;
+  const t = Math.max(0, Math.min(1, (100 - svgY) / 86));
+  const p0 = 8, p1 = 16, p2 = 40, p3 = 80;
+  return (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
 }
 
 export const ConnectionPaths: React.FC = () => {
@@ -45,22 +53,22 @@ export const ConnectionPaths: React.FC = () => {
     const x1 = r1.right - wrapperRect.left;
     const y1 = r1.top - wrapperRect.top + r1.height * 0.44;
 
-    // 2. Floating node in gap between Panel 01 and Center Silhouette
-    const xf = x1 + (r2.left - wrapperRect.left - x1) * 0.52;
-    const yf = Math.min(y1 - 65, r2.top - wrapperRect.top + 52);
+    // 2. Lime node placed precisely on the beginning/edge of the middle blue panel (no gap)
+    const r2W = r2.width + 34; // right: -34px offset in center-silhouette-vector-bg
+    const r2H = r2.height || 600;
+    const yOffset = 38;
+    const yf = r2.top - wrapperRect.top + yOffset;
+    const svgY = Math.max(14, Math.min(100, (yOffset / r2H) * 700));
+    const contourSvgX = getSilhouetteLeftX(svgY);
+    const contourPx = contourSvgX * (r2W / 1000);
+    // Position center of lime circle right on the contour of the blue panel
+    const xf = r2.left - wrapperRect.left + contourPx;
 
-    // 3. Center panel shoulder path: line crosses into purple shape in soft white along the left shoulder
-    // Hugs the shoulder contour strictly to the left of all text
-    const xCrest = r2.left - wrapperRect.left + 30;
-    const yCrest = r2.top - wrapperRect.top + 14;
-    const xDeep = r2.left - wrapperRect.left + 42;
-    const yDeep = r2.top - wrapperRect.top + 135;
-
-    // 4. Funnel pinch apex (tip of the silhouette nozzle on right of Center Panel)
+    // 3. Funnel pinch apex (tip of the silhouette nozzle on right of Center Panel)
     const xp = r2.right - wrapperRect.left + 34;
     const yp = r2.top - wrapperRect.top + r2.height * 0.38;
 
-    // 5. Node 03 badge dot in Panel 03
+    // 4. Node 03 badge dot in Panel 03
     const x03 = rb03
       ? rb03.left - wrapperRect.left + rb03.width * 0.5
       : r3.left - wrapperRect.left + 34;
@@ -68,7 +76,7 @@ export const ConnectionPaths: React.FC = () => {
       ? rb03.top - wrapperRect.top + rb03.height * 0.5
       : r3.top - wrapperRect.top + 34;
 
-    // 6. Moved to make space card in Panel 03 — wire points directly at card before the green icon
+    // 5. Moved to make space card in Panel 03 — wire points directly at card before the green icon
     const cardLeft = rmCard ? rmCard.left - wrapperRect.left : r3.left - wrapperRect.left + 38;
     const cardTop = rmCard ? rmCard.top - wrapperRect.top : r3.top - wrapperRect.top + r3.height * 0.72;
     
@@ -90,8 +98,7 @@ export const ConnectionPaths: React.FC = () => {
     const b2x = xt - barbLen * Math.cos(arrivalAngle + barbSpread);
     const b2y = yt - barbLen * Math.sin(arrivalAngle + barbSpread);
 
-    const pathLeft1 = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + (xf - x1) * 0.65).toFixed(1)} ${y1.toFixed(1)}, ${(xf - 24).toFixed(1)} ${(yf + 32).toFixed(1)}, ${xf.toFixed(1)} ${yf.toFixed(1)}`;
-    const pathLeft2 = `M ${xf.toFixed(1)} ${yf.toFixed(1)} C ${(xf + 16).toFixed(1)} ${(yf - 24).toFixed(1)}, ${(xCrest - 16).toFixed(1)} ${(yCrest - 2).toFixed(1)}, ${xCrest.toFixed(1)} ${yCrest.toFixed(1)} C ${(xCrest + 12).toFixed(1)} ${(yCrest + 2).toFixed(1)}, ${(xDeep - 6).toFixed(1)} ${(yDeep - 40).toFixed(1)}, ${xDeep.toFixed(1)} ${yDeep.toFixed(1)}`;
+    const pathLeft1 = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + (xf - x1) * 0.48).toFixed(1)} ${y1.toFixed(1)}, ${(xf - 36).toFixed(1)} ${(yf + 16).toFixed(1)}, ${xf.toFixed(1)} ${yf.toFixed(1)}`;
     const pathRightUpper = `M ${xp.toFixed(1)} ${yp.toFixed(1)} C ${(xp + 34).toFixed(1)} ${(yp - 42).toFixed(1)}, ${(x03 - 24).toFixed(1)} ${(y03 + 12).toFixed(1)}, ${x03.toFixed(1)} ${y03.toFixed(1)}`;
     const pathRightLower = `M ${xp.toFixed(1)} ${yp.toFixed(1)} C ${(xp + 36).toFixed(1)} ${(yp + 42).toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${xt.toFixed(1)} ${yt.toFixed(1)}`;
     const pathArrow = `M ${b1x.toFixed(1)} ${b1y.toFixed(1)} L ${xt.toFixed(1)} ${yt.toFixed(1)} L ${b2x.toFixed(1)} ${b2y.toFixed(1)}`;
@@ -100,7 +107,6 @@ export const ConnectionPaths: React.FC = () => {
       width: w,
       height: h,
       pathLeft1,
-      pathLeft2,
       pathRightUpper,
       pathRightLower,
       pathArrow,
@@ -155,12 +161,11 @@ export const ConnectionPaths: React.FC = () => {
   const fallbackGeom: WireGeometry = {
     width: 1440,
     height: 560,
-    pathLeft1: 'M 320 330 C 375 330, 410 220, 442 165',
-    pathLeft2: 'M 442 165 C 460 142, 475 135, 490 138 C 500 140, 508 175, 510 220',
+    pathLeft1: 'M 320 330 C 380 330, 440 180, 472 144',
     pathRightUpper: 'M 1042 278 C 1085 240, 1110 180, 1152 165',
     pathRightLower: 'M 1042 278 C 1088 320, 1120 395, 1156 422',
     pathArrow: 'M 1147 416 L 1156 422 L 1150 430',
-    nodeLeft: { x: 442, y: 165 },
+    nodeLeft: { x: 472, y: 144 },
     nodePinch: { x: 1042, y: 278 },
     node03: { x: 1152, y: 165 },
   };
@@ -196,17 +201,7 @@ export const ConnectionPaths: React.FC = () => {
         }}
         className="connection-svg"
       >
-        <defs>
-          {/* Subtle transition to soft white inside purple silhouette */}
-          <linearGradient id="wireToWhiteGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#2B2FD9" />
-            <stop offset="28%" stopColor="#2B2FD9" />
-            <stop offset="42%" stopColor="rgba(255, 255, 255, 0.8)" />
-            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.65)" />
-          </linearGradient>
-        </defs>
-
-        {/* 1. Left Wire Path (Panel 01 -> Floating Lime Node) */}
+        {/* 1. Left Wire Path (Panel 01 -> Lime Node at start of Center Panel) */}
         <path
           d={g.pathLeft1}
           stroke="#2B2FD9"
@@ -215,21 +210,12 @@ export const ConnectionPaths: React.FC = () => {
           className="anim-path path-left-1"
         />
 
-        {/* 2. Left Wire Path (Soft white line arching on shoulder, clear of text) */}
-        <path
-          d={g.pathLeft2}
-          stroke="url(#wireToWhiteGradient)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          className="anim-path path-left-2"
-        />
-
-        {/* 3. Floating Solid Lime Node between Left Panel and Center Silhouette */}
+        {/* 2. Solid Lime Node sitting directly on the beginning of Center Silhouette */}
         <g className="anim-node node-left-floating">
           <circle cx={g.nodeLeft.x} cy={g.nodeLeft.y} r="9.5" fill="#D2F64C" />
         </g>
 
-        {/* 4. Right Wire Upper Branch (From Funnel Pinch Apex -> Node 03 in Right Panel) */}
+        {/* 3. Right Wire Upper Branch (From Funnel Pinch Apex -> Node 03 in Right Panel) */}
         <path
           d={g.pathRightUpper}
           stroke="#2B2FD9"
@@ -238,7 +224,7 @@ export const ConnectionPaths: React.FC = () => {
           className="anim-path path-right-upper"
         />
 
-        {/* 5. Right Wire Lower Branch (From Funnel Pinch Apex -> Enters INSIDE Moved to make space card) */}
+        {/* 4. Right Wire Lower Branch (From Funnel Pinch Apex -> Enters INSIDE Moved to make space card) */}
         <path
           d={g.pathRightLower}
           stroke="#2B2FD9"
@@ -257,7 +243,7 @@ export const ConnectionPaths: React.FC = () => {
           className="anim-node node-arrow"
         />
 
-        {/* 6. Solid Lime Node at the Funnel Pinch Apex */}
+        {/* 5. Solid Lime Node at the Funnel Pinch Apex */}
         <g className="anim-node node-funnel-tip">
           <circle cx={g.nodePinch.x} cy={g.nodePinch.y} r="10.5" fill="#D2F64C" />
         </g>
@@ -279,10 +265,7 @@ export const ConnectionPaths: React.FC = () => {
           animation: drawPath 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
         }
         .is-animated .node-left-floating {
-          animation: nodePop 0.35s ease 0.35s forwards;
-        }
-        .is-animated .path-left-2 {
-          animation: drawPath 0.65s cubic-bezier(0.4, 0, 0.2, 1) 0.45s forwards;
+          animation: nodePop 0.35s ease 0.5s forwards;
         }
         .is-animated .node-funnel-tip {
           animation: nodePop 0.35s ease 0.65s forwards;

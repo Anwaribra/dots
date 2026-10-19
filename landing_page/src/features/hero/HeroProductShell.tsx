@@ -6,7 +6,6 @@ import {
   BarChart3,
   ChevronDown,
   ChevronLeft,
-  Sparkles,
   Palmtree,
 } from 'lucide-react';
 import { TelegramIcon } from '../../components/brand/TelegramIcon';
@@ -408,8 +407,7 @@ export const HeroProductShell: React.FC = () => {
             position: 'absolute',
             top: '85px',
             right: '-36px',
-            background: 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'blur(16px)',
+            background: '#FFFFFF',
             borderRadius: '18px',
             padding: '14px 18px',
             width: '310px',
@@ -420,24 +418,10 @@ export const HeroProductShell: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  background: '#2AABEE',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#FFFFFF',
-                  boxShadow: '0 2px 8px rgba(42, 171, 238, 0.35)',
-                }}
-              >
-                <TelegramIcon size={14} />
-              </div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#17172B' }}>Telegram</span>
+              <TelegramIcon size={24} variant="circle" />
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#17172B' }}>Telegram</span>
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 500 }}>now</span>
+            <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600 }}>now</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
@@ -517,8 +501,7 @@ export const HeroProductShell: React.FC = () => {
             zIndex: 21,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Sparkles size={16} color="#17172B" />
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#17172B' }}>
               Proposed adjustment
             </span>

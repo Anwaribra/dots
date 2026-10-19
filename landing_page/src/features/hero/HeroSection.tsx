@@ -17,8 +17,8 @@ export const HeroSection: React.FC = () => (
           </p>
 
           <div className="hero-cta-row">
-            <a href="#early-access" className="hero-lime-cta">
-              <span>Get Early Access</span>
+            <a href="#app" className="hero-lime-cta">
+              <span>Get Started Free</span>
               <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a href="#demo" className="hero-secondary-cta">

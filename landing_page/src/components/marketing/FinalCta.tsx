@@ -36,8 +36,8 @@ export const FinalCta: React.FC = () => {
             Experience realistic planning that bends when life changes without breaking your commitments.
           </p>
 
-          <a href="#early-access" className="btn btn-primary btn-lg">
-            <span>Get Early Access</span>
+          <a href="#app" className="btn btn-primary btn-lg">
+            <span>Launch Dots App</span>
             <ArrowRight size={16} />
           </a>
         </div>
