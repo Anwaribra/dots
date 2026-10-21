@@ -658,7 +658,7 @@ section p { text-wrap: pretty; }
 #hero .hero-product-container > *:not(.hero-calendar-window) { animation: annotationEnter 720ms var(--ease-editorial) 420ms both; }
 
 /* A restrained inline framing system, applied to major product scenes only. */
-#problem::before, #channels::after, #planning::after, #how-it-works::after {
+#channels::after, #planning::after, #how-it-works::after {
   content: '';
   position: absolute;
   width: 28rem;
@@ -668,7 +668,6 @@ section p { text-wrap: pretty; }
   pointer-events: none;
   z-index: -1;
 }
-#problem::before { left: -18rem; top: 20%; }
 #channels::after { right: -19rem; top: 21%; }
 #planning::after { left: -18rem; bottom: 12%; }
 #how-it-works::after { right: -19rem; top: 25%; }
