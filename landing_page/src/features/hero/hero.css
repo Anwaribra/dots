@@ -1,0 +1,479 @@
+/* ============================================================================
+   Dots Hero — Life Changes. Keep Moving. (3D Living Ribbon)
+   ============================================================================ */
+
+.hero-ribbon-section {
+  position: relative;
+  overflow: hidden;
+  padding-top: clamp(36px, 5vw, 68px);
+  padding-bottom: clamp(40px, 6vw, 76px);
+  background: #FBFBFC;
+}
+
+.hero-ribbon-container {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 3.5vw, 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================================================================
+   Top Editorial Copy Lockup
+   ============================================================================ */
+
+.hero-ribbon-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 760px;
+  margin-inline: auto;
+  z-index: 5;
+  position: relative;
+}
+
+.hero-eyebrow-lockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.hero-eyebrow-text {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #3846F8;
+  white-space: nowrap;
+}
+
+.hero-headline {
+  margin: 0;
+  font-size: clamp(2.85rem, 5.2vw, 5.1rem);
+  font-weight: 850;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  color: #111827;
+}
+
+.hero-keep-moving-word {
+  position: relative;
+  display: inline-block;
+  color: #3846F8;
+  white-space: nowrap;
+}
+
+.hero-lime-brush-underline {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: -11px;
+  width: calc(100% + 8px);
+  height: 22px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hero-supporting-line {
+  margin: 20px auto 0;
+  font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+  line-height: 1.5;
+  color: #52526B;
+  max-width: 520px;
+}
+
+/* CTA Buttons */
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #D2F64C;
+  color: #111827;
+  font-size: 0.96rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  padding: 13px 30px;
+  border-radius: 9999px;
+  text-decoration: none;
+  box-shadow: 0 8px 24px -6px rgba(168, 211, 48, 0.42);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.hero-btn-primary:hover {
+  transform: translateY(-2px);
+  background: #C9F455;
+  box-shadow: 0 12px 28px -6px rgba(168, 211, 48, 0.58);
+}
+
+.hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #17172B;
+  font-size: 0.94rem;
+  font-weight: 650;
+  padding: 13px 26px;
+  border-radius: 9999px;
+  border: 1px solid rgba(23, 23, 43, 0.13);
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.hero-btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 70, 248, 0.4);
+  color: #3846F8;
+}
+
+/* ============================================================================
+   Visual Stage: 3D Paper Living Ribbon
+   ============================================================================ */
+
+.hero-ribbon-visual {
+  width: 100%;
+  max-width: 1140px;
+  margin-top: clamp(-18px, -2.5vw, -36px);
+  position: relative;
+  z-index: 2;
+}
+
+.living-ribbon-stage {
+  width: 100%;
+  position: relative;
+}
+
+.living-ribbon-frame {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  border-radius: 16px;
+}
+
+.living-ribbon-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+  filter: contrast(1.02);
+}
+
+/* Interactive Hotspot Nodes */
+.living-ribbon-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ribbon-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 6;
+  border-radius: 50%;
+  outline: none;
+}
+
+.hotspot-pulse-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(210, 246, 76, 0.35);
+  animation: pulseRipple 2.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseRipple {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.hotspot-dot-core {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #D2F64C;
+  border: 2px solid #3846F8;
+  box-shadow: 0 0 10px rgba(56, 70, 248, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ribbon-hotspot:hover .hotspot-dot-core,
+.ribbon-hotspot:focus .hotspot-dot-core,
+.ribbon-hotspot.is-active .hotspot-dot-core {
+  transform: scale(1.35);
+  box-shadow: 0 0 14px rgba(56, 70, 248, 0.6);
+}
+
+/* Tooltip / Micro-Card */
+.hotspot-card {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(23, 23, 43, 0.1);
+  box-shadow: 0 16px 36px -8px rgba(23, 23, 43, 0.16), 0 4px 12px -2px rgba(23, 23, 43, 0.06);
+  width: 210px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index: 10;
+  text-align: left;
+}
+
+.ribbon-hotspot:hover .hotspot-card,
+.ribbon-hotspot:focus .hotspot-card,
+.ribbon-hotspot.is-active .hotspot-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hotspot-card__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.hotspot-card__subtitle {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #3846F8;
+  text-transform: uppercase;
+}
+
+.hotspot-card__title {
+  font-size: 13px;
+  font-weight: 750;
+  color: #111827;
+  letter-spacing: -0.015em;
+  margin-bottom: 4px;
+}
+
+.hotspot-card__desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #52526B;
+}
+
+.node-icon {
+  color: #3846F8;
+  flex-shrink: 0;
+}
+
+/* Bottom-Right Editorial Typography Mark */
+.ribbon-brand-mark {
+  position: absolute;
+  bottom: 4.5%;
+  right: 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ribbon-brand-mark__title {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #71717A;
+  text-transform: uppercase;
+}
+
+.ribbon-brand-mark__sub {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #71717A;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ribbon-brand-mark__rule {
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: #A1A1AA;
+}
+
+/* ============================================================================
+   Mobile Progression Cards (Hidden on Desktop)
+   ============================================================================ */
+
+.mobile-ribbon-progression {
+  display: none;
+}
+
+/* ============================================================================
+   Responsive Breakpoints
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  .hero-ribbon-visual {
+    margin-top: 0;
+  }
+
+  .hotspot-card {
+    display: none; /* Avoid tooltip clipping on smaller tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-ribbon-section {
+    padding-top: 28px;
+    padding-bottom: 40px;
+  }
+
+  .hero-headline {
+    font-size: clamp(2.3rem, 9vw, 3.2rem);
+  }
+
+  .hero-supporting-line {
+    font-size: 1rem;
+    padding-inline: 8px;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .hero-btn-primary,
+  .hero-btn-secondary {
+    width: 100%;
+  }
+
+  /* Hotspots hidden on mobile to rely on the clean progression cards */
+  .living-ribbon-hotspots,
+  .ribbon-brand-mark {
+    display: none;
+  }
+
+  /* Show accessible mobile progression cards */
+  .mobile-ribbon-progression {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 18px;
+  }
+
+  .mobile-progression-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(23, 23, 43, 0.08);
+    box-shadow: 0 4px 12px rgba(23, 23, 43, 0.03);
+  }
+
+  .mobile-card-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .mobile-card-num {
+    font-size: 10px;
+    font-weight: 800;
+    color: #3846F8;
+    letter-spacing: 0.06em;
+  }
+
+  .mobile-card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #D2F64C;
+    border: 1.5px solid #3846F8;
+  }
+
+  .mobile-card-content {
+    flex: 1;
+  }
+
+  .mobile-card-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+  }
+
+  .mobile-card-sub {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #3846F8;
+    text-transform: uppercase;
+  }
+
+  .mobile-card-title {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 750;
+    color: #111827;
+  }
+
+  .mobile-card-desc {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: #52526B;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-btn-primary,
+  .hero-btn-secondary,
+  .hotspot-pulse-ring,
+  .hotspot-dot-core,
+  .hotspot-card {
+    transition: none !important;
+    animation: none !important;
+  }
+}
